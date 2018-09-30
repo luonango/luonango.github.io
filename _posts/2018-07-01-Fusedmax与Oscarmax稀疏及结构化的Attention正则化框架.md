@@ -43,8 +43,10 @@ tags:
 
 先给出一些定义：
 
-- 集合$\{1,2,...,d\}$定义为$[d]$，$d-1$维的单形体为$\Delta^d:=\{x\in R^d:\mid\mid x\mid\mid_1=1,x \geq0\}$， 在欧几里得的投影为$P_{\Delta^d}(x):={\arg\min}_{y\in \Delta^d}\mid\mid y-x\mid\mid^2$
-- 如果函数$f:R^d\rightarrow R\bigcup \{\infty\}$, 则其凸共轭(convex conjugate)为$f^{*}(x):=\sup_{y\in dom\;f}y^Tx-f(y)$.  给定范数$\mid\mid\cdot\mid\mid$,它的对偶定义为$\mid\mid x\mid\mid_* :=\sup_{\mid\mid y\mid\mid \leq 1}y^T x$. 用$\partial f(y)$ 表示函数$f$在$y$处的次微分 
+
+- 如果函数$f:R^d\rightarrow R\bigcup \{\infty\}$, 则其凸共轭(convex conjugate)为 
+
+- $f^{ *}(x) :=\sup_{y\in dom\;f}y^Tx-f(y)$ .  给定范数$\mid\mid\cdot\mid\mid$,它的对偶定义为$\mid\mid x\mid\mid_* :=\sup_{\mid\mid y\mid\mid \leq 1}y^T x$. 用$\partial f(y)$ 表示函数$f$在$y$处的次微分 
 > 次微分subdifferential,凸函数$f(x)=\mid x\mid$在原点的次微分是区间$[−1, 1]$.
 - 函数$f$的Jacobian(雅可比)$J_{g}(y)\in R^{d\times d}$,Hessian(海森矩阵)$H_{f}(y)\in R^{d\times d}$
 
@@ -107,7 +109,7 @@ $$
 {\max}_{\Omega}(x)=max_{\Omega}^{**}(x) = \sup_{y\in R^d} y^Tx - {\max}^*_{\Omega} (y)=\sup_{y\in\Delta^d}y^Tx-\gamma\Omega(y)
 $$
 
-由此，前面提到的映射${\prod}_{\Omega}: R^d\rightarrow \Delta^d$定义为：
+由此，前面提到的映射 ${ \prod}_{ \Omega}: R^d\rightarrow \Delta^d$ 定义为：
 $$
 {\prod}_{\Omega}(x):=\arg\max_{y\in \Delta^d}y^Tx-\gamma\Omega(y)=\nabla max_{\Omega}(x)
 $$
@@ -173,7 +175,7 @@ $$
 
 这推导得出：调控 $\gamma$ 可以控制稀疏性。根据sparsemax的论文[From softmax to sparsemax: A sparse model of attention and multi-label classification](https://arxiv.org/pdf/1602.02068.pdf)中的公式 $9$可以知道 ${\prod}_{\Omega}$ 的雅可比矩阵为:
 $$
-J_{{\prod}_{\Omega}}(x)=\frac{1}{\gamma}J_{P_{\Delta^d}}(x/\gamma)=\frac{1}{\gamma}\big(diag(s)-ss^T/\mid\mid s\mid\mid_1\big)
+J_{ {\prod}_{\Omega}}(x)=\frac{1}{\gamma}J_{P_{\Delta^d}}(x/\gamma)=\frac{1}{\gamma}\big(diag(s)-ss^T/\mid\mid s\mid\mid_1\big)
 $$
 > 其中 $s\in\{0,1\}^d$ 指示着 ${\prod}_{\Omega}(x)$ 的非$0$元素。
 > 
@@ -185,7 +187,7 @@ $$
 ## 4. Fusedmax与Oscarmax 新Attention机制
 
 论文提出 **论点 $1$：如果 $\Omega$ 函数可微，那可以计算出 ${\prod}_{\Omega}$ 的雅可比矩阵 .**
-> 论文附录 $A.1$ 已证明，只要提供了$\Omega$的Jacobian和Hessian，那就可以根据论文提供的公式计算出 $J_{{\prod}_{\Omega}}$ .
+> 论文附录 $A.1$ 已证明，只要提供了$\Omega$的Jacobian和Hessian，那就可以根据论文提供的公式计算出 $J_{ {\prod}_{\Omega}}$ .
 
 那来一个简单例子吧。
 
@@ -198,7 +200,7 @@ $$
 {\prod}_{\Omega}(x)= \arg\min_{y\in \Delta^d} \frac{\gamma}{2}\mid\mid y\mid\mid^2_p - y^Tx
 $$
 
-论点$1$ 所需要的梯度和Hessian可以通过 $\nabla\Omega(y)=\frac{y^{p-1}}{\mid\mid y\mid\mid^{p-2}_p}$ 以及下式得到所需要的$J_{{\prod}_{\Omega}}$.
+论点$1$ 所需要的梯度和Hessian可以通过 $\nabla\Omega(y)=\frac{y^{p-1}}{\mid\mid y\mid\mid^{p-2}_p}$ 以及下式得到所需要的$J_{ {\prod}_{\Omega}}$.
 $$
 H_{\Omega}(y)=diag(d)+ uu^T,\quad where \quad d=\frac{(p-1)}{\mid\mid y\mid\mid^{p-2}_p}y^{p-2} \quad and \quad u=\sqrt{\frac{(2-p)}{\mid\mid y\mid\mid^{2p-2}_p}} y^{ p-1}
 $$
