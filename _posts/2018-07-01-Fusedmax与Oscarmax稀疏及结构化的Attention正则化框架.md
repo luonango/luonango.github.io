@@ -260,7 +260,7 @@ $$
 > 论文的附录中还有大量实验结果，可以加深理解。
 
 来看一个 法语-英语翻译 Attention实验效果：
-<img src="./pictures/fusedmax_oscarmax.png", width="1000">
+<img src="./img/avatar_g.jpg", width="1000">
 
 ---
 ## 5. TV与OSCAR的简单介绍：
@@ -303,7 +303,6 @@ $$
 $$
 将上述方法应用在1维数据得到结果如下(图来自[The Generalized Lasso，Lecture 22](http://euler.stat.yale.edu/~tba3/stat612/lectures/lec22/lecture22.pdf)）：
 
-<img src="./pictures/Fuse_lasso_1.png", width="500">
 
 可以看出，数据最终呈现连续区域的聚集，即空间聚集（spatial clutering)，也就得到了稀疏形式的数据表示。 得到更平滑的数据表示，也能防止过拟合的数据表示。
 
@@ -335,7 +334,6 @@ $$
 
 |Elastic Net|OSCAR|
 |:-:|:-:|
-|<img src="./pictures/oscar_elasticnet.png",width="500">|<img src="./pictures/oscar_oscar.png",width="500">|
 |$L_1$和$L_2$范式组合|$L_1$和$L_{\infty}$范式组合|
 
 看上图也就能理解“八边形收缩”这名称了. 该OSCAR基于惩罚最小二乘法，将一些系数收缩至恰好为零。同时这惩罚函数能产生值相同的系数，鼓励相关的预测因子(即指$x_i$)它们对最终结果有着相同的影响，从而形成单个系数表示预测因子群集。
