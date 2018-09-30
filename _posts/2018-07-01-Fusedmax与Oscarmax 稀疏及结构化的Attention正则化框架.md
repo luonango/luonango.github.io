@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      稀疏及结构化的Attention正则化框架
+title:      Fusedmax与Oscarmax：稀疏及结构化的Attention正则化框架
 subtitle:   Fusedmax与Oscarmax 新Attention机制
 date:       2018-07-07
 author:     luonango
