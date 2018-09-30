@@ -263,7 +263,7 @@ $$
 > 论文的附录中还有大量实验结果，可以加深理解。
 
 来看一个 法语-英语翻译 Attention实验效果：
-![](https://luonango.github.io/img/pictures/fusedmax_oscarmax.png)
+![](https://pic2.zhimg.com/80/v2-f1c62fb2bef70e0262e11bfea7e6fb1d_hd.jpg)
 
 <img src="http://127.0.0.1:4000/img/pictures/fusedmax_oscarmax.png", width="1000">
 
