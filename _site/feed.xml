@@ -5,26 +5,20 @@
     <description>Every failure is leading towards success.</description>
     <link>http://luonango.github.io/</link>
     <atom:link href="http://luonango.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Sun, 30 Sep 2018 14:23:53 +0800</pubDate>
-    <lastBuildDate>Sun, 30 Sep 2018 14:23:53 +0800</lastBuildDate>
+    <pubDate>Sun, 30 Sep 2018 14:33:20 +0800</pubDate>
+    <lastBuildDate>Sun, 30 Sep 2018 14:33:20 +0800</lastBuildDate>
     <generator>Jekyll v3.0.1</generator>
     
       <item>
         <title>Fusedmax与Oscarmax</title>
-        <description>&lt;head&gt;
-    &lt;script src=&quot;https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&quot; type=&quot;text/javascript&quot;&gt;&lt;/script&gt;
-    &lt;script type=&quot;text/x-mathjax-config&quot;&gt;
-        MathJax.Hub.Config({
-            tex2jax: {
-            skipTags: [&#39;script&#39;, &#39;noscript&#39;, &#39;style&#39;, &#39;textarea&#39;, &#39;pre&#39;],
-            inlineMath: [[&#39;$&#39;,&#39;$&#39;]],
-            displayMath: [[&#39;$$&#39;,&#39;$$&#39;]],
-            }
-        });
-    &lt;/script&gt;
-&lt;/head&gt;
+        <description>&lt;h1 id=&quot;fusedmaxoscarmaxattention&quot;&gt;Fusedmax与Oscarmax：稀疏及结构化的Attention正则化框架&lt;/h1&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2017_NIPS
+康奈尔大学, Vlad Niculae
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
 
-&lt;h1 id=&quot;fusedmaxoscarmaxattention&quot;&gt;Fusedmax与Oscarmax：稀疏及结构化的Attention正则化框架&lt;/h1&gt;
+&lt;h1 id=&quot;attention&quot;&gt;稀疏及结构化的Attention正则化框架&lt;/h1&gt;
+
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2017_NIPS
 康奈尔大学, Vlad Niculae
 &lt;/code&gt;&lt;/pre&gt;
@@ -57,18 +51,11 @@
 &lt;p&gt;先给出一些定义：&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;如果函数 $f:R^d\rightarrow R\bigcup {\infty}$ , 则其凸共轭(convex conjugate)为&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;script type=&quot;math/tex&quot;&gt;f^{ *}(x) :=\sup_{y\in dom\;f}y^Tx-f(y)&lt;/script&gt; .  给定范数$\mid\mid\cdot\mid\mid$,它的对偶定义为$\mid\mid x\mid\mid_* :=\sup_{\mid\mid y\mid\mid \leq 1}y^T x$. 用$\partial f(y)$ 表示函数$f$在$y$处的次微分&lt;/p&gt;
-  &lt;/li&gt;
+  &lt;li&gt;集合${1,2,…,d}$定义为$[d]$，$d-1$维的单形体为$\Delta^d:={x\in R^d:\mid\mid x\mid\mid_1=1,x \geq0}$， 在欧几里得的投影为$P_{\Delta^d}(x):={\arg\min}_{y\in \Delta^d}\mid\mid y-x\mid\mid^2$&lt;/li&gt;
+  &lt;li&gt;如果函数$f:R^d\rightarrow R\bigcup {\infty}$, 则其凸共轭(convex conjugate)为$f^{&lt;em&gt;}(x):=\sup_{y\in dom\;f}y^Tx-f(y)$.  给定范数$\mid\mid\cdot\mid\mid$,它的对偶定义为$\mid\mid x\mid\mid_&lt;/em&gt; :=\sup_{\mid\mid y\mid\mid \leq 1}y^T x$. 用$\partial f(y)$ 表示函数$f$在$y$处的次微分 &lt;br /&gt;
+&amp;gt; 次微分subdifferential,凸函数$f(x)=\mid x\mid$在原点的次微分是区间$[−1, 1]$.&lt;/li&gt;
+  &lt;li&gt;函数$f$的Jacobian(雅可比)$J_{g}(y)\in R^{d\times d}$,Hessian(海森矩阵)$H_{f}(y)\in R^{d\times d}$&lt;/li&gt;
 &lt;/ul&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;次微分subdifferential,凸函数$f(x)=\mid x\mid$在原点的次微分是区间$[−1, 1]$.&lt;br /&gt;
-- 函数$f$的Jacobian(雅可比)$J_{g}(y)\in R^{d\times d}$,Hessian(海森矩阵)$H_{f}(y)\in R^{d\times d}$&lt;/p&gt;
-&lt;/blockquote&gt;
 
 &lt;p&gt;现在我们看下$max$算子（虽然是$R^d \rightarrow \Delta^d$的映射函数，但不适合作为Attention机制):&lt;br /&gt;
 &lt;script type=&quot;math/tex&quot;&gt;\max(x):=\max_{i\in [d]} x_i = \sup_{y\in \Delta^d} y^Tx&lt;/script&gt;&lt;/p&gt;
@@ -124,7 +111,7 @@ convergence, Appendix B&lt;/a&gt; 中。其实通过求解共轭函数的方法�
 &lt;p&gt;为了定义出平滑的$\max$算子: $\max_{\Omega}$，再次使用共轭：&lt;br /&gt;
 &lt;script type=&quot;math/tex&quot;&gt;{\max}_{\Omega}(x)=max_{\Omega}^{**}(x) = \sup_{y\in R^d} y^Tx - {\max}^*_{\Omega} (y)=\sup_{y\in\Delta^d}y^Tx-\gamma\Omega(y)&lt;/script&gt;&lt;/p&gt;
 
-&lt;p&gt;由此，前面提到的映射 ${ \prod}&lt;em&gt;{ \Omega}: R^d\rightarrow \Delta^d$ 定义为：&lt;br /&gt;
+&lt;p&gt;由此，前面提到的映射${\prod}&lt;em&gt;{\Omega}: R^d\rightarrow \Delta^d$定义为：&lt;br /&gt;
 &lt;script type=&quot;math/tex&quot;&gt;{\prod}_{\Omega}(x):=\arg\max_{y\in \Delta^d}y^Tx-\gamma\Omega(y)=\nabla max_{\Omega}(x)&lt;/script&gt;&lt;br /&gt;
 &amp;gt; 1. 上述式子可由：$\max&lt;/em&gt;{\Omega}(x)=(y^&lt;em&gt;)^Tx-\max^&lt;/em&gt;&lt;em&gt;{\Omega}(y^*)\Longleftrightarrow y^* \in \partial\max&lt;/em&gt;{\Omega}(x)$ 证得。&lt;br /&gt;
 &amp;gt; 2. $\partial\max_{\Omega}(x)={\nabla\max_{\Omega}(x)}$只有唯一解（$y^*$是单形体的顶点）。故$\prod_{\Omega}$ 是梯度的映射函数。&lt;/p&gt;
@@ -166,7 +153,7 @@ f^*(y) &amp; =\sum y_i x_i - log\sum e^{x_i} \\
 也可以查阅&lt;a href=&quot;https://web.stanford.edu/~boyd/cvxbook/bv_cvxbook.pdf&quot;&gt;《Convex optimization》&lt;/a&gt;的习题3.25, 里面有详细证明。&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;p&gt;如果 $f(x)=\gamma g(x)$,则对于 $\gamma &amp;gt;0$,有 $ f^&lt;em&gt;(y)=\gamma g^&lt;/em&gt;(y/\gamma)$. 则${\max}&lt;em&gt;{\Omega}(x)=\gamma \log\sum&lt;/em&gt;{i=1}^d e^{x_i / \gamma}$.&lt;/p&gt;
+&lt;p&gt;如果 $f(x)=\gamma g(x)$,则对于 $\gamma &amp;gt;0$,有 $f^&lt;em&gt;(y)=\gamma g^&lt;/em&gt;(y/\gamma)$. 则${\max}&lt;em&gt;{\Omega}(x)=\gamma \log\sum&lt;/em&gt;{i=1}^d e^{x_i / \gamma}$.&lt;/p&gt;
 
 &lt;p&gt;由于$\Omega(y)$负熵在 $\mid\mid\cdot\mid\mid_1$ 是 1-strongly convex，所以${\max}&lt;em&gt;{\Omega}$在 $\mid\mid\cdot\mid\mid&lt;/em&gt;{\infty}$ 上是$\frac{1}{\gamma}$-smooth.&lt;/p&gt;
 
@@ -264,7 +251,7 @@ supervised clustering of predictors with OSCAR&lt;/a&gt;中的OSCAR惩罚函数�
 &amp;gt; 论文的附录中还有大量实验结果，可以加深理解。&lt;/p&gt;
 
 &lt;p&gt;来看一个 法语-英语翻译 Attention实验效果：&lt;br /&gt;
-&amp;lt;img src=”./img/avatar_g.jpg”, width=”1000”&amp;gt;&lt;/p&gt;
+&amp;lt;img src=”img/pictures/fusedmax_oscarmax.png”, width=”1000”&amp;gt;&lt;/p&gt;
 
 &lt;hr /&gt;
 &lt;p&gt;## 5. TV与OSCAR的简单介绍：&lt;/p&gt;
@@ -315,6 +302,8 @@ supervised clustering of predictors with OSCAR&lt;/a&gt;中的OSCAR惩罚函数�
   \right) %]]&gt;&lt;/script&gt;&lt;br /&gt;
 将上述方法应用在1维数据得到结果如下(图来自&lt;a href=&quot;http://euler.stat.yale.edu/~tba3/stat612/lectures/lec22/lecture22.pdf&quot;&gt;The Generalized Lasso，Lecture 22&lt;/a&gt;）：&lt;/p&gt;
 
+&lt;p&gt;&amp;lt;img src=”img/pictures/Fuse_lasso_1.png”, width=”500”&amp;gt;&lt;/p&gt;
+
 &lt;p&gt;可以看出，数据最终呈现连续区域的聚集，即空间聚集（spatial clutering)，也就得到了稀疏形式的数据表示。 得到更平滑的数据表示，也能防止过拟合的数据表示。&lt;/p&gt;
 
 &lt;hr /&gt;
@@ -355,6 +344,10 @@ supervised clustering of predictors with OSCAR&lt;/a&gt;中的OSCAR惩罚函数�
     &lt;/tr&gt;
   &lt;/thead&gt;
   &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;&amp;lt;img src=”img/pictures/oscar_elasticnet.png”,width=”500”&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;&amp;lt;img src=”img/pictures/oscar_oscar.png”,width=”500”&amp;gt;&lt;/td&gt;
+    &lt;/tr&gt;
     &lt;tr&gt;
       &lt;td style=&quot;text-align: center&quot;&gt;$L_1$和$L_2$范式组合&lt;/td&gt;
       &lt;td style=&quot;text-align: center&quot;&gt;$L_1$和$L_{\infty}$范式组合&lt;/td&gt;

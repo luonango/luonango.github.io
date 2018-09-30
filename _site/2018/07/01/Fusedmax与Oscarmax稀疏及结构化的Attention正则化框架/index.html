@@ -156,7 +156,18 @@
     <!-- Image to hack wechat -->
 <!-- <img src="/img/icon_wechat.png" width="0" height="0"> -->
 <!-- <img src="/img/post-bg-ios9-web.jpg" width="0" height="0"> -->
-
+<head>
+    <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+            inlineMath: [['$','$']],
+            displayMath: [['$$','$$']],
+            }
+        });
+    </script>
+</head>
 <!-- Post Header -->
 <style type="text/css">
     header.intro-header{
@@ -206,20 +217,14 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-				<head>
-    <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
-    <script type="text/x-mathjax-config">
-        MathJax.Hub.Config({
-            tex2jax: {
-            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
-            inlineMath: [['$','$']],
-            displayMath: [['$$','$$']],
-            }
-        });
-    </script>
-</head>
+				<h1 id="fusedmaxoscarmaxattention">Fusedmax与Oscarmax：稀疏及结构化的Attention正则化框架</h1>
+<div class="highlighter-rouge"><pre class="highlight"><code>2017_NIPS
+康奈尔大学, Vlad Niculae
+</code></pre>
+</div>
 
-<h1 id="fusedmaxoscarmaxattention">Fusedmax与Oscarmax：稀疏及结构化的Attention正则化框架</h1>
+<h1 id="attention">稀疏及结构化的Attention正则化框架</h1>
+
 <div class="highlighter-rouge"><pre class="highlight"><code>2017_NIPS
 康奈尔大学, Vlad Niculae
 </code></pre>
@@ -252,18 +257,11 @@
 <p>先给出一些定义：</p>
 
 <ul>
-  <li>
-    <p>如果函数 $f:R^d\rightarrow R\bigcup {\infty}$ , 则其凸共轭(convex conjugate)为</p>
-  </li>
-  <li>
-    <p><script type="math/tex">f^{ *}(x) :=\sup_{y\in dom\;f}y^Tx-f(y)</script> .  给定范数$\mid\mid\cdot\mid\mid$,它的对偶定义为$\mid\mid x\mid\mid_* :=\sup_{\mid\mid y\mid\mid \leq 1}y^T x$. 用$\partial f(y)$ 表示函数$f$在$y$处的次微分</p>
-  </li>
+  <li>集合${1,2,…,d}$定义为$[d]$，$d-1$维的单形体为$\Delta^d:={x\in R^d:\mid\mid x\mid\mid_1=1,x \geq0}$， 在欧几里得的投影为$P_{\Delta^d}(x):={\arg\min}_{y\in \Delta^d}\mid\mid y-x\mid\mid^2$</li>
+  <li>如果函数$f:R^d\rightarrow R\bigcup {\infty}$, 则其凸共轭(convex conjugate)为$f^{<em>}(x):=\sup_{y\in dom\;f}y^Tx-f(y)$.  给定范数$\mid\mid\cdot\mid\mid$,它的对偶定义为$\mid\mid x\mid\mid_</em> :=\sup_{\mid\mid y\mid\mid \leq 1}y^T x$. 用$\partial f(y)$ 表示函数$f$在$y$处的次微分 <br />
+&gt; 次微分subdifferential,凸函数$f(x)=\mid x\mid$在原点的次微分是区间$[−1, 1]$.</li>
+  <li>函数$f$的Jacobian(雅可比)$J_{g}(y)\in R^{d\times d}$,Hessian(海森矩阵)$H_{f}(y)\in R^{d\times d}$</li>
 </ul>
-
-<blockquote>
-  <p>次微分subdifferential,凸函数$f(x)=\mid x\mid$在原点的次微分是区间$[−1, 1]$.<br />
-- 函数$f$的Jacobian(雅可比)$J_{g}(y)\in R^{d\times d}$,Hessian(海森矩阵)$H_{f}(y)\in R^{d\times d}$</p>
-</blockquote>
 
 <p>现在我们看下$max$算子（虽然是$R^d \rightarrow \Delta^d$的映射函数，但不适合作为Attention机制):<br />
 <script type="math/tex">\max(x):=\max_{i\in [d]} x_i = \sup_{y\in \Delta^d} y^Tx</script></p>
@@ -319,7 +317,7 @@ convergence, Appendix B</a> 中。其实通过求解共轭函数的方法就可�
 <p>为了定义出平滑的$\max$算子: $\max_{\Omega}$，再次使用共轭：<br />
 <script type="math/tex">{\max}_{\Omega}(x)=max_{\Omega}^{**}(x) = \sup_{y\in R^d} y^Tx - {\max}^*_{\Omega} (y)=\sup_{y\in\Delta^d}y^Tx-\gamma\Omega(y)</script></p>
 
-<p>由此，前面提到的映射 ${ \prod}<em>{ \Omega}: R^d\rightarrow \Delta^d$ 定义为：<br />
+<p>由此，前面提到的映射${\prod}<em>{\Omega}: R^d\rightarrow \Delta^d$定义为：<br />
 <script type="math/tex">{\prod}_{\Omega}(x):=\arg\max_{y\in \Delta^d}y^Tx-\gamma\Omega(y)=\nabla max_{\Omega}(x)</script><br />
 &gt; 1. 上述式子可由：$\max</em>{\Omega}(x)=(y^<em>)^Tx-\max^</em><em>{\Omega}(y^*)\Longleftrightarrow y^* \in \partial\max</em>{\Omega}(x)$ 证得。<br />
 &gt; 2. $\partial\max_{\Omega}(x)={\nabla\max_{\Omega}(x)}$只有唯一解（$y^*$是单形体的顶点）。故$\prod_{\Omega}$ 是梯度的映射函数。</p>
@@ -361,7 +359,7 @@ f^*(y) & =\sum y_i x_i - log\sum e^{x_i} \\
 也可以查阅<a href="https://web.stanford.edu/~boyd/cvxbook/bv_cvxbook.pdf">《Convex optimization》</a>的习题3.25, 里面有详细证明。</p>
 </blockquote>
 
-<p>如果 $f(x)=\gamma g(x)$,则对于 $\gamma &gt;0$,有 $ f^<em>(y)=\gamma g^</em>(y/\gamma)$. 则${\max}<em>{\Omega}(x)=\gamma \log\sum</em>{i=1}^d e^{x_i / \gamma}$.</p>
+<p>如果 $f(x)=\gamma g(x)$,则对于 $\gamma &gt;0$,有 $f^<em>(y)=\gamma g^</em>(y/\gamma)$. 则${\max}<em>{\Omega}(x)=\gamma \log\sum</em>{i=1}^d e^{x_i / \gamma}$.</p>
 
 <p>由于$\Omega(y)$负熵在 $\mid\mid\cdot\mid\mid_1$ 是 1-strongly convex，所以${\max}<em>{\Omega}$在 $\mid\mid\cdot\mid\mid</em>{\infty}$ 上是$\frac{1}{\gamma}$-smooth.</p>
 
@@ -459,7 +457,7 @@ supervised clustering of predictors with OSCAR</a>中的OSCAR惩罚函数，以�
 &gt; 论文的附录中还有大量实验结果，可以加深理解。</p>
 
 <p>来看一个 法语-英语翻译 Attention实验效果：<br />
-&lt;img src=”./img/avatar_g.jpg”, width=”1000”&gt;</p>
+&lt;img src=”img/pictures/fusedmax_oscarmax.png”, width=”1000”&gt;</p>
 
 <hr />
 <p>## 5. TV与OSCAR的简单介绍：</p>
@@ -510,6 +508,8 @@ supervised clustering of predictors with OSCAR</a>中的OSCAR惩罚函数，以�
   \right) %]]></script><br />
 将上述方法应用在1维数据得到结果如下(图来自<a href="http://euler.stat.yale.edu/~tba3/stat612/lectures/lec22/lecture22.pdf">The Generalized Lasso，Lecture 22</a>）：</p>
 
+<p>&lt;img src=”img/pictures/Fuse_lasso_1.png”, width=”500”&gt;</p>
+
 <p>可以看出，数据最终呈现连续区域的聚集，即空间聚集（spatial clutering)，也就得到了稀疏形式的数据表示。 得到更平滑的数据表示，也能防止过拟合的数据表示。</p>
 
 <hr />
@@ -550,6 +550,10 @@ supervised clustering of predictors with OSCAR</a>中的OSCAR惩罚函数，以�
     </tr>
   </thead>
   <tbody>
+    <tr>
+      <td style="text-align: center">&lt;img src=”img/pictures/oscar_elasticnet.png”,width=”500”&gt;</td>
+      <td style="text-align: center">&lt;img src=”img/pictures/oscar_oscar.png”,width=”500”&gt;</td>
+    </tr>
     <tr>
       <td style="text-align: center">$L_1$和$L_2$范式组合</td>
       <td style="text-align: center">$L_1$和$L_{\infty}$范式组合</td>

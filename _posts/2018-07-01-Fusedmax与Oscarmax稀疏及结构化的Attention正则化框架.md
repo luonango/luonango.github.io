@@ -13,23 +13,14 @@ tags:
     - 开源框架
 ---
 
-<head>
-    <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
-    <script type="text/x-mathjax-config">
-        MathJax.Hub.Config({
-            tex2jax: {
-            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
-            inlineMath: [['$','$']],
-            displayMath: [['$$','$$']],
-            }
-        });
-    </script>
-</head>
-
 # Fusedmax与Oscarmax：稀疏及结构化的Attention正则化框架
     2017_NIPS
     康奈尔大学, Vlad Niculae
 
+# 稀疏及结构化的Attention正则化框架
+     
+    2017_NIPS
+    康奈尔大学, Vlad Niculae
 
 论文提出**让Attention输出稀疏**且更关注**输入数据的片段或组**的正则化机制，它还能直接加入神经网络进行前向与反向传播。
 
@@ -55,11 +46,8 @@ tags:
 
 先给出一些定义：
 
-
-- 如果函数 $f:R^d\rightarrow R\bigcup \{\infty\}$ , 则其凸共轭(convex conjugate)为 
-
-- $$f^{ *}(x) :=\sup_{y\in dom\;f}y^Tx-f(y)$$ .  给定范数$\mid\mid\cdot\mid\mid$,它的对偶定义为$\mid\mid x\mid\mid_* :=\sup_{\mid\mid y\mid\mid \leq 1}y^T x$. 用$\partial f(y)$ 表示函数$f$在$y$处的次微分 
-
+- 集合$\{1,2,...,d\}$定义为$[d]$，$d-1$维的单形体为$\Delta^d:=\{x\in R^d:\mid\mid x\mid\mid_1=1,x \geq0\}$， 在欧几里得的投影为$P_{\Delta^d}(x):={\arg\min}_{y\in \Delta^d}\mid\mid y-x\mid\mid^2$
+- 如果函数$f:R^d\rightarrow R\bigcup \{\infty\}$, 则其凸共轭(convex conjugate)为$f^{*}(x):=\sup_{y\in dom\;f}y^Tx-f(y)$.  给定范数$\mid\mid\cdot\mid\mid$,它的对偶定义为$\mid\mid x\mid\mid_* :=\sup_{\mid\mid y\mid\mid \leq 1}y^T x$. 用$\partial f(y)$ 表示函数$f$在$y$处的次微分 
 > 次微分subdifferential,凸函数$f(x)=\mid x\mid$在原点的次微分是区间$[−1, 1]$.
 - 函数$f$的Jacobian(雅可比)$J_{g}(y)\in R^{d\times d}$,Hessian(海森矩阵)$H_{f}(y)\in R^{d\times d}$
 
@@ -122,7 +110,7 @@ $$
 {\max}_{\Omega}(x)=max_{\Omega}^{**}(x) = \sup_{y\in R^d} y^Tx - {\max}^*_{\Omega} (y)=\sup_{y\in\Delta^d}y^Tx-\gamma\Omega(y)
 $$
 
-由此，前面提到的映射 ${ \prod}_{ \Omega}: R^d\rightarrow \Delta^d$ 定义为：
+由此，前面提到的映射${\prod}_{\Omega}: R^d\rightarrow \Delta^d$定义为：
 $$
 {\prod}_{\Omega}(x):=\arg\max_{y\in \Delta^d}y^Tx-\gamma\Omega(y)=\nabla max_{\Omega}(x)
 $$
@@ -161,7 +149,7 @@ f^*(y) & =\sum y_i x_i - log\sum e^{x_i} \\
 > 由于$f(x)$是凸函数（可证），所以$f^{**}=log\;sum\;exp$.
 > 也可以查阅[《Convex optimization》](https://web.stanford.edu/~boyd/cvxbook/bv_cvxbook.pdf)的习题3.25, 里面有详细证明。
 
-如果 $f(x)=\gamma g(x)$,则对于 $\gamma >0$,有 $ f^*(y)=\gamma g^*(y/\gamma)$. 则${\max}_{\Omega}(x)=\gamma \log\sum_{i=1}^d e^{x_i / \gamma}$. 
+如果 $f(x)=\gamma g(x)$,则对于 $\gamma >0$,有 $f^*(y)=\gamma g^*(y/\gamma)$. 则${\max}_{\Omega}(x)=\gamma \log\sum_{i=1}^d e^{x_i / \gamma}$. 
 
 由于$\Omega(y)$负熵在 $\mid\mid\cdot\mid\mid_1$ 是 1-strongly convex，所以${\max}_{\Omega}$在 $\mid\mid\cdot\mid\mid_{\infty}$ 上是$\frac{1}{\gamma}$-smooth. 
 
@@ -275,7 +263,7 @@ $$
 > 论文的附录中还有大量实验结果，可以加深理解。
 
 来看一个 法语-英语翻译 Attention实验效果：
-<img src="./img/avatar_g.jpg", width="1000">
+<img src="img/pictures/fusedmax_oscarmax.png", width="1000">
 
 ---
 ## 5. TV与OSCAR的简单介绍：
@@ -318,6 +306,7 @@ $$
 $$
 将上述方法应用在1维数据得到结果如下(图来自[The Generalized Lasso，Lecture 22](http://euler.stat.yale.edu/~tba3/stat612/lectures/lec22/lecture22.pdf)）：
 
+<img src="img/pictures/Fuse_lasso_1.png", width="500">
 
 可以看出，数据最终呈现连续区域的聚集，即空间聚集（spatial clutering)，也就得到了稀疏形式的数据表示。 得到更平滑的数据表示，也能防止过拟合的数据表示。
 
@@ -349,6 +338,7 @@ $$
 
 |Elastic Net|OSCAR|
 |:-:|:-:|
+|<img src="img/pictures/oscar_elasticnet.png",width="500">|<img src="img/pictures/oscar_oscar.png",width="500">|
 |$L_1$和$L_2$范式组合|$L_1$和$L_{\infty}$范式组合|
 
 看上图也就能理解“八边形收缩”这名称了. 该OSCAR基于惩罚最小二乘法，将一些系数收缩至恰好为零。同时这惩罚函数能产生值相同的系数，鼓励相关的预测因子(即指$x_i$)它们对最终结果有着相同的影响，从而形成单个系数表示预测因子群集。
