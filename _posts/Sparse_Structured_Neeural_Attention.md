@@ -1,3 +1,16 @@
+---
+layout:     post
+title:      稀疏及结构化的Attention正则化框架
+subtitle:   Fusedmax与Oscarmax 新Attention机制
+date:       2018-07-07
+author:     luonango
+header-img: img/post-bg-mma-2.jpg
+catalog: true
+tags:
+    - Attention
+    - 生活
+---
+
 # 稀疏及结构化的Attention正则化框架
      
     2017_NIPS
