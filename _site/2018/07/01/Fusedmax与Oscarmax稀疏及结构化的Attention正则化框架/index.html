@@ -157,8 +157,6 @@
 <!-- <img src="/img/icon_wechat.png" width="0" height="0"> -->
 <!-- <img src="/img/post-bg-ios9-web.jpg" width="0" height="0"> -->
 
-<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>  
-
 <!-- Post Header -->
 <style type="text/css">
     header.intro-header{
@@ -208,7 +206,20 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-				<h1 id="fusedmaxoscarmaxattention">Fusedmax与Oscarmax：稀疏及结构化的Attention正则化框架</h1>
+				<head>
+    <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+            inlineMath: [['$','$']],
+            displayMath: [['$$','$$']],
+            }
+        });
+    </script>
+</head>
+
+<h1 id="fusedmaxoscarmaxattention">Fusedmax与Oscarmax：稀疏及结构化的Attention正则化框架</h1>
 <div class="highlighter-rouge"><pre class="highlight"><code>2017_NIPS
 康奈尔大学, Vlad Niculae
 </code></pre>
@@ -242,12 +253,17 @@
 
 <ul>
   <li>
-    <p>如果函数$f:R^d\rightarrow R\bigcup {\infty}$, 则其凸共轭(convex conjugate)为</p>
+    <p>如果函数 $f:R^d\rightarrow R\bigcup {\infty}$ , 则其凸共轭(convex conjugate)为</p>
   </li>
-  <li>$f^{ <em>}(x) :=\sup_{y\in dom\;f}y^Tx-f(y)$ .  给定范数$\mid\mid\cdot\mid\mid$,它的对偶定义为$\mid\mid x\mid\mid_</em> :=\sup_{\mid\mid y\mid\mid \leq 1}y^T x$. 用$\partial f(y)$ 表示函数$f$在$y$处的次微分 <br />
-&gt; 次微分subdifferential,凸函数$f(x)=\mid x\mid$在原点的次微分是区间$[−1, 1]$.</li>
-  <li>函数$f$的Jacobian(雅可比)$J_{g}(y)\in R^{d\times d}$,Hessian(海森矩阵)$H_{f}(y)\in R^{d\times d}$</li>
+  <li>
+    <p><script type="math/tex">f^{ *}(x) :=\sup_{y\in dom\;f}y^Tx-f(y)</script> .  给定范数$\mid\mid\cdot\mid\mid$,它的对偶定义为$\mid\mid x\mid\mid_* :=\sup_{\mid\mid y\mid\mid \leq 1}y^T x$. 用$\partial f(y)$ 表示函数$f$在$y$处的次微分</p>
+  </li>
 </ul>
+
+<blockquote>
+  <p>次微分subdifferential,凸函数$f(x)=\mid x\mid$在原点的次微分是区间$[−1, 1]$.<br />
+- 函数$f$的Jacobian(雅可比)$J_{g}(y)\in R^{d\times d}$,Hessian(海森矩阵)$H_{f}(y)\in R^{d\times d}$</p>
+</blockquote>
 
 <p>现在我们看下$max$算子（虽然是$R^d \rightarrow \Delta^d$的映射函数，但不适合作为Attention机制):<br />
 <script type="math/tex">\max(x):=\max_{i\in [d]} x_i = \sup_{y\in \Delta^d} y^Tx</script></p>
@@ -345,7 +361,7 @@ f^*(y) & =\sum y_i x_i - log\sum e^{x_i} \\
 也可以查阅<a href="https://web.stanford.edu/~boyd/cvxbook/bv_cvxbook.pdf">《Convex optimization》</a>的习题3.25, 里面有详细证明。</p>
 </blockquote>
 
-<p>如果 $f(x)=\gamma g(x)$,则对于 $\gamma &gt;0$,有 $f^<em>(y)=\gamma g^</em>(y/\gamma)$. 则${\max}<em>{\Omega}(x)=\gamma \log\sum</em>{i=1}^d e^{x_i / \gamma}$.</p>
+<p>如果 $f(x)=\gamma g(x)$,则对于 $\gamma &gt;0$,有 $ f^<em>(y)=\gamma g^</em>(y/\gamma)$. 则${\max}<em>{\Omega}(x)=\gamma \log\sum</em>{i=1}^d e^{x_i / \gamma}$.</p>
 
 <p>由于$\Omega(y)$负熵在 $\mid\mid\cdot\mid\mid_1$ 是 1-strongly convex，所以${\max}<em>{\Omega}$在 $\mid\mid\cdot\mid\mid</em>{\infty}$ 上是$\frac{1}{\gamma}$-smooth.</p>
 
@@ -1003,21 +1019,6 @@ supervised clustering of predictors with OSCAR</a>中的OSCAR惩罚函数，以�
 <!-- Migrate from head to bottom, no longer block render and still work -->
 <!-- MathJax Section -->
 <!-- copied from http://docs.mathjax.org/en/latest/configuration.html -->
-<script type="text/x-mathjax-config">
-    MathJax.Hub.Config({
-      extensions: ["tex2jax.js"],
-      jax: ["input/TeX", "output/HTML-CSS"],
-      tex2jax: {
-        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
-        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
-        processEscapes: true
-      },
-      "HTML-CSS": { fonts: ["TeX"] }
-    });
-</script>
-<script type="text/javascript"
-   src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_CHTML">
-</script>
 </body>
 
 </html>

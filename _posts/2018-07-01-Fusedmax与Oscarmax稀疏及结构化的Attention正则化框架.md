@@ -13,6 +13,18 @@ tags:
     - 开源框架
 ---
 
+<head>
+    <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+            inlineMath: [['$','$']],
+            displayMath: [['$$','$$']],
+            }
+        });
+    </script>
+</head>
 
 # Fusedmax与Oscarmax：稀疏及结构化的Attention正则化框架
     2017_NIPS
@@ -44,9 +56,10 @@ tags:
 先给出一些定义：
 
 
-- 如果函数$f:R^d\rightarrow R\bigcup \{\infty\}$, 则其凸共轭(convex conjugate)为 
+- 如果函数 $f:R^d\rightarrow R\bigcup \{\infty\}$ , 则其凸共轭(convex conjugate)为 
 
-- $f^{ *}(x) :=\sup_{y\in dom\;f}y^Tx-f(y)$ .  给定范数$\mid\mid\cdot\mid\mid$,它的对偶定义为$\mid\mid x\mid\mid_* :=\sup_{\mid\mid y\mid\mid \leq 1}y^T x$. 用$\partial f(y)$ 表示函数$f$在$y$处的次微分 
+- $$f^{ *}(x) :=\sup_{y\in dom\;f}y^Tx-f(y)$$ .  给定范数$\mid\mid\cdot\mid\mid$,它的对偶定义为$\mid\mid x\mid\mid_* :=\sup_{\mid\mid y\mid\mid \leq 1}y^T x$. 用$\partial f(y)$ 表示函数$f$在$y$处的次微分 
+
 > 次微分subdifferential,凸函数$f(x)=\mid x\mid$在原点的次微分是区间$[−1, 1]$.
 - 函数$f$的Jacobian(雅可比)$J_{g}(y)\in R^{d\times d}$,Hessian(海森矩阵)$H_{f}(y)\in R^{d\times d}$
 
@@ -148,7 +161,7 @@ f^*(y) & =\sum y_i x_i - log\sum e^{x_i} \\
 > 由于$f(x)$是凸函数（可证），所以$f^{**}=log\;sum\;exp$.
 > 也可以查阅[《Convex optimization》](https://web.stanford.edu/~boyd/cvxbook/bv_cvxbook.pdf)的习题3.25, 里面有详细证明。
 
-如果 $f(x)=\gamma g(x)$,则对于 $\gamma >0$,有 $f^*(y)=\gamma g^*(y/\gamma)$. 则${\max}_{\Omega}(x)=\gamma \log\sum_{i=1}^d e^{x_i / \gamma}$. 
+如果 $f(x)=\gamma g(x)$,则对于 $\gamma >0$,有 $ f^*(y)=\gamma g^*(y/\gamma)$. 则${\max}_{\Omega}(x)=\gamma \log\sum_{i=1}^d e^{x_i / \gamma}$. 
 
 由于$\Omega(y)$负熵在 $\mid\mid\cdot\mid\mid_1$ 是 1-strongly convex，所以${\max}_{\Omega}$在 $\mid\mid\cdot\mid\mid_{\infty}$ 上是$\frac{1}{\gamma}$-smooth. 
 

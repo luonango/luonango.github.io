@@ -5,13 +5,26 @@
     <description>Every failure is leading towards success.</description>
     <link>http://luonango.github.io/</link>
     <atom:link href="http://luonango.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Sun, 30 Sep 2018 14:09:31 +0800</pubDate>
-    <lastBuildDate>Sun, 30 Sep 2018 14:09:31 +0800</lastBuildDate>
+    <pubDate>Sun, 30 Sep 2018 14:23:53 +0800</pubDate>
+    <lastBuildDate>Sun, 30 Sep 2018 14:23:53 +0800</lastBuildDate>
     <generator>Jekyll v3.0.1</generator>
     
       <item>
         <title>Fusedmax与Oscarmax</title>
-        <description>&lt;h1 id=&quot;fusedmaxoscarmaxattention&quot;&gt;Fusedmax与Oscarmax：稀疏及结构化的Attention正则化框架&lt;/h1&gt;
+        <description>&lt;head&gt;
+    &lt;script src=&quot;https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&quot; type=&quot;text/javascript&quot;&gt;&lt;/script&gt;
+    &lt;script type=&quot;text/x-mathjax-config&quot;&gt;
+        MathJax.Hub.Config({
+            tex2jax: {
+            skipTags: [&#39;script&#39;, &#39;noscript&#39;, &#39;style&#39;, &#39;textarea&#39;, &#39;pre&#39;],
+            inlineMath: [[&#39;$&#39;,&#39;$&#39;]],
+            displayMath: [[&#39;$$&#39;,&#39;$$&#39;]],
+            }
+        });
+    &lt;/script&gt;
+&lt;/head&gt;
+
+&lt;h1 id=&quot;fusedmaxoscarmaxattention&quot;&gt;Fusedmax与Oscarmax：稀疏及结构化的Attention正则化框架&lt;/h1&gt;
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2017_NIPS
 康奈尔大学, Vlad Niculae
 &lt;/code&gt;&lt;/pre&gt;
@@ -45,12 +58,17 @@
 
 &lt;ul&gt;
   &lt;li&gt;
-    &lt;p&gt;如果函数$f:R^d\rightarrow R\bigcup {\infty}$, 则其凸共轭(convex conjugate)为&lt;/p&gt;
+    &lt;p&gt;如果函数 $f:R^d\rightarrow R\bigcup {\infty}$ , 则其凸共轭(convex conjugate)为&lt;/p&gt;
   &lt;/li&gt;
-  &lt;li&gt;$f^{ &lt;em&gt;}(x) :=\sup_{y\in dom\;f}y^Tx-f(y)$ .  给定范数$\mid\mid\cdot\mid\mid$,它的对偶定义为$\mid\mid x\mid\mid_&lt;/em&gt; :=\sup_{\mid\mid y\mid\mid \leq 1}y^T x$. 用$\partial f(y)$ 表示函数$f$在$y$处的次微分 &lt;br /&gt;
-&amp;gt; 次微分subdifferential,凸函数$f(x)=\mid x\mid$在原点的次微分是区间$[−1, 1]$.&lt;/li&gt;
-  &lt;li&gt;函数$f$的Jacobian(雅可比)$J_{g}(y)\in R^{d\times d}$,Hessian(海森矩阵)$H_{f}(y)\in R^{d\times d}$&lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;script type=&quot;math/tex&quot;&gt;f^{ *}(x) :=\sup_{y\in dom\;f}y^Tx-f(y)&lt;/script&gt; .  给定范数$\mid\mid\cdot\mid\mid$,它的对偶定义为$\mid\mid x\mid\mid_* :=\sup_{\mid\mid y\mid\mid \leq 1}y^T x$. 用$\partial f(y)$ 表示函数$f$在$y$处的次微分&lt;/p&gt;
+  &lt;/li&gt;
 &lt;/ul&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;次微分subdifferential,凸函数$f(x)=\mid x\mid$在原点的次微分是区间$[−1, 1]$.&lt;br /&gt;
+- 函数$f$的Jacobian(雅可比)$J_{g}(y)\in R^{d\times d}$,Hessian(海森矩阵)$H_{f}(y)\in R^{d\times d}$&lt;/p&gt;
+&lt;/blockquote&gt;
 
 &lt;p&gt;现在我们看下$max$算子（虽然是$R^d \rightarrow \Delta^d$的映射函数，但不适合作为Attention机制):&lt;br /&gt;
 &lt;script type=&quot;math/tex&quot;&gt;\max(x):=\max_{i\in [d]} x_i = \sup_{y\in \Delta^d} y^Tx&lt;/script&gt;&lt;/p&gt;
@@ -148,7 +166,7 @@ f^*(y) &amp; =\sum y_i x_i - log\sum e^{x_i} \\
 也可以查阅&lt;a href=&quot;https://web.stanford.edu/~boyd/cvxbook/bv_cvxbook.pdf&quot;&gt;《Convex optimization》&lt;/a&gt;的习题3.25, 里面有详细证明。&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;p&gt;如果 $f(x)=\gamma g(x)$,则对于 $\gamma &amp;gt;0$,有 $f^&lt;em&gt;(y)=\gamma g^&lt;/em&gt;(y/\gamma)$. 则${\max}&lt;em&gt;{\Omega}(x)=\gamma \log\sum&lt;/em&gt;{i=1}^d e^{x_i / \gamma}$.&lt;/p&gt;
+&lt;p&gt;如果 $f(x)=\gamma g(x)$,则对于 $\gamma &amp;gt;0$,有 $ f^&lt;em&gt;(y)=\gamma g^&lt;/em&gt;(y/\gamma)$. 则${\max}&lt;em&gt;{\Omega}(x)=\gamma \log\sum&lt;/em&gt;{i=1}^d e^{x_i / \gamma}$.&lt;/p&gt;
 
 &lt;p&gt;由于$\Omega(y)$负熵在 $\mid\mid\cdot\mid\mid_1$ 是 1-strongly convex，所以${\max}&lt;em&gt;{\Omega}$在 $\mid\mid\cdot\mid\mid&lt;/em&gt;{\infty}$ 上是$\frac{1}{\gamma}$-smooth.&lt;/p&gt;
 
@@ -2404,7 +2422,20 @@ imp = (void (*)(id, SEL, BOOL))[self methodForSelector:@selector(setFilled:)];//
     
       <item>
         <title>ReactiveCocoa 进阶</title>
-        <description>&lt;h1 id=&quot;section&quot;&gt;前言&lt;/h1&gt;
+        <description>&lt;head&gt;
+    &lt;script src=&quot;https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML&quot; type=&quot;text/javascript&quot;&gt;&lt;/script&gt;
+    &lt;script type=&quot;text/x-mathjax-config&quot;&gt;
+        MathJax.Hub.Config({
+            tex2jax: {
+            skipTags: [&#39;script&#39;, &#39;noscript&#39;, &#39;style&#39;, &#39;textarea&#39;, &#39;pre&#39;],
+            inlineMath: [[&#39;$&#39;,&#39;$&#39;]],
+            displayMath: [[&#39;$$&#39;,&#39;$$&#39;]],
+            }
+        });
+    &lt;/script&gt;
+&lt;/head&gt;
+
+&lt;h1 id=&quot;section&quot;&gt;前言&lt;/h1&gt;
 
 &lt;blockquote&gt;
   &lt;p&gt;在&lt;a href=&quot;http://qiubaiying.github.io/2016/12/26/ReactiveCocoa-基础/&quot;&gt;上篇文章&lt;/a&gt;中介绍了&lt;strong&gt;ReactiveCocoa&lt;/strong&gt;的基础知识,接下来我们来深入介绍&lt;strong&gt;ReactiveCocoa&lt;/strong&gt;及其在&lt;strong&gt;MVVM&lt;/strong&gt;中的用法。&lt;/p&gt;
