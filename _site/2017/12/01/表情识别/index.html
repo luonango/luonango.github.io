@@ -1,0 +1,557 @@
+<h1 id="section">表情识别_一些进展</h1>
+
+<p>记录表情识别的一些些进展。</p>
+
+<hr />
+
+<p><a href="https://zhuanlan.zhihu.com/p/24483573">什么是人脸表情识别技术？</a></p>
+
+<h1 id="section-1"><strong>基于特征的面部表情识别</strong></h1>
+
+<ul>
+  <li>置信点集的几何位置</li>
+  <li>
+    <p>这些点的多尺度多方向Gabor小波系数</p>
+
+    <p>二者既可以独立使用也可以结合使用。张正友博士的研究结果表明，Gabor小波系数更为有效</p>
+  </li>
+</ul>
+
+<p><strong>面部表情识别难点</strong></p>
+
+<ul>
+  <li>不同人表情变化</li>
+  <li>同一人上下文变化</li>
+</ul>
+
+<p><strong>自动FER系统需要解决</strong></p>
+
+<ul>
+  <li><strong>面部检测和定位</strong></li>
+  <li><strong>人脸特征提取</strong></li>
+  <li><strong>表情识别</strong></li>
+</ul>
+
+<hr />
+
+<p><strong>面部检测和定位</strong></p>
+
+<p>定位问题前人已经做得很好.</p>
+
+<ul>
+  <li>联合级联检测与校准（the joint cascade detection and alignment (JDA) detector）</li>
+  <li>基于深度卷积神经网络（DCNN）；</li>
+  <li>混合树（Mot）。</li>
+</ul>
+
+<hr />
+
+<p><strong>人脸特征提取</strong></p>
+
+<p>为了找到人脸最合适的表示方式，从而便于识别</p>
+
+<ul>
+  <li><strong>整体模板匹配系统</strong> :
+    <ul>
+      <li>模板可以是像素点或是向量</li>
+    </ul>
+  </li>
+  <li><strong>基于几何特征系统</strong> :
+    <ul>
+      <li>广泛采用主成份分析和多层神经网络来获取人脸的低维表示，并在图片中检测到主要的特征点和主要部分。通过特征点的距离和主要部分的相对尺寸得到特征向量</li>
+    </ul>
+  </li>
+</ul>
+
+<p>基于特征的方法比基于模板的方法计算量更大，但是对尺度、大小、头部方向、面部位置不敏感。</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>①首先定位一系列特征点：
+②再通过图像卷积抽取特征点的Gabor小波系数，以Gabor特征的匹配距离作为相似度的度量标准。在特征点：
+③提取特征之后，表情识别就成为了一个传统的分类问题。可以通过多层神经网络来解决： 
+准则是最小化交叉熵（Cross-entropy）：
+t是label，y是实际输出。
+
+从结果看，Gabor方法优于几何方法，二者结合效果更佳
+[链接](https://zhuanlan.zhihu.com/p/24552881)
+可以看到，隐含层单元达到5-7个时，识别率已经趋于稳定，那就是说5-7个单元已经足够了。
+</code></pre>
+</div>
+
+<p>SIFT特征描述算子、SURF特征描述算子、ORB特征描述算子、HOG特征描述、LBP特征描述以及Harr特征描述。</p>
+
+<hr />
+
+<p><strong>人脸图像处理</strong></p>
+
+<ul>
+  <li>去掉无关噪声，统一人脸图片尺寸。</li>
+  <li>转为灰度图、标准直接方图均衡化。去掉不平衡光照</li>
+  <li>化为0均值，单位方差向量。（或者归一化到[-1,1])</li>
+</ul>
+
+<hr />
+
+<p><strong>网络模型</strong><br />
+基本网络模型：  略。</p>
+
+<ul>
+  <li>加入随机扰动： 增加对脸部偏移和旋转的鲁棒性。 如随机仿射扭曲图像。</li>
+  <li>扰动下的learning与voting： 由于数据有扰动，损失函数应当包含所有扰动情况。</li>
+</ul>
+
+<hr />
+<p><strong>多网络学习</strong></p>
+
+<ul>
+  <li>
+    <p>模型顶端放置多网络（Multiple Network）增强性能。</p>
+
+    <p>典型的就是对输出求均值。观察表明，随机初始化不仅导致网络参数变化，同时使得不同网络对不同数据的分类能力产生差别。因此，平均权重可能是次最优的因为voting没有变化。更好的方法是对每个网络适应地分配权重，使得整体网络互补。</p>
+  </li>
+  <li>
+    <p>为了学习权重W，先独立训练不同初始化的CNN，在权重上轻易损失函数：</p>
+
+    <ul>
+      <li>最优整体对数似然损失</li>
+      <li>最有整体合页损失</li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<hr />
+
+<p>###衡量目标检测器：<br />
+  - 检测框，一般为IOU（交并比）<br />
+  - 分类指标：Precision,Accuracy,Recall,Miss Rate,,FPPI(False Positive per Image)</p>
+
+<p>###设计检测器<br />
+窗口–&gt; 特征提取–&gt;分类–&gt;检测结果</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>窗口</th>
+      <th>特征提取</th>
+      <th>分类</th>
+      <th>检测结果</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>silding window</td>
+      <td>Harr</td>
+      <td>SVM</td>
+      <td>NMS</td>
+    </tr>
+    <tr>
+      <td>MCG</td>
+      <td>HOG</td>
+      <td>Softmax</td>
+      <td>边框回归</td>
+    </tr>
+    <tr>
+      <td>Selective Search</td>
+      <td>LBP</td>
+      <td> </td>
+      <td>窗口合并</td>
+    </tr>
+    <tr>
+      <td>RPN</td>
+      <td>CNN</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>…</td>
+      <td>…</td>
+      <td>…</td>
+      <td>…</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>1. silding window: 滑动窗口
+2. MCG ：组合聚合(Multiscale Combinatorial Grouping，MCG)方法，传统方法的巅峰之作。
+3. Selective Search: RCNN使用的ROI提取方法
+4. RPN：Region Proposal Networks, Faster R-CNN则直接利用RPN网络来计算候选框
+5. NMS: Non-maximum suppression,非极大抑制
+</code></pre>
+</div>
+
+<h1 id="section-2">** 图像&amp;&amp;表情分类&amp;&amp;人脸识别**</h1>
+<hr />
+
+<h4 id="lbp">1994-特征提取之<strong>LBP</strong>（局部二值模式）</h4>
+<ul>
+  <li>参考：
+    <ul>
+      <li>T. Ojala, M. Pietikäinen, and D. Harwood (1994), “Performance evaluation of texture measures with classification based on Kullback discrimination of distributions”, Proceedings of the 12th IAPR International Conference on Pattern Recognition (ICPR 1994), vol. 1, pp. 582 - 585.</li>
+      <li>T. Ojala, M. Pietikäinen, and D. Harwood (1996), “A Comparative Study of Texture Measures with Classification Based on Feature Distributions”, Pattern Recognition, vol. 29, pp. 51-59.</li>
+      <li><a href="http://blog.csdn.net/songzitea/article/details/17686135">LPB特征分析</a></li>
+    </ul>
+  </li>
+  <li>描述图像局部纹理特征的算子,具有旋转不变性和灰度不变性等显著的优点,纹理分类上能提取强大的特征。</li>
+  <li>感觉卷积结构已经很好包括了。</li>
+</ul>
+
+<hr />
+
+<h4 id="adaboostviola-jones">2001-基于<strong>Adaboost和级联</strong>的人脸检测器，称<strong>Viola-Jones检测器</strong>：简单特征的优化级联在快速目标检测中的应用.</h4>
+<ul>
+  <li>参考：
+    <ul>
+      <li>Viola P, Jones M. Rapid object detection using a boosted cascade of simple features[C]// Computer Vision and Pattern Recognition, 2001. CVPR 2001. Proceedings of the 2001 IEEE Computer Society Conference on. IEEE, 2003:I-511-I-518 vol.1.</li>
+      <li><a href="http://www.cnblogs.com/wjgaas/p/3618557.html#commentform">Viola–Jones object detection framework–Rapid Object Detection using a Boosted Cascade of Simple Features中文翻译 及 matlab实现(见文末链接)</a></li>
+    </ul>
+  </li>
+  <li>一个视觉目标检测的机器学习法，能快速地处理图像而且能实现高检测速率。这项工作可分为三个创新性研究成果。
+    <ul>
+      <li>第一个是一种新的图像表征说明，称为<strong>积分图</strong>，它允许我们的检测的特征得以很快地计算出来。</li>
+      <li>第二个是一个学习算法，基于<strong>Adaboost自适应增强法</strong>，可以从一些更大的设置和产量极为有效的分类器中选择出几个关键的视觉特征。</li>
+      <li>第三个成果是一个方法：用一个<strong>“级联”的形式不断合并分类器</strong>，这样便允许图像的背景区域被很快丢弃,从而将更多的计算放在可能是目标的区域上。</li>
+    </ul>
+  </li>
+  <li>这个级联可以视作一个目标特定的注意力集中机制，它不像以前的途径提供统计保障，保证舍掉的地区不太可能包含感兴趣的对象。在人脸检测领域，此系统的检测率比得上之前系统的最佳值。在实时监测的应用中，探测器以每秒15帧速度运行，不采用帧差值或肤色检测的方法。</li>
+  <li>称为Viola-Jones检测器</li>
+</ul>
+
+<hr />
+
+<h4 id="opencvhaarhaar-like">2002-opencv的“Haar分类器”：用对角特征<strong>Haar-like特征</strong>对检测器进行扩展。</h4>
+<ul>
+  <li>参考：
+    <ul>
+      <li>Lienhart R, Maydt J. An extended set of Haar-like features for rapid object detection[C]// International Conference on Image Processing. 2002. Proceedings. IEEE, 2002:I-900-I-903 vol.1.</li>
+      <li><a href="http://www.cnblogs.com/ello/archive/2012/04/28/2475419.html#!comments">浅析人脸检测之Haar分类器方法</a></li>
+    </ul>
+  </li>
+  <li><strong>Haar分类器 =  Haar-like特征 + 积分图方法 + AdaBoost + 级联</strong></li>
+  <li>Haar分类器用到了Boosting算法中的AdaBoost算法，只是把AdaBoost算法训练出的强分类器进行了级联，并且在底层的特征提取中采用了高效率的矩形特征和积分图方法.</li>
+</ul>
+
+<hr />
+<p>#### 2010年前-DPM、LSVM目标检测  <br />
+  - 参考：<br />
+      + <a href="http://blog.csdn.net/masibuaa/article/details/17924671">使用判别训练的部件模型进行目标检测 Object Detection with Discriminatively Trained Part Based Models</a><br />
+      + <a href="http://blog.csdn.net/masibuaa/article/details/17533419">判别训练的多尺度可变形部件模型 A Discriminatively Trained, Multiscale, Deformable Part Model</a><br />
+      + <a href="http://blog.csdn.net/holybin/article/details/28292991">目标检测之LatentSVM和可变形部件模型（Deformable Part Model，DPM）</a><br />
+      + <a href="http://masikkk.com/article/DPM-model-explanation/">有关可变形部件模型(Deformable Part Model)的一些说明</a><br />
+      + <a href="http://blog.csdn.net/ttransposition/article/details/12966521">DPM(Deformable Parts Model)–原理(一)</a><br />
+  -  Dalal和Triggs的检测器即<strong>Dalal-Triggs检测器模型</strong>，在<strong>PASCAL 2006目标检测挑战赛上表现最好</strong>,他使用基于HOG特征的单独滤波器(模版)来表示目标。它使用滑动窗口方法，将滤波器应用到图像的所有可能位置和尺度。可以将此检测器看做一个分类器，它将一张图片以及图片中的一个位置和尺度作为输入，然后判断在指定位置和尺度是否有目标类别的实例。<br />
+  - <strong>Deformable Part Model(DPM)</strong>和 <strong>LatentSVM</strong> 结合用于目标检测由大牛P.Felzenszwalb提出，代表作是以下3篇paper：<br />
+       + [1] P. Felzenszwalb, D. McAllester, D.Ramaman. A Discriminatively Trained, Multiscale, Deformable Part Model. Proceedingsof the IEEE CVPR 2008.<br />
+       + [2] P. Felzenszwalb, R. Girshick, D.McAllester, D. Ramanan. Object Detection with Discriminatively Trained PartBased Models. IEEE Transactions on Pattern Analysis and Machine Intelligence,Vol. 32, No. 9, September 2010.<br />
+       + [3] P. Felzenszwalb, R. Girshick, D.McAllester. Cascade Object Detection with Deformable Part Models. Proceedingsof the IEEE CVPR 2010.<br />
+  - [2]阐述了如何利用<strong>DPM（Deformable Part Model，DPM）来做检测</strong>（特征处理+分类阶段），[3]阐述了如何利用<strong>cascade思想来加速检测</strong>。综合来说，作者的思想是<strong>HogFeatures+DPM+LatentSVM的结合</strong>：<br />
+      + 1、通过Hog特征模板来刻画每一部分，然后进行匹配。并且采用了金字塔，即在不同的分辨率上提取Hog特征。<br />
+      + 2、利用提出的Deformable PartModel，在进行object detection时，detect window的得分等于part的匹配得分减去模型变化的花费。<br />
+      + 3、在训练模型时，需要训练得到每一个part的Hog模板，以及衡量part位置分布cost的参数。文章中提出了LatentSVM方法，将deformable part model的学习问题转换为一个分类问题：利用SVM学习，将part的位置分布作为latent values，模型的参数转化为SVM的分割超平面。具体实现中，作者采用了迭代计算的方法，不断地更新模型。<br />
+  -  DPM是一个非常成功的目标检测算法，<strong>DPM连续获得VOC（Visual Object Class）2007,2008,2009年的检测冠军</strong>。成为众多分类器、分割、人体姿态和行为分类的重要部分。<br />
+  -  DPM可以做到人脸检测和关键点定位的一气呵成，但是其计算量太大导致时间消耗过高。</p>
+
+<hr />
+
+<h4 id="msrajoint-cascade-face-detection-and-alignmen-eccv">2014-MSRA的新技术《Joint Cascade Face Detection and Alignmen》 [ECCV]</h4>
+<ul>
+  <li>参考：
+    <ul>
+      <li>Chen D, Ren S, Wei Y, et al. Joint Cascade Face Detection and Alignment[C]// European Conference on Computer Vision. Springer, Cham, 2014:109-122.</li>
+      <li><a href="http://www.cnblogs.com/sciencefans/p/4394861.html#!comments">人脸识别技术大总结1——Face Detection &amp; Alignment</a></li>
+      <li><a href="http://blog.csdn.net/u010333076/article/details/50637342">论文《Joint Cascade Face Detection and Alignment》笔记</a></li>
+      <li><a href="https://github.com/FaceDetect/jointCascade_py">github:FaceDetect/jointCascade_py</a></li>
+    </ul>
+  </li>
+  <li>结合了 cascade 和 alignment,在30ms的时间里完成detection和alignment，PR曲线很高，时效性高，内存占用却非常低，在一些库上虐了Face++和Google Picasa。</li>
+  <li>步骤：
+    <ul>
+      <li>1.样本准备：首先作者调用opencv的Viola-Jones分类器，将recal阀值设到99%，这样能够尽可能地检测出所有的脸，但是同时也会有非常多的不是脸的东东被检测出来。于是，检测出来的框框们被分成了两类：是脸和不是脸。这些图片被resize到96*96。</li>
+      <li>2.特征提取.作者采用了三种方法：
+        <ul>
+          <li>第一种：把window划分成6*6个小windows，分别提取SIFT特征，然后连接着36个sift特征向量成为图像的特征。</li>
+          <li>第二种：先求出一个固定的脸的平均shape（27个特征点的位置，比如眼睛左边，嘴唇右边等等），然后以这27个特征点为中心提取sift特征，然后连接后作为特征。</li>
+          <li>第三种：用他们组去年的另一个成果Face Alignment at 3000 FPS via Regressing Local Binary Features (CVPR14) ，也就是图中的3000FPS方法，回归出每张脸的shape，然后再以每张脸自己的27个shape points为中心做sift，然后连接得到特征。</li>
+        </ul>
+      </li>
+      <li>3.分类：将上述的三种特征分别扔到线性SVM中做分类，训练出一个能分辨一张图是不是脸的SVM模型。</li>
+      <li>作者将用于关键点校准的回归树结合上用于检测的弱分类器重建为一棵新的决策树，并命名为 classification/regression decision tree （分类回归决策树）,输出一个用于判决人脸得分的同时还会输出关键点的增量，可以说这两步是完全同步的，并且采用的是相同的特征。越靠前(根节点）的层里，较多的结点用于分类，较少的结点用于回归；越靠后的层（叶节点）里，较少的结点用于分类，较多的结点用于回归。</li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h4 id="deepid1---cvpr-">2014-DeepID1   [CVPR ]</h4>
+<ul>
+  <li>参考：
+    <ul>
+      <li>Sun Y, Wang X, Tang X. Deep Learning Face Representation from Predicting 10,000 Classes[C]// IEEE Conference on Computer Vision and Pattern Recognition. IEEE Computer Society, 2014:1891-1898.</li>
+      <li><a href="http://www.cnblogs.com/zzq1989/p/4373680.html">Deep Learning Face Representation from Predicting 10,000 Classes论文笔记</a></li>
+    </ul>
+  </li>
+  <li>步骤：
+    <ul>
+      <li>人脸标注裁剪出60个patches，分别训练出60个CNN模型ConvNets（softmax多分类）。</li>
+      <li>每个ConvNets提取两个160维的特征（两个指镜像，160维是ConvNet模型的倒数第二层提取出),一张图片提取19200维（160×60×2）。所有这些160维特征，称为Deep hidden identity feature(DeepID)。</li>
+      <li>接下来是Face Verification（人脸验证）过程，即传入两张图片，判断是否同一人。传入两张图片，分别获得DeepID特征，将他们（为60个组拼接而成，一组表示一个patch且有640维，640维= 160维特征×2张镜像x2张图片的某patch）送到<strong>联合贝叶斯(Joint Bayesian，JB)</strong>或者一个神经网络( Neural Network，NN)进行Face Verification。</li>
+      <li>联合贝叶斯网络准确率显然高于NN，所以最终实验作者采用的是JB。这个实验也说明，随着网络输入种类(人数)的增大，能够提高网络的泛化能力，更利于提取的DeepID特征进行分类。</li>
+    </ul>
+  </li>
+  <li>当时的人脸识别方法：<strong>过完全的低级别特征+浅层模型</strong>。而ConvNet 能够有效地提取高级视觉特征。已有的DL方法：
+    <ul>
+      <li>Huang【CVPR2012】的生成模型+非监督；</li>
+      <li>Cai 【2012】的深度非线性度量学习；</li>
+      <li>Sun【CVPR2013】的监督学习+二类分类（人脸校验 verfication），是作者2013年写的。本文是1W类的多分类问题。</li>
+    </ul>
+  </li>
+  <li>1张图片通过Deep ConvNets得到DeepID特征向量，再通过PCA降维特征向量。最终在LFW库上测试可以得到97.20%的精度.对齐人脸后能达到97.45%。而目前（2014年）几种流行算法数据:<img src="pictures/LFW_Face_Method_before2014.png" alt="2014年前" /></li>
+</ul>
+
+<hr />
+<p>#### 2014-DeepID2   [CVPR ]<br />
+  - 参考：<br />
+    * Sun Y, Wang X, Tang X. Deep Learning Face Representation by Joint Identification-Verification[J]. Advances in Neural Information Processing Systems, 2014, 27:1988-1996.<br />
+    * <a href="http://blog.csdn.net/stdcoutzyx/article/details/41497545">DeepID2——强大的人脸分类算法</a><br />
+    * <a href="http://blog.csdn.net/stdcoutzyx/article/details/42091205">DeepID人脸识别算法之三代</a><br />
+  - 在DeepID的softmax使用Logistic Regression作为最终的目标函数，即识别信号。而DeepID2继续<strong>添加验证信号</strong>，两个信号使用加权的方式进行了组合。 <strong>识别信号（identification）增大类间距离，验证信号（verification）减少类内距离</strong>。<br />
+  - 由于验证信号的计算需要两个样本，所以整个卷积神经网络的训练过程也就发生了变化，之前是将全部数据切分为小的batch来进行训练。现在则是每次迭代时随机抽取两个样本，然后进行训练。<br />
+  - 首先使用<strong>SDM(supervised descent method)算法</strong>对每张人脸检测出21个landmarks，然后根据这些landmarks，再加上位置、尺度、通道、水平翻转等因素，每张人脸形成了400张patch，使用200个CNN对其进行训练，水平翻转形成的patch跟原始图片放在一起进行训练。这样，就形成了400×160维的向量。这样形成的特征维数太高，所以要进行特征选择，不同于之前的DeepID直接采用PCA的方式，DeepID2先对patch进行选取，使用<strong>前向-后向贪心算法</strong>选取了25个最有效的patch，这样就只有25×160维向量，然后使用PCA进行降维，降维后为180维，然后再输入到联合贝叶斯模型中进行分类<br />
+  - 在LFW数据库上得到了99.15%人脸准确率。<br />
+  - <a href="http://www.cnblogs.com/Anita9002/p/7095380.html">机器学习–详解人脸对齐算法SDM-LBF</a> ,   <a href="机器学习----人脸对齐的算法-ASM.AAM..CLM.SDM">机器学习—-人脸对齐的算法-ASM.AAM..CLM.SDM</a></p>
+
+<hr />
+<p>#### 2015-DeepID2+   [CVPR]<br />
+  - 参考： <br />
+    * Sun Y, Wang X, Tang X. Deeply learned face representations are sparse, selective, and robust[C]// Computer Vision and Pattern Recognition. IEEE, 2015:2892-2900.<br />
+    * <a href="http://blog.csdn.net/yuanchheneducn/article/details/51034463">DeepID1 DeepID2 DeepID2+ DeepID3</a><br />
+    * <a href="http://blog.csdn.net/stdcoutzyx/article/details/42091205">DeepID人脸识别算法之三代</a><br />
+  - 相比于DeepID2，DeepID2+做了如下三点修改：<br />
+    * DeepID特征从160维提高到512维。<br />
+    * 训练集将CelebFaces+和WDRef数据集进行了融合，共有12000人，290000张图片。<br />
+    * 将DeepID层不仅和第四层和第三层的max-pooling层连接，还连接了第一层和第二层的max-pooling层。<br />
+    * DeepID2+自动就对遮挡有很好的鲁棒性<br />
+    * 最后的DeepID2+的网络结构中ve是验证信号和识别信号加权和的监督信号;FC-n表示第几层的max-pooling。<img src="pictures/DeepID2_plus_net.png" alt="DeepID2_plus_net" /><br />
+  - <strong>适度稀疏与二值化</strong>: DeepID2+有一个性质，即对每个人照片，最后的DeepID层都大概有半数的单元是激活的，半数的单元是抑制的。而不同的人，激活或抑制的单元是不同的。基于此性质。使用阈值对最后输出的512维向量进行了二值化处理，发现效果降低仅[0.5%,1%],但二值化后会有好处，即通过计算汉明距离就可以进行检索了。然后精度保证的情况下，可以使人脸检索变得速度更快，更接近实用场景。<br />
+  - 在后续调查极度深网络的效果，在VGG和GooLeNet的基础上进行构建合适的结构<strong>DeepID3</strong>，结果发现DeepID3的结果和DeepID2+相当。</p>
+
+<hr />
+<p>#### 2015-CNN级联实现Viola-Jones人脸检测器 [CVPR]<br />
+  - 参考：<br />
+    * Li H, Lin Z, Shen X, et al. A convolutional neural network cascade for face detection[C]// Computer Vision and Pattern Recognition. IEEE, 2015:5325-5334.<br />
+    * <a href="http://blog.csdn.net/u010333076/article/details/50637317">论文《A Convolutional Neural Network Cascade for Face Detection》笔记</a><br />
+    * <a href="https://github.com/anson0910/CNN_face_detection">github:anson0910/CNN_face_detection</a><br />
+  - 基于Viola-Jones，提出级联的CNN网络结构用于人脸识别，贡献如下：<br />
+    * 提出了一种级联的CNN网络结构用于高速的人脸检测。<br />
+    * 设计了一种边界校订网络用于更好的定位人脸位置。<br />
+    * 提出了一种多分辨率的CNN网络结构，有着比单网络结构更强的识别能力，和一个微小的额外开销。<br />
+    * 在FDDB上达到了当时最高的分数。<br />
+  - 级联的三个网络结构，其读入的图片分辨率和网络的复杂度是逐级递增的。前面的简单网络拒绝绝大部分非人脸区域，将难以分辨的交由下一级更复杂的网络以获得更准确的结果。<br />
+  - 要想在CNN结构下实现Viola-Jones瀑布级连结构，就要保证瀑布的前端足够简单并有较高的召回率且能够拒绝大部分非人脸区域，将图片缩放可以满足需求。<br />
+  - 这三个网络用于<strong>矫正人脸检测框</strong>的边界，往往得分最高的边界框并非最佳结果，经过校准后其能更好的定位人脸，其矫正原理是对原图做45次变换（<strong>坐标移动比例、尺寸缩放比例</strong>），然后每个变换后的边界框都有一个得分，对于得分高于某个设定的阈值时，将其累加进原边界，最后结果取平均，就是最佳边界框。<br />
+  - <img src="pictures/A_Convolutional_Neural_Network_Cascade_for_Face_Detection_1.jpg" alt="" /></p>
+
+<hr />
+<p>#### 2015-Google的FaceNet [CVPR]<br />
+  - 参考：<br />
+    * Schroff F, Kalenichenko D, Philbin J. FaceNet: A unified embedding for face recognition and clustering[J]. 2015:815-823.<br />
+    * <a href="http://blog.csdn.net/stdcoutzyx/article/details/46687471">FaceNet–Google的人脸识别</a><br />
+    * <a href="http://blog.csdn.net/jyshee/article/details/52558192">Understanding FaceNet</a><br />
+  - 通过卷积网络后的特征，经过L2归一化后得到特征，再采用LMNN(Large margin nearest neighbor,最大间隔最近邻居)中的Triplet Loss，从而替换掉以往的Softmax结构，Triplet loss是尽可能增大类间距离，减少类内距离。<br />
+  - 三元组选择对模型收敛、效率等很重要，文中提出两种方法：<br />
+    * 1 每N步线下在数据的子集上生成一些triplet<br />
+    * 2 在线生成triplet，在每一个mini-batch中选择hard pos/neg 样例。<br />
+    * 论文采用了第2种。为使mini-batch中生成的triplet合理，生成时确保每个mini-batch中每人图片数量均等，再随机加入反例。生成triplet的时，要找出所有的anchor-pos对，然后对每个anchor-pos对找出其hard neg样本。<br />
+  - LFW上的效果：<br />
+    * 直接取LFW图片的中间部分进行训练，达98.87%左右。<br />
+    * 使用额外的人脸对齐工具，效果99.63左右，超过DeepID。<br />
+  - FaceNet不像DeepFace和DeepID需要对齐。且FaceNet得到最终表示后不用像DeepID那样需要再训练模型进行分类，它直接计算距离就即可。<br />
+  - Triplet Loss的目标函数<strong>不是</strong>这论文首次提出。</p>
+
+<hr />
+
+<h4 id="joint-training-of-cascaded-cnn-for-face-detectioncvpr">2016-人脸检测中级联卷积神经网络的联合训练《Joint Training of Cascaded CNN for Face Detection》[CVPR]</h4>
+<ul>
+  <li>参考：
+    <ul>
+      <li>Qin H, Yan J, Li X, et al. Joint Training of Cascaded CNN for Face Detection[C]// Computer Vision and Pattern Recognition. IEEE, 2016:3456-3465.</li>
+      <li><a href="http://note.youdao.com/share/?id=bd65a89a78c201d5c06d6636e9f45069&amp;type=note#/">有道云笔记：Joint Training of Cascaded CNN for Face Detection</a></li>
+      <li>本文是对《A Convolutional Neural Network Cascade for Face Detection》（CNN级联实现Viola-Jones人脸检测器）的优化，优化手段就是<strong>用BP进行联合训练</strong>。作者提出了联合训练以达到CNN级联端对端的优化。作者展示了用于训练CNN的反向传播算法可以被用于训练CNN级联。联合训练可以被用于简单的CNN级联和RPN，fast RCNN。</li>
+      <li>现有最好的方法（2016）基本都是用<strong>多阶段机制</strong>。第一个阶段提出region proposal 第二个阶段是用来detection的网络。级联cnn和faster rcnn都是这个流程。这些方法都没有联合训练，都是用贪心算法去优化的。本文中提出的方法是使用bp去优化。所以不同网络的每一层都可以被联合优化。</li>
+      <li>使用联合训练的情况如下：
+        <ul>
+          <li>1.detection network 和calibration network可以共享multi-loss network用于detection 和bounding box 回归。</li>
+          <li>2 因为multi-resolution得到了使用，那么后一个network将会包括前一个network，那么可以让卷积层在三个stage中共享。</li>
+          <li>3.某一个stage的network的参数可以被别的branch联合优化。</li>
+        </ul>
+      </li>
+      <li>可以使用联合训练的方法训练RPN+fast RCNN。</li>
+      <li><img src="pictures/Joint_Training_of_Cascaded_CNN_for_Face_Detection_1.png" alt="" /></li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+<p>咦做表情识别呢？？怎么突然就不见了  = =</p>
+
+<hr />
+<p>## 表情识别</p>
+
+<h4 id="image-based-static-facial-expression-recognition-with-multiple-deep-network-learning">2015-多种方法联合改进《Image based Static Facial Expression Recognition with Multiple Deep Network Learning》</h4>
+<ul>
+  <li>1 多种串联方式检测人脸<br />
+<img src="pictures/Image_based_Static_Facial_Expression_Recognition_with_Multiple_Deep_Network_Learning_1.png" alt="" /></li>
+  <li>2 五个卷积层，三个随机池层和三个完全连接的层的网络结构。</li>
+  <li>3 较完整地对训练图片进行随机裁剪、翻转、旋转、倾斜等等。
+    <ul>
+      <li><img src="pictures/Image_based_Static_Facial_Expression_Recognition_with_Multiple_Deep_Network_Learning_2.png" alt="" /></li>
+      <li>其中θ是从三个不同值随机采样的旋转角度：{ - π/18，0，π/18}。</li>
+      <li>s1和s2是沿着x和y方向的偏斜参数，并且都是从{-0.1,0,0.1}随机采样的。</li>
+      <li>c是随机尺度参数。定义为c = 47 /（47 - δ），其中δ是[0，4]上随机采样的整数。</li>
+      <li>实际上，用下面的逆映射产生变形的图像：
+        <ul>
+          <li><img src="pictures/Image_based_Static_Facial_Expression_Recognition_with_Multiple_Deep_Network_Learning_4.png" alt="" /></li>
+          <li>其中A是歪斜，旋转和缩放矩阵的组成。输入（x’∈[0,47]，y’∈[0,47]）是变形图像的像素坐标。简单地计算逆映射以找到对应的（x，y）。由于所计算的映射大多包含非整数坐标，因此使用双线性插值来获得扰动的图像像素值</li>
+          <li>t1和t2是两个平移参数，其值从{0，δ}被采样并且与c耦合。</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>4 扰动的学习和投票:
+    <ul>
+      <li>架构最后有P个Dense(7)，这P个扰动样本的输出结果的平均投票，（合并后）作为该图像的预测值。</li>
+    </ul>
+  </li>
+  <li>5 预训练：
+    <ul>
+      <li>样本随机扰动</li>
+      <li>训练时候增加了超过25%或者连续5次增加train loss ，则降低学习率为之前的一半，并重新加载之前损失最好的模型，继续训练.</li>
+    </ul>
+  </li>
+  <li>6 克服过拟合问题:
+    <ul>
+      <li>冻结所有卷积图层的参数，只允许在完全连接的图层上更新参数。</li>
+    </ul>
+  </li>
+  <li>7 上述都是单一网络，现采用集成多网络方式。
+    <ul>
+      <li>常用方法是对输出响应进行简单平均。</li>
+      <li>此处采用自适应地为每个网络分配不同的权重，即要学习集合权重w。采用独立地训练多个不同初始化的CNN并输出他们的训练响应。在加权的集合响应上定义了损失，其中w优化以最小化这种损失。在测试中，学习的w也被用来计算整体的测试响应。</li>
+      <li>在本文中，我们考虑以下两个优化框架：
+        <ul>
+          <li>最大似然方法</li>
+          <li>最小化Hinge loss</li>
+        </ul>
+      </li>
+      <li>
+        <figure class="half">
+  &lt;img src="pictures/Image_based_Static_Facial_Expression_Recognition_with_Multiple_Deep_Network_Learning_6.png", width="380"&gt;
+  &lt;img src="pictures/Image_based_Static_Facial_Expression_Recognition_with_Multiple_Deep_Network_Learning_7.png", width="380"&gt;
+</figure>
+      </li>
+    </ul>
+    <p>&lt;/figure&gt;</p>
+  </li>
+</ul>
+
+<hr />
+<p>#### 2015-用LBP特征作为CNN输入《Emotion Recognition in the Wild via Convolutional Neural Networks and Mapped Binary Patterns》对照明变化有鲁棒性<br />
+作者采用了：</p>
+
+<ul>
+  <li>4个cnn模型VGG S,VGG M-2048,VGG M-4096和GoogleNet</li>
+  <li>5种不同特征作为CNN输入 （RGB, LBP，以及作者额外三种处理的LBP特征）</li>
+  <li>进行了20次实验。实验中10个最好的model中只有一个是RGB作为输入的。</li>
+</ul>
+<figure class="half">
+    &lt;img src="pictures/Emotion_Recognition_in_the_Wild_via_Convolutional_Neural_Networks_and_Mapped_Binary_Patterns_1.png", width="600"&gt; 
+</figure>
+<p>由于LBP的差值不能反映两点间的差异，作者提出了mapping方法让其差能代表两点真实差距。<br />
+将图像转换为LBP代码，使模型对照明亮度变化具有鲁棒性。</p>
+
+<hr />
+<p>#### 2015-不同CNN及组合+数据改进《Hierarchical Committee of Deep CNNs with Exponentially-Weighted Decision Fusion for Static Facial Expression Recognition》<br />
+EmotiW 2015的冠军，和《2015-Image based Static Facial Expression Recognition with Multiple Deep Network Learning》类似的方法。</p>
+
+<ul>
+  <li>先对图片做align,</li>
+  <li>然后设计了三种CNN,由不同的输入,不同的训练数据和不同的初始化训练了216个model,</li>
+  <li>然后用自己提出的方法将这些model组合起来</li>
+  <li>都是想办法增加训练集,让一张图片生成多张,</li>
+  <li>又比如训练多个model结合起来</li>
+  <li>就经常见到的那些方法。</li>
+</ul>
+
+<hr />
+<p>#### 2013-级联网络5个人脸特征点定位《Deep Convolutional Network Cascade for Facial Point Detection》</p>
+
+<p>2013年CVPR，<a href="http://mmlab.ie.cuhk.edu.hk/archive/CNN_FacePoint.htm">论文的主页</a><br />
+比较经典的做法，分为3大部分进行一步步定位。分别是level1,level2,level3。每个level中有好几个cnn模型。</p>
+
+<ul>
+  <li>其中level1（深层网络）是对关键点进行准确估计，</li>
+  <li>接下的两层将对小局部区域进行精细估计（浅层网络）。</li>
+  <li>level1中几个cnn模型分别交错预测关键点（一个cnn模型预测多个点，不同cnn模型预测点有合集）。</li>
+  <li>全部level中会多次预测同一关键点，取平均值。</li>
+</ul>
+
+<hr />
+<p>#### 2013-改进的内外轮廓68人脸特征点定位《Extensive Facial Landmark Localization with Coarse-to-fine Convolutional Network Cascade》[ICCV]<br />
+2013年face++的作品ICCV.<br />
+这篇是基于face++的前一篇定位5个特征点《2013-Deep Convolutional Network Cascade for Facial Point Detection》的。</p>
+
+<p>参考： <a href="http://blog.csdn.net/hjimce/article/details/50099115">基于改进Coarse-to-fine CNN网络的人脸特征点定位</a></p>
+
+<p>也是采用由粗到细，和上一篇步骤类似，这篇分开了内特征点和轮廓特征点的定位。<br />
+让cnn预测bounding box而不是其他人脸检测器（让人脸框住最小化无关背景，如内特征点时可以把人脸轮廓那些部分不纳入bounding box）。各个部分分开训练（五官分开训练，减少因为不同种类的点定位难度不同而影响训练）</p>
+
+<p>下图中表示了全步骤：</p>
+
+<ul>
+  <li>level1是两个cnn来预测bounding box（crop输出）。</li>
+  <li>level2是对定位的粗估计</li>
+  <li>level3是细定位（裁剪后的五官进行训练预测）</li>
+  <li>level4是将level3中图片进行旋转再预测（这层的精度提高很小）。</li>
+</ul>
+<figure class="half">
+    &lt;img src="pictures/Extensive_Facial_Landmark_Localization_with_Coarse-to-fine_Convolutional_Network_Cascade_1.png", width="700"&gt; 
+</figure>
+
+<hr />
+<p>#### 2016-两个Inception+ SDM提取特征点来截更小的人脸框《Going Deeper in Facial Expression Recognition using Deep Neural Networks》<br />
+人脸特征点来获取更小的人脸框（提高4-10%）、两个Inception的CNN框架。</p>
+<figure class="half">
+    &lt;img src="pictures/Going_Deeper_in_Facial_Expression_Recognition_using_Deep_Neural_Networks_1.png", width="900"&gt; 
+</figure>
+
+<hr />
+<p>#### 2013-fer2013第一名71.2%：损失函数为L2-SVM的表情分类《Deep Learning using Linear Support Vector Machines》<br />
+将损失函数Softmax改为L2-SVM，相比L1-SVM,它具有可微，并且对误分类有更大的惩罚。</p>
+
+<p>SVM约束函数如右公式4。改写为无约束优化问题如公式5,即为L1-SVM的最初形式。公式6为L2-SVM的形式。</p>
+<figure class="half">
+    &lt;img src="pictures/Deep_Learning_using_Linear_Support_Vector_Machines_1.png", width="400"&gt;
+
+</figure>
+<figure class="half">
+    &lt;img src="pictures/Deep_Learning_using_Linear_Support_Vector_Machines_2.png", width="400"&gt;
+    &lt;img src="pictures/Deep_Learning_using_Linear_Support_Vector_Machines_3.png", width="400"&gt;
+</figure>
+<p>L2-svm通过  $arg_t max (w^Tx)t \quad (t_n \in \lbrace −1, +1\rbrace)$来判断x的类别。</p>
+
+<p>在反向传播需要对其求导。如公式10为L1-SVM的，它是不可微。而公式11是L2-SVM的且是可微的。<br />
+且L2-SVM比L1-SVM效果好些。</p>
+
+<p>Softmax和L2-SVM在FER2013中的效果如图:</p>
+
+<figure class="half">
+    &lt;img src="pictures/Deep_Learning_using_Linear_Support_Vector_Machines_6.png", width="500"&gt; 
+</figure>
+
+<hr />
+
+<p>考试啦，先暂停看论文。。 Ort</p>
+
+<p>之后我转向图像分类网络的研究了= =</p>
+
+<hr />

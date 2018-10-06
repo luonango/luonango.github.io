@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Every failure is leading towards success.">
+    <meta name="keywords"  content="BY, BY Blog, Nango明楠的博客, luonango, Nango明楠, iOS, Apple, iPhone">
+    <meta name="theme-color" content="#000000">
+    
+    <title>杂乱的几篇论文阅读笔记 - Nango明楠的博客 | BY Blog</title>
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/pwa/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <!-- Safari Webpage Icon    by-BY -->
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://luonango.github.io/2018/01/01/%E6%9D%82%E4%B9%B1%E7%9A%84%E5%87%A0%E7%AF%87%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Pygments Github CSS -->
+    <link rel="stylesheet" href="/css/syntax.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">BY Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+                    
+                    <li>
+                        <a href="/about/">About</a>
+                    </li>
+                    
+                    <li>
+                        <a href="/tags/">Tags</a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.png" width="0" height="0"> -->
+<!-- <img src="/img/post-bg-ios9-web.jpg" width="0" height="0"> -->
+<head>
+    <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+            inlineMath: [['$','$']],
+            displayMath: [['$$','$$']],
+            }
+        });
+    </script>
+</head>
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/post-bg-ios9-web.jpg')
+    }
+
+    
+</style>
+<header class="intro-header" >
+    <div class="header-mask"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#CNN" title="CNN">CNN</a>
+                        
+                        <a class="tag" href="/tags/#网络结构" title="网络结构">网络结构</a>
+                        
+                        <a class="tag" href="/tags/#模型压缩" title="模型压缩">模型压缩</a>
+                        
+                        <a class="tag" href="/tags/#集成" title="集成">集成</a>
+                        
+                    </div>
+                    <h1>杂乱的几篇论文阅读笔记</h1>
+                    
+                    
+                    <h2 class="subheading">论文技术分享：feature maps</h2>
+                    
+                    <span class="meta">Posted by BY on January 1, 2018</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<h1 id="section">随便记录一些论文</h1>
+
+<h2 id="section-1">模型压缩加快</h2>
+
+<h3 id="deep-compression2016deep-compression-compression-deep-neural-networks-with-pruning-trained-quantization-and-huffman-coding">1. 模型压缩Deep Compression：2016《Deep Compression: Compression Deep Neural Networks With Pruning, Trained Quantization And Huffman Coding》</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>Han S, Mao H, Dally W J. Deep Compression: Compressing Deep Neural Networks with Pruning, Trained Quantization and Huffman Coding[J]. Fiber, 2015, 56(4):3--7.
+2016 ICLR最佳论文
+</code></pre>
+</div>
+
+<p>参考：</p>
+
+<ul>
+  <li><a href="http://blog.csdn.net/may0324/article/details/52935869">Deep Compression阅读理解及Caffe源码修改</a></li>
+</ul>
+
+<p>Deep Compreession 实现有三步：</p>
+
+<p><strong>Prunning（权值修剪）、Quantization（权值共享和量化）、Huffman Encoding（Huffman编码)</strong></p>
+
+<ul>
+  <li>Prunning（权值修剪）:
+    <ul>
+      <li>1.正常训练模型得到权值</li>
+      <li>2.将低于阈值的权值设为0</li>
+      <li>3.重新训练得到的新权值</li>
+      <li>权值修剪后的稀疏网络用CSC(compressed sparse column)或者CSR(compressed sparse row)表示。</li>
+      <li>用下标法记录权值参数:记录非零值和其在数组的下标，并用差分形式表示下标（记录和上一个数值的位置距离，如果4bits不够表示距离，则填1111，并把那个非零值记为0.</li>
+    </ul>
+  </li>
+  <li>Quantization（权值共享和量化）：
+    <ul>
+      <li>K-mean方法吧所有参数聚成$2^n$个类，聚类初始化有： <br />
+&gt; * 随机初始化： 随机产生K个观察值做为聚类中心。<br />
+&gt; * 密度分布初始化： 现将累计概率密度CDF的y值分布线性划分，然后根据每个划分点的y值找到与CDF曲线的交点，再找到该交点对应的x轴坐标，将其作为初始聚类中心。 <br />
+&gt; * 线性初始化： 将原始数据的最小值到最大值之间的线性划分作为初始聚类中心<br />
+&gt; * 而 <strong>线性初始化方式</strong>则能更好地保留大权值中心，因此文中采用这一方式。</li>
+      <li>同一聚类的参数相等，对网络调优。梯度下降时候，归于同一类的节点的梯度相加，施加到该类的聚类中心上（而不是每个节点参数上）</li>
+      <li>使用n比特编码的聚类中心替代原有参数</li>
+    </ul>
+  </li>
+  <li>Huffman Encoding（Huffman编码):
+    <ul>
+      <li>编码为n位的非零数据取值；</li>
+      <li>编码为4位的非零元素下标。</li>
+      <li>这两者的分布都不均匀，可以使用Huffman编码进一步压缩存储</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="squeezenet2016squeezenet--alexnet-level-accuracy-with-50x-fewer-parameters-and-05mb-model-size">2. 模型压缩SqueezeNet：2016《SqueezeNet- AlexNet-level accuracy with 50x fewer parameters and 0.5MB model size》</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>Iandola F N, Han S, Moskewicz M W, et al. SqueezeNet: AlexNet-level accuracy with 50x fewer parameters and &lt;0.5MB model size[J]. 2016.
+UC Berkeley和Stanford
+</code></pre>
+</div>
+
+<p>参考：<br />
+- <a href="https://www.jianshu.com/p/8e269451795d">神经网络瘦身：SqueezeNet</a></p>
+
+<ul>
+  <li>用了Deep Compression的方法（上一篇）</li>
+  <li>“多层小卷积核”策略成功的根源：
+    <ul>
+      <li>内存读取耗时要远大于计算耗时。</li>
+    </ul>
+  </li>
+  <li>Dense→Sparse→Dense 的SDS训练法:
+    <ul>
+      <li>本文还有一个神奇的发现：使用裁剪之后的模型为初始值，再次进行训练调优所有参数，正确率能够提升4.3%。</li>
+      <li>稀疏相当于一种正则化，有机会把解从局部极小中解放出来。这种方法称为DSD(dense-&gt;sparse-&gt;dense)</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="igcinterleaved-group-convolutioninterleaved-group-convolutions-for-deep-neural-networks">3. 交错组卷积（IGC，Interleaved Group Convolution）《Interleaved Group Convolutions for Deep Neural Networks》</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>微软 ICCV 2017
+</code></pre>
+</div>
+
+<p>参考：</p>
+
+<ul>
+  <li><a href="https://mp.weixin.qq.com/s?__biz=MzAwMTA3MzM4Nw==&amp;mid=2649441412&amp;idx=1&amp;sn=76b8e24616a4cdc07fbf985798ef4942&amp;chksm=82c0ad00b5b724163561a9174f8213d365ca87f5d73c7ec278ac358293b55e7dcb9e488b1eb8&amp;mpshare=1&amp;scene=1&amp;srcid=0731zmN8ulFwvXY4HRh8vpKs#rd">王井东详解ICCV 2017入选论文：通用卷积神经网络交错组卷积</a></li>
+</ul>
+
+<p>从通道角度出发，解决了神经网络基本卷积单元中的冗余问题。可以在无损性能的前提下，缩减模型、提升计算速度，有助于深度网络在移动端的部署.</p>
+
+<p>每个交错组卷积模块包括两个组卷积过程。不同组的卷积不存在交互，不同组的输出通道并不相关。</p>
+
+<p>为了让不同组的通道相关联，引入第二次组卷积：第二次的每组的输入通道均来自第一组输出的不同的组的通道（交错组成）。</p>
+
+<p><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Interleaved_Group_Convolutions_for_Deep_Neural_Networks_1.png" alt="" /></p>
+
+<p>Xception可以看成是特例：</p>
+
+<ul>
+  <li>如果第一次组的每组只有一个输出通道，那么就变成了特殊的组卷积，即 channel-wise convolution，第二次组卷积成为 1X1 的卷积，这与 Xception 相似；</li>
+  <li>如果第一次组卷积过程里仅有一组，那么这个过程就变成了普通卷积，第二次组卷积过程则相当于分配给每个通过一个不同的权重。</li>
+  <li>极端情况下:网络的性能会随着通道数及组数的变化而变化，最优性能配置点存在于两个极端情况之间。</li>
+</ul>
+
+<hr />
+
+<h3 id="shufflenetshufflenet-an-extremely-efficient-convolutional-neural-network-for-mobile-devices-">4. 通道随机分组ShuffleNet：《ShuffleNet: An Extremely Efficient Convolutional Neural Network for Mobile Devices 》</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>Face++ 2017
+ShuffleNet_An_Extremely_Efficient_Convolutional_Neural_Network_for_Mobile_Devices_
+</code></pre>
+</div>
+
+<p>参考：</p>
+
+<ul>
+  <li><a href="http://m.blog.csdn.net/u014380165/article/details/75137111">ShuffleNet算法详解</a></li>
+  <li><a href="https://zhuanlan.zhihu.com/p/28749411">变形卷积核、可分离卷积？卷积神经网络中十大拍案叫绝的操作</a></li>
+</ul>
+
+<p>降低深度网络计算量。</p>
+
+<p>采用<strong>Channel-Shuffle、Pointwise和Depthwise</strong>来修改原来的ResNet单元.</p>
+
+<ul>
+  <li>
+    <p>Channel Shuffle:<br />
+<img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/ShuffleNet_An_Extremely_Efficient_Convolutional_Neural_Network_for_Mobile_Devices_1.png" alt="" /></p>
+  </li>
+  <li>pointwise group convolution：
+    <ul>
+      <li>带组的卷积核为1*1的卷积。</li>
+    </ul>
+  </li>
+  <li>depthwise separable convolution，将传统卷积过程分两步：
+    <ul>
+      <li>如先用M个3*3卷积核一对一卷积成M个特征图。卷积时候互不相交。</li>
+      <li>接着用N个1*1的卷积核对这M个特征图全部卷积（正常卷积），生成N个特征图。</li>
+    </ul>
+  </li>
+</ul>
+
+<blockquote>
+  <p>ShuffleNet的核心:</p>
+
+  <p>用pointwise group convolution，channel shuffle和depthwise separable convolution,代替ResNet block的相应层构成了ShuffleNet uint，达到了减少计算量和提高准确率的目的。</p>
+
+  <p>channel shuffle解决了多个group convolution叠加出现的边界效应，pointwise group convolution和depthwise separable convolution主要减少了计算量</p>
+
+</blockquote>
+
+<p>增强了全局信息的流通，超少量的参数。</p>
+
+<p>相比Xception和Mobilenet，ShuffleNet都获得了性能上的提升，至于速度带来的提升则不是很明显。<br />
+以及超越mobilenet、媲美AlexNet的准确率.</p>
+
+<blockquote>
+  <p>微软亚洲研究院MSRA最近也有类似的工作，他们提出了一个IGC单元（Interleaved Group Convolution,如上），即通用卷积神经网络交错组卷积，形式上类似进行了两次组卷积。</p>
+</blockquote>
+
+<blockquote>
+  <p>要注意的是，Group conv是一种channel分组的方式，Depthwise +Pointwise是卷积的方式，只是ShuffleNet里面把两者应用起来了。</p>
+
+  <p>因此Group conv和Depthwise +Pointwise并不能划等号。</p>
+
+</blockquote>
+
+<hr />
+
+<h3 id="senet-2017squeeze-and-excitation-networks">5. SENet 2017《Squeeze-and-Excitation Networks》</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>2017 ImageNet 冠军
+CVPR，国内自动驾驶创业公司Momenta
+</code></pre>
+</div>
+
+<h5 id="section-2">特点：</h5>
+<ul>
+  <li>考虑特征通道间的关系，动态调整各通道的特征响应值</li>
+  <li>构造简单、容易被部署。增加很小的计算消耗，获得高的性能提升</li>
+  <li>可能用于辅助网络修剪/压缩的工作</li>
+</ul>
+
+<h5 id="section-3">模块构造</h5>
+<p>|Squeeze-and-Excitation 模块|<br />
+|-|<br />
+|<img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_1.jpg" alt="" />|<br />
+|图中输入是X，有$c_1$特征通道。经过一系列卷积变换后，得$c_2$个大小为$w×h$的通道（map）|<br />
+|<strong>Squeeze</strong>： 顺着空间维度进行特征压缩，每个二维特征通道变成一个实数，如图得到$1×1×c_2$.表征着特征通道相应的全局分布.全局平均池化来生成各通道的统计量|<br />
+|<strong>Excitation</strong>: 考察各通道的依赖程度,W被学习表示特征通道间的相关性。最后sigmoid的输出就是各通道的权重，根据输入数据调节各通道特征的权重，有助于增强特征的可分辨性|<br />
+|<strong>Reweight</strong>: 通过乘法逐通道加权到先前特征，完成对原始特征的重标定。|</p>
+
+<h5 id="section-4">示例：部署简单，如插件</h5>
+<p>|SE_Inception图示|SE_ResNet图示|<br />
+|-|-|<br />
+|<img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_4.png" alt="" />|<img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_5.png" alt="" />|</p>
+
+<p>#####　实验情况：增加小的计算消耗，获得大的性能提升<br />
+||<br />
+|-|<br />
+|<img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_3.png" alt="" />|<br />
+|<img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_6.jpg" alt="" />|</p>
+
+<hr />
+<p>## 模型变换</p>
+
+<h3 id="deformable-convolutional-networks">1. 可变形卷积网络2017《Deformable Convolutional Networks》</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>微软亚洲研究院.可变卷积和可变ROI采样
+Dai J, Qi H, Xiong Y, et al. Deformable Convolutional Networks[J]. 2017.
+Deformable_Convolutional_Networks_
+</code></pre>
+</div>
+
+<p>参考：</p>
+
+<ul>
+  <li><a href="https://github.com/msracver/Deformable-ConvNets">https://github.com/msracver/Deformable-ConvNets</a></li>
+  <li><a href="http://valser.org/thread-1261-1-1.html">【VALSE 前沿技术选介17-02期】可形变的神经网络</a></li>
+  <li><a href="https://www.cnblogs.com/lillylin/p/6277094.html">目标检测方法——R-FCN</a></li>
+  <li><a href="http://m.blog.csdn.net/yucicheung/article/details/78113843">Deformable ConvNets论文笔记</a></li>
+</ul>
+
+<p>对卷积核每个采样点位置都增加偏移变量。用convolution去学习dilatation值，和STN异曲同工。</p>
+
+<p>引入了两种模块：<strong>deformable convolution</strong> 、 <strong>deformable RoI pooling</strong></p>
+
+<blockquote>
+  <p>对象尺度，姿态，视点和部分形变的几何变换一般有两种方法：</p>
+
+  <ul>
+    <li>建立足够期望变化的训练数据集，通常增加数据样本，如仿射变换等，从数据集中学习鲁棒表示。但需要昂贵的训练和复杂的模型参数</li>
+    <li>使用变换不变的特征和算法，如SIFT（尺度不变特征变换）、基于滑动窗口的检测范例。</li>
+  </ul>
+
+  <p>上述的几何变换是固定已知的。这样的先验知识的假设阻止了未知的几何变换，并且，人工设计的特征和算法对于过度复杂的变换是困难不可行的。</p>
+</blockquote>
+
+<ol>
+  <li><strong>Deformable Convolution:</strong>
+    <ul>
+      <li>将2D偏移量加入标准卷积中的网格区，使网格区自由形变（再进行卷积）。偏移量通过附加的卷积层从前面的特征图中学习。因此，变形以局部的，密集的和自适应的方式受到输入特征的限制。</li>
+      <li>
+        <table>
+          <thead>
+            <tr>
+              <th> </th>
+              <th> </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>(a)是标准卷积的采样网格。<br />(b)是变形后采样位置和变形卷积中的偏移量箭头<br />(c)和(d)是形变后的特殊情况。<br /><br />表明可变形卷积推广了各种尺度(各向异性)纵横比和旋转的变换</td>
+              <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Deformable_Convolutional_Networks_1.png" alt="" /></td>
+            </tr>
+          </tbody>
+        </table>
+      </li>
+      <li>
+        <table>
+          <thead>
+            <tr>
+              <th> </th>
+              <th> </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>在相同的输入特征图上应用卷积层，获得偏移。2N的通道表示N个通道的2维偏移。<br /><br />训练时，同时学习偏移量的卷积核参数以及普通卷积核参</td>
+              <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Deformable_Convolutional_Networks_2.png" alt="" /></td>
+            </tr>
+          </tbody>
+        </table>
+      </li>
+    </ul>
+  </li>
+  <li><strong>Deformable RoI(region-of-interest) pooling</strong>
+    <ul>
+      <li>为RoI（region-of-interest）池的常规bin分区中的每个bin位置添加一个偏移量。（池化时，池化区的每个位置都加入对应偏移量，再进行池化）。<br />类似地，从前面的特征映射和RoI学习偏移，使得具有不同形状的对象的自适应部分定位成为可能。</li>
+      <li>
+        <table>
+          <thead>
+            <tr>
+              <th> </th>
+              <th> </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>fc层产生归一化偏移量，再归一化偏移量（让偏移的学习不因RoI尺寸不同而变化）</td>
+              <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Deformable_Convolutional_Networks_3.png" alt="" /></td>
+            </tr>
+          </tbody>
+        </table>
+      </li>
+    </ul>
+  </li>
+  <li><strong>Position-Sensitive (PS) RoI Pooling</strong> （目标检测方法R-FCN提及到）
+    <ul>
+      <li>位置敏感RoI池是完全卷积的,<a href="https://www.cnblogs.com/lillylin/p/6277094.html">目标检测R-FCN中率先提出position sensitive score map概念</a>。</li>
+      <li>
+        <table>
+          <thead>
+            <tr>
+              <th>deformable PS RoI pooling</th>
+              <th> </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>下面分支：通过一个卷积层，所有的 input 特征图先被转化。每个物体类别都生成$k^2$个分数图（如果物体类别是C，那么总共有C+1个,C类物体外加1个背景）<br /><br />上面分支：通过卷积层，生成完全的空间像素偏移域。<br /><br />对每个RoI（同时还指定了某个类别），PS RoI pooling会被应用在这些域上以获取归一化的偏移量$\Delta \hat{p}<em>{ij}$，然后通过上述deformable RoI pooling中一样的方法变成真正的偏移量$\Delta p</em>{ij}$。</td>
+              <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Deformable_Convolutional_Networks_4.png" alt="" /></td>
+            </tr>
+          </tbody>
+        </table>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<p>梯度是通过双线性运算反向传播，详情阅读论文公式及附录。</p>
+
+<hr />
+
+<h2 id="section-5">集成方面：</h2>
+
+<h3 id="section-6">1. 数据上的集成：</h3>
+
+<h4 id="data-distillation-towards-omni-supervised-learning">对图片转换，半监督《Data Distillation: Towards Omni-Supervised Learning》</h4>
+<div class="highlighter-rouge"><pre class="highlight"><code>Ilija Radosavovic Piotr Dollar Ross Girshick Georgia Gkioxari Kaiming He 
+Facebook AI Research (FAIR)
+人体姿态估计   物体识别框
+</code></pre>
+</div>
+
+<ul>
+  <li>一些参考：<br />
+  <a href="https://www.zhihu.com/question/264009268/answer/275800268">如何评价FAIR的最新工作Data Distillation？</a></li>
+</ul>
+
+<p>思想主要如图：<br />
+<img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Data_Distillation_Towards_Omni-Supervised_Learning_1.png" alt="" /></p>
+
+<p><strong>数据变换：</strong></p>
+
+<ul>
+  <li>选择多变换推理的几何变换（使用<strong>缩放和水平翻转</strong>）</li>
+</ul>
+
+<p><strong>在未标记的数据上生成标签（聚合多变换推断（Multi-transform inference）的结果）：</strong></p>
+
+<ul>
+  <li>将输入的数据进行多种变换，都应用于相同的模型，然后汇总结果。</li>
+  <li>某数据可能某单个变换比任何其他的变换得到的模型预测更好。
+    <ul>
+      <li>观察发现，聚合预测产生新的知识，使用这些信息生成的标签，原则上能让模型进行学习。</li>
+    </ul>
+  </li>
+  <li>
+    <p>生成的标签可能是 <strong>“软标签”</strong>（即是概率向量，而非分类标签），重新训练时候如果考虑到概率值，则要重新设计损失函数。且对于结构化输出空间的问题，如对象检测或人体姿态估计，<strong>平均输出没有意义</strong>。</p>
+
+    <ul>
+      <li>故本文<strong>只聚合那些和真实标签有相同结构、类型（或分布）的“硬标签”</strong>：
+        <ul>
+          <li><strong>额外设计专用逻辑结构</strong>来处理，如非极大值抑制来组合多组方框之类的做法。</li>
+        </ul>
+      </li>
+      <li>期望预测的框和关键点足够可靠，可以生成良好的培训标签：
+        <ul>
+          <li>以预测的检测分数作为预测质量的评估，<strong>超过某个分数阈值的预测才能产生注释</strong>。</li>
+          <li><strong>专用逻辑结构</strong>：(作者自己设计)发现如果使得“每个未标记图像的预测标注实例的平均数量”大致等于“每个真实标记图像的标注实例的平均数量”，则分数阈值运行良好。虽然这种启发式假定未标记和标记的图像遵循<strong>类似的分布</strong>，但是作者发现它是稳健的并且即使在假设不成立的情况下也工作良好。</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p><strong>看法：</strong></p>
+
+<ul>
+  <li><strong>从数据而非模型来思考集成</strong>。</li>
+  <li>不知道 <strong>数据转换是静态转换，还是可学习的转换（学习转换矩阵Ｗ)</strong>，文中似乎是前者，但后者或许更佳。</li>
+  <li>感觉是作者添加的<strong>专用逻辑结构起了很大作用</strong>。即<strong>添加了发现的规律</strong>，增加了额外有用信息（先验知识），从而督促了网络学习吧。<br />
+&gt;　发现如果“每个未标记图像的预测标注实例的平均数量”大致等于“每个真实标记图像的标注实例的平均数量”，则分数阈值运行良好.</li>
+</ul>
+
+
+
+                <hr style="visibility: hidden;">
+
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2017/11/01/%E8%A1%A8%E6%83%85%E8%AF%86%E5%88%AB_%E4%B8%80%E4%BA%9B%E6%95%B4%E7%90%86/" data-toggle="tooltip" data-placement="top" title="表情识别_一些整理">
+                        Previous<br>
+                        <span>表情识别_一些整理</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2018/03/01/CapsulesNet/" data-toggle="tooltip" data-placement="top" title="CapsulesNet的解析">
+                        Next<br>
+                        <span>CapsulesNet的解析</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+
+
+                <!--Gitalk评论start  -->
+                
+                <!-- 引入Gitalk评论插件  -->
+                <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+                <script src="https://unpkg.com/gitalk@latest/dist/gitalk.min.js"></script>
+                <div id="gitalk-container"></div>
+                <!-- 引入一个生产md5的js，用于对id值进行处理，防止其过长 -->
+                <!-- Thank DF:https://github.com/NSDingFan/NSDingFan.github.io/issues/3#issuecomment-407496538 -->
+                <script src="/js/md5.min.js"></script>
+                <script type="text/javascript">
+                    var gitalk = new Gitalk({
+                    clientID: '54aa3c825e96e88854c0',
+                    clientSecret: '14b921a4bcdb0552b99edf9da7e6f93577d9a40a',
+                    repo: 'luonango.github.io',
+                    owner: 'luonango',
+                    admin: ['luonango'],
+                    distractionFreeMode: true,
+                    id: md5(location.pathname),
+                    });
+                    gitalk.render('gitalk-container');
+                </script>
+                
+                <!-- Gitalk end -->
+
+                
+
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <hr class="hidden-sm hidden-xs">
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+        				
+                            
+        				
+                            
+        				
+                            
+        				
+                            
+        				
+                            
+        				
+                            
+        				
+                            
+                				<a href="/tags/#图像分类" title="图像分类" rel="2">
+                                    图像分类
+                                </a>
+                            
+        				
+                            
+                				<a href="/tags/#CNN" title="CNN" rel="3">
+                                    CNN
+                                </a>
+                            
+        				
+                            
+                				<a href="/tags/#网络结构" title="网络结构" rel="2">
+                                    网络结构
+                                </a>
+                            
+        				
+                            
+        				
+                            
+        				
+                            
+        				
+                            
+        				
+                            
+        				
+                            
+        				
+                            
+        				
+        			</div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+                    
+                        <li><a href="https://www.zhihu.com/people/luonango">Nango 明楠</a></li>
+                    
+                        <li><a href="http://www.jianshu.com/u/fe747d686af8">简书·BY</a></li>
+                    
+                        <li><a href="https://apple.com">Apple</a></li>
+                    
+                        <li><a href="https://developer.apple.com/">Apple Developer</a></li>
+                    
+                </ul>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        // BY Fix:去除标题前的‘#’ issues:<https://github.com/luonango/luonango.github.io/issues/137>
+        // anchors.options = {
+        //   visible: 'always',
+        //   placement: 'right',
+        //   icon: '#'
+        // };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    
+                    <!-- add jianshu add target = "_blank" to <a> by BY -->
+                    
+                            <li>
+                                <a target="_blank" href="https://www.jianshu.com/u/fe747d686af8">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fa fa-circle fa-stack-2x"></i>
+                                        <i class="fa  fa-stack-1x fa-inverse">简</i>
+                                    </span>
+                                </a>
+                            </li>
+                    
+                    
+
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/luonango">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+
+
+                    
+                    <li>
+                        <a target="_blank" href="https://www.facebook.com/luonango">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/luonango">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; BY Blog 2018
+                    <br>
+                    Theme on <a href="https://github.com/luonango/luonango.github.io.git">GitHub</a> |
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="100px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=luonango&repo=luonango.github.io&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- Service Worker -->
+
+<script type="text/javascript">
+    if(navigator.serviceWorker){
+        // For security reasons, a service worker can only control the pages that are in the same directory level or below it. That's why we put sw.js at ROOT level.
+        navigator.serviceWorker
+            .register('/sw.js')
+            .then((registration) => {console.log('Service Worker Registered. ', registration)})
+            .catch((error) => {console.log('ServiceWorker registration failed: ', error)})
+    }
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/ 
+     - https://github.com/jneen/rouge/wiki/list-of-supported-languages-and-lexers   
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-90855596-1';
+    var _gaDomain = 'auto';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'b50bf2b12b5338a1845e33832976fd68';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+
+
+<!-- Image to hack wechat -->
+<img src="/img/apple-touch-icon.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+<!-- MathJax Section -->
+<!-- copied from http://docs.mathjax.org/en/latest/configuration.html -->
+</body>
+
+</html>

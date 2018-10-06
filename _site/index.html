@@ -213,10 +213,46 @@
 <hr>
 
 <div class="post-preview">
-    <a href="/2018/02/01/CapsulesNet/">
+    <a href="/2018/05/01/%E5%8D%B7%E7%A7%AF%E7%BD%91%E7%BB%9C%E7%9A%84%E7%89%B9%E5%BE%81%E9%80%9A%E9%81%93/">
+        <h2 class="post-title">
+            卷积网络的特征通道
+        </h2>
+        
+        <h3 class="post-subtitle">
+            论文技术分享：feature maps
+        </h3>
+        
+        <div class="post-content-preview">
+            
+从实际的角度出发，由于深度神经网络受到大量矩阵运算的限制，往往需要海量存储及计算资源。削减神经网络中卷积单元的冗余是解决这个问题的重要研究之一，它可并分为空间（spatial）及通道（channel）两个方向。
+
+先谈谈通道上的解决方法。
+
+
+
+从Alexnet说起：
+||
+|-|
+||
+|单个GTX 580 GPU只有3GB内存,不能满足当时的参数规模|
+|将网络分布在两个GPU上，每个...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by BY on May 1, 2018
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2018/03/01/CapsulesNet/">
         <h2 class="post-title">
             CapsulesNet的解析
         </h2>
+        
+        <h3 class="post-subtitle">
+            原理及两篇论文的解析
+        </h3>
         
         <div class="post-content-preview">
             CapsulesNet的解析
@@ -236,7 +272,81 @@ Hinton认为卷积神经网络是不太正确的，它既不对应生物神经�
         </div>
     </a>
     <p class="post-meta">
-        Posted by BY on February 1, 2018
+        Posted by BY on March 1, 2018
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2018/01/01/%E6%9D%82%E4%B9%B1%E7%9A%84%E5%87%A0%E7%AF%87%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/">
+        <h2 class="post-title">
+            杂乱的几篇论文阅读笔记
+        </h2>
+        
+        <h3 class="post-subtitle">
+            论文技术分享：feature maps
+        </h3>
+        
+        <div class="post-content-preview">
+            随便记录一些论文
+
+模型压缩加快
+
+1. 模型压缩Deep Compression：2016《Deep Compression: Compression Deep Neural Networks With Pruning, Trained Quantization And Huffman Coding》
+Han S, Mao H, Dally W J. Deep Compression: C...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by BY on January 1, 2018
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2017/11/01/%E8%A1%A8%E6%83%85%E8%AF%86%E5%88%AB_%E4%B8%80%E4%BA%9B%E6%95%B4%E7%90%86/">
+        <h2 class="post-title">
+            表情识别_一些整理
+        </h2>
+        
+        <h3 class="post-subtitle">
+            图像、表情分类、人脸识别部分整理
+        </h3>
+        
+        <div class="post-content-preview">
+            表情识别_一些整理
+
+记录表情识别的一些些进展。
+
+
+
+什么是人脸表情识别技术？
+
+基于特征的面部表情识别
+
+
+  置信点集的几何位置
+  
+    这些点的多尺度多方向Gabor小波系数
+
+    二者既可以独立使用也可以结合使用。张正友博士的研究结果表明，Gabor小波系数更为有效
+  
+
+
+面部表情识别难点
+
+
+  不同人表情变化
+  同一人上下文变化
+
+
+自动FER系统需要解决
+
+
+...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by BY on November 1, 2017
     </p>
 </div>
 <hr>
@@ -244,36 +354,71 @@ Hinton认为卷积神经网络是不太正确的，它既不对应生物神经�
 <div class="post-preview">
     <a href="/2017/11/01/%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2%E7%9A%84%E4%BC%A0%E7%BB%9F%E6%96%B9%E6%B3%95/">
         <h2 class="post-title">
-            图像分割的传统方法
+            图片分割的传统方法
         </h2>
         
+        <h3 class="post-subtitle">
+            基于阈值、边缘、区域、图论、能量泛函的分割
+        </h3>
+        
         <div class="post-content-preview">
-            
-
-layout:     post
-title:      图片分割的传统方法
-subtitle:   
-date:       2017-11-01
-author:     BY
-header-img: img/post-bg-ios9-web.jpg
-catalog: true
-tags:
-    - 图像分割
-    - 传统方法
-
-
-
-图片分割的传统方法
+            图片分割的传统方法
 
 
 
 图像分割概述
 
-根据...
+根据灰度、颜色、纹理、和形状等特征将图像进行划分区域，让区域间显差异性，区域内呈相似性。主要分割方法有：
+
+
+  基于阈值的分割
+  基于边缘的分割
+  基于区域的分割
+  基于图论的分割
+  基于能量泛函的分割
+
+
+
+
+基于阈值的分割方法
+
+  参考： 基于阈值的图像分割方法
+
+
+阈值法的基本思想是基于图像的灰度特征来计算一个或多个灰度阈值，并将图...
         </div>
     </a>
     <p class="post-meta">
-        Posted by BY Blog on November 1, 2017
+        Posted by BY on November 1, 2017
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2017/10/01/%E9%83%A8%E5%88%86GAN%E7%9A%84%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E6%95%B4%E7%90%86/">
+        <h2 class="post-title">
+            部分GAN论文的阅读整理
+        </h2>
+        
+        <h3 class="post-subtitle">
+            一些GAN的论文阅读笔记
+        </h3>
+        
+        <div class="post-content-preview">
+            Good Semi-supervised Learning That Requires a Bad GAN
+Zihang Dai∗, Zhilin Yang∗, Fan Yang, William W. Cohen, Ruslan Salakhutdinov
+School of Computer Science
+Carnegie Melon University
+
+
+
+
+
+f-GAN: 20...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by BY on October 1, 2017
     </p>
 </div>
 <hr>
@@ -297,6 +442,38 @@ tags:
                     <hr class="hidden-sm hidden-xs">
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <a href="/tags/#图像分类" title="图像分类" rel="2">
+                                    图像分类
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#CNN" title="CNN" rel="3">
+                                    CNN
+                                </a>
+                            
+                        
+                            
+                                <a href="/tags/#网络结构" title="网络结构" rel="2">
+                                    网络结构
+                                </a>
+                            
+                        
+                            
                         
                             
                         

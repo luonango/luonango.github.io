@@ -5,8 +5,8 @@
     <description>Every failure is leading towards success.</description>
     <link>http://luonango.github.io/</link>
     <atom:link href="http://luonango.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Sat, 06 Oct 2018 11:37:16 +0800</pubDate>
-    <lastBuildDate>Sat, 06 Oct 2018 11:37:16 +0800</lastBuildDate>
+    <pubDate>Sat, 06 Oct 2018 13:08:40 +0800</pubDate>
+    <lastBuildDate>Sat, 06 Oct 2018 13:08:40 +0800</lastBuildDate>
     <generator>Jekyll v3.0.1</generator>
     
       <item>
@@ -384,6 +384,212 @@ supervised clustering of predictors with OSCAR&lt;/a&gt;中的OSCAR惩罚函数�
         <category>正则化</category>
         
         <category>稀疏</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>卷积网络的特征通道</title>
+        <description>&lt;hr /&gt;
+&lt;p&gt;从实际的角度出发，由于深度神经网络受到大量矩阵运算的限制，往往需要海量存储及计算资源。削减神经网络中卷积单元的冗余是解决这个问题的重要研究之一，它可并分为空间（spatial）及通道（channel）两个方向。&lt;/p&gt;
+
+&lt;p&gt;先谈谈通道上的解决方法。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;alexnet&quot;&gt;从Alexnet说起：&lt;/h3&gt;
+&lt;p&gt;||&lt;br /&gt;
+|-|&lt;br /&gt;
+|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/AlexNet_1.png&quot; alt=&quot;&quot; /&gt;|&lt;br /&gt;
+|单个GTX 580 GPU只有3GB内存,不能满足当时的参数规模|&lt;br /&gt;
+|将网络分布在两个GPU上，每个GPU中放置一半核（或神经元），GPU间的通讯只在某些层进行|&lt;br /&gt;
+|如第3层的核需要从第2层中所有核映射输入。然而，第4层的核只需要从第3层中位于同一GPU的那些核映射输入|&lt;br /&gt;
+|即为双通道网络结构，减少了大量的连接参数消耗|&lt;/p&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;### Inception系列也是多通道&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Inception_v1&lt;/th&gt;
+      &lt;th&gt;Inception_v2-v3&lt;/th&gt;
+      &lt;th&gt;Xception&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Inception_v1_2.png&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Inception_v2_3.png&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Xception_1.png&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Xception中主要采用&lt;strong&gt;depthwise separable convolution&lt;/strong&gt;技术（mobileNets中提出，深度学习模型加速网络的核心技术）。&lt;/p&gt;
+
+&lt;p&gt;假设输入的是A个特征图，最终输出B个特征图。Xception的卷积就是将传统的卷积操作分成两步：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;然后用A个1*1的卷积核正常卷积生成的A个特征图。求和，最后生成A个特征图&lt;/li&gt;
+  &lt;li&gt;用B个3*3卷积核，一对一卷积B个特征图。不求和，直接拼生成B个特征图；&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;#####　mobileNets与Xception使用depthwise的区别：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;mobileNets中与Xception中的执行顺序刚好相反。&lt;/li&gt;
+  &lt;li&gt;在mobileNet中主要就是为了降低网络的复杂度。&lt;/li&gt;
+  &lt;li&gt;在Xception中作者加宽了网络，使得参数数量和Inception v3差不多，然后在这前提下比较性能。Xception目的不在于模型压缩，而是提高性能。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;iccvigcinterleaved-group-convolution&quot;&gt;2017_ICCV_微软的交错组卷积（IGC，Interleaved Group Convolution）&lt;/h3&gt;
+&lt;p&gt;##### ICG模块&lt;br /&gt;
+|交错组卷积模块：含两个组卷积过程|&lt;br /&gt;
+|-|&lt;br /&gt;
+|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Interleaved_Group_Convolutions_for_Deep_Neural_Networks_1.png&quot; alt=&quot;&quot; /&gt;|&lt;br /&gt;
+|第一次组卷积：不同组的卷积不存在交互，不同组的输出通道并不相关。|&lt;br /&gt;
+|第二次组卷积：让不同组的通道相关联。每组的输入通道均来自第一组输出的不同的组的通道（交错组成）|&lt;/p&gt;
+
+&lt;h5 id=&quot;section&quot;&gt;特点：&lt;/h5&gt;
+&lt;ul&gt;
+  &lt;li&gt;从通道角度出发，解决了神经网络基本卷积单元中的冗余问题。&lt;/li&gt;
+  &lt;li&gt;可以在无损性能的前提下，缩减模型、提升计算速度，有助于深度网络在&lt;strong&gt;移动端&lt;/strong&gt;的部署.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5 id=&quot;section-1&quot;&gt;极端和最优分配下的分析&lt;/h5&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Xception 是特例：
+    &lt;ul&gt;
+      &lt;li&gt;如果第一次组的每组只有一个输出通道，那么就变成了特殊的组卷积，即 channel-wise convolution，第二次组卷积成为 1X1 的卷积，这与 Xception 相似（顺序相反）。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;普通卷积：
+    &lt;ul&gt;
+      &lt;li&gt;如果第一次组卷积过程里仅有一组，那么这个过程就变成了普通卷积，第二次组卷积过程则相当于分配给每个通过一个不同的权重。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;分配情况：
+    &lt;ul&gt;
+      &lt;li&gt;极端情况下:网络的性能会随着通道数及组数的变化而变化&lt;/li&gt;
+      &lt;li&gt;最优性能配置点存在于两个极端情况之间。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;###  2017_Face++的通道随机分组ShuffleNet&lt;/p&gt;
+
+&lt;h5 id=&quot;section-2&quot;&gt;模块构造&lt;/h5&gt;
+&lt;p&gt;|&lt;strong&gt;Pointwise组卷积、Channel-Shuffle 和 Depthwise&lt;/strong&gt; 组成的模块|&lt;br /&gt;
+|-|&lt;br /&gt;
+|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/ShuffleNet_An_Extremely_Efficient_Convolutional_Neural_Network_for_Mobile_Devices_1.png&quot; alt=&quot;&quot; /&gt;|&lt;br /&gt;
+|GConv 指组卷积。 group convolution|&lt;br /&gt;
+|Pointwise：卷积核为1*1的组卷积(不采用组卷积则计算量太大）。 pointwise group convolution|&lt;br /&gt;
+|Depthwise：前面提过，先分别组卷积，再1×1卷积核一起卷积。 depthwise separable convolution|&lt;br /&gt;
+|Channel Shuffle: 将通道洗牌，交错合并组的分块|&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;基于ShuffleNet的ResNet&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/ShuffleNet_An_Extremely_Efficient_Convolutional_Neural_Network_for_Mobile_Devices_2.png&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;a图是普通Residual block&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;b图中将Residual block用：&lt;strong&gt;Pointwise组卷积+ Shuffle + 3×3的Depthwise + Pointwise组卷积&lt;/strong&gt; 替代&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;c图是实验采用的Residual block&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h5 id=&quot;section-3&quot;&gt;特点：&lt;/h5&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;采用 &lt;strong&gt;Channel-Shuffle、Pointwise组卷积 和 Depthwise&lt;/strong&gt; 来修改原来的ResNet单元&lt;/li&gt;
+  &lt;li&gt;Pointwise组卷积和Depthwise主要为了减少了计算量&lt;/li&gt;
+  &lt;li&gt;与交错组卷积IGC单元（Interleaved Group Convolution）相似。&lt;/li&gt;
+  &lt;li&gt;大幅度降低网络计算量，专用于计算能力非常有限的移动端设备.&lt;/li&gt;
+  &lt;li&gt;超越mobilenet、媲美AlexNet的准确率.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;该论文和IGC在shuffle上相似，且两者都是17年7月份提交。IGC未引用该文，而此文中提到：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;最近，另一项并行工作[41]也采用这个思想进行两阶段卷积。然而，[41]没有&lt;strong&gt;专门调查&lt;/strong&gt;通道shuffle本身的有效性和在小模型设计上的使用。&lt;/li&gt;
+  &lt;li&gt;Such “random shuffle” operation has different purpose and been seldom exploited later. Very recently, another concurrent work[41] also adopt this idea for a two-stage convolution. However,[41] did not &lt;strong&gt;specially investigate&lt;/strong&gt; the effectiveness of channel shuffle itself and its usage in tiny model design.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;senet-2017imagenet&quot;&gt;考虑通道的不平等关系SENet (2017_ImageNet冠军)&lt;/h3&gt;
+
+&lt;h5 id=&quot;section-4&quot;&gt;模块构造&lt;/h5&gt;
+&lt;p&gt;|Squeeze-and-Excitation 模块|&lt;br /&gt;
+|-|&lt;br /&gt;
+|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_1.jpg&quot; alt=&quot;&quot; /&gt;|&lt;br /&gt;
+|图中输入是X，有$c_1$特征通道。经过一系列卷积变换后，得$c_2$个大小为$w×h$的通道（map）|&lt;br /&gt;
+|&lt;strong&gt;Squeeze&lt;/strong&gt;： 进行特征压缩，每个二维通道变为一个实数，如图得$1×1×c_2$.它们代表相应的特征通道的全局分布.|&lt;br /&gt;
+|&lt;strong&gt;Excitation&lt;/strong&gt;: 学习特征通道间的相关性。根据输入，调节各通道的权重|&lt;br /&gt;
+|&lt;strong&gt;Reweight&lt;/strong&gt;: 以对应的通道权重，乘回对应通道，完成对原始特征的重标定|&lt;/p&gt;
+
+&lt;h5 id=&quot;section-5&quot;&gt;部署示例&lt;/h5&gt;
+&lt;p&gt;|SE_Inception图示|SE_ResNet图示|&lt;br /&gt;
+|-|-|&lt;br /&gt;
+|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_4.png&quot; alt=&quot;&quot; /&gt;|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_5.png&quot; alt=&quot;&quot; /&gt;|&lt;/p&gt;
+
+&lt;p&gt;#####　实验情况：增加小的计算消耗，获得大的性能提升&lt;br /&gt;
+|||&lt;br /&gt;
+|-|-|&lt;br /&gt;
+|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_3.png&quot; alt=&quot;&quot; /&gt;|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_6.jpg&quot; alt=&quot;&quot; /&gt;|&lt;/p&gt;
+
+&lt;h5 id=&quot;section-6&quot;&gt;特点：&lt;/h5&gt;
+&lt;ul&gt;
+  &lt;li&gt;考虑特征通道间的关系，动态调整各通道的特征响应值&lt;/li&gt;
+  &lt;li&gt;构造简单、容易被部署。增加很小的计算消耗，获得高的性能提升&lt;/li&gt;
+  &lt;li&gt;或许可用于辅助网络修剪/压缩的工作&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;section-7&quot;&gt;参考&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;2012-ImageNet-Classification-with-Deep-Convolutional-Neural-Networks&lt;/li&gt;
+  &lt;li&gt;2016-Xception: Deep Learning with Depthwise Separable Convolutions&lt;/li&gt;
+  &lt;li&gt;2017-Interleaved Group Convolutions for Deep Neural Networks&lt;/li&gt;
+  &lt;li&gt;2017-ShuffleNet: An Extremely Efficient Convolutional Neural Network for Mobile Devices&lt;/li&gt;
+  &lt;li&gt;2017-Squeeze-and-Excitation Networks&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;section-8&quot;&gt;小想法：&lt;/h3&gt;
+
+&lt;p&gt;在组通道网络中，采用SENet思想，对组通道进行加权（而非单通道）。让SENet为一个特例（组为单通道）。&lt;/p&gt;
+
+&lt;hr /&gt;
+</description>
+        <pubDate>Tue, 01 May 2018 00:00:00 +0800</pubDate>
+        <link>http://luonango.github.io/2018/05/01/%E5%8D%B7%E7%A7%AF%E7%BD%91%E7%BB%9C%E7%9A%84%E7%89%B9%E5%BE%81%E9%80%9A%E9%81%93/</link>
+        <guid isPermaLink="true">http://luonango.github.io/2018/05/01/%E5%8D%B7%E7%A7%AF%E7%BD%91%E7%BB%9C%E7%9A%84%E7%89%B9%E5%BE%81%E9%80%9A%E9%81%93/</guid>
+        
+        <category>CNN</category>
+        
+        <category>网络结构</category>
+        
+        <category>feature maps</category>
         
         
       </item>
@@ -854,13 +1060,13 @@ $b_{ij}$可理解为当前$j$层的输出向量$v_j$与前一层所有$capsule_i
 &lt;/ul&gt;
 
 </description>
-        <pubDate>Thu, 01 Feb 2018 00:00:00 +0800</pubDate>
-        <link>http://luonango.github.io/2018/02/01/CapsulesNet/</link>
-        <guid isPermaLink="true">http://luonango.github.io/2018/02/01/CapsulesNet/</guid>
+        <pubDate>Thu, 01 Mar 2018 00:00:00 +0800</pubDate>
+        <link>http://luonango.github.io/2018/03/01/CapsulesNet/</link>
+        <guid isPermaLink="true">http://luonango.github.io/2018/03/01/CapsulesNet/</guid>
         
         <category>CNN</category>
         
-        <category>图像分类识别</category>
+        <category>图像分类</category>
         
         <category>Capsule网络</category>
         
@@ -868,23 +1074,979 @@ $b_{ij}$可理解为当前$j$层的输出向量$v_j$与前一层所有$capsule_i
       </item>
     
       <item>
-        <title>图像分割的传统方法</title>
-        <description>
-&lt;hr /&gt;
-&lt;p&gt;layout:     post&lt;br /&gt;
-title:      图片分割的传统方法&lt;br /&gt;
-subtitle:   &lt;br /&gt;
-date:       2017-11-01&lt;br /&gt;
-author:     BY&lt;br /&gt;
-header-img: img/post-bg-ios9-web.jpg&lt;br /&gt;
-catalog: true&lt;br /&gt;
-tags:&lt;br /&gt;
-    - 图像分割&lt;br /&gt;
-    - 传统方法&lt;/p&gt;
+        <title>杂乱的几篇论文阅读笔记</title>
+        <description>&lt;h1 id=&quot;section&quot;&gt;随便记录一些论文&lt;/h1&gt;
+
+&lt;h2 id=&quot;section-1&quot;&gt;模型压缩加快&lt;/h2&gt;
+
+&lt;h3 id=&quot;deep-compression2016deep-compression-compression-deep-neural-networks-with-pruning-trained-quantization-and-huffman-coding&quot;&gt;1. 模型压缩Deep Compression：2016《Deep Compression: Compression Deep Neural Networks With Pruning, Trained Quantization And Huffman Coding》&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Han S, Mao H, Dally W J. Deep Compression: Compressing Deep Neural Networks with Pruning, Trained Quantization and Huffman Coding[J]. Fiber, 2015, 56(4):3--7.
+2016 ICLR最佳论文
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;参考：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://blog.csdn.net/may0324/article/details/52935869&quot;&gt;Deep Compression阅读理解及Caffe源码修改&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Deep Compreession 实现有三步：&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Prunning（权值修剪）、Quantization（权值共享和量化）、Huffman Encoding（Huffman编码)&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Prunning（权值修剪）:
+    &lt;ul&gt;
+      &lt;li&gt;1.正常训练模型得到权值&lt;/li&gt;
+      &lt;li&gt;2.将低于阈值的权值设为0&lt;/li&gt;
+      &lt;li&gt;3.重新训练得到的新权值&lt;/li&gt;
+      &lt;li&gt;权值修剪后的稀疏网络用CSC(compressed sparse column)或者CSR(compressed sparse row)表示。&lt;/li&gt;
+      &lt;li&gt;用下标法记录权值参数:记录非零值和其在数组的下标，并用差分形式表示下标（记录和上一个数值的位置距离，如果4bits不够表示距离，则填1111，并把那个非零值记为0.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Quantization（权值共享和量化）：
+    &lt;ul&gt;
+      &lt;li&gt;K-mean方法吧所有参数聚成$2^n$个类，聚类初始化有： &lt;br /&gt;
+&amp;gt; * 随机初始化： 随机产生K个观察值做为聚类中心。&lt;br /&gt;
+&amp;gt; * 密度分布初始化： 现将累计概率密度CDF的y值分布线性划分，然后根据每个划分点的y值找到与CDF曲线的交点，再找到该交点对应的x轴坐标，将其作为初始聚类中心。 &lt;br /&gt;
+&amp;gt; * 线性初始化： 将原始数据的最小值到最大值之间的线性划分作为初始聚类中心&lt;br /&gt;
+&amp;gt; * 而 &lt;strong&gt;线性初始化方式&lt;/strong&gt;则能更好地保留大权值中心，因此文中采用这一方式。&lt;/li&gt;
+      &lt;li&gt;同一聚类的参数相等，对网络调优。梯度下降时候，归于同一类的节点的梯度相加，施加到该类的聚类中心上（而不是每个节点参数上）&lt;/li&gt;
+      &lt;li&gt;使用n比特编码的聚类中心替代原有参数&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Huffman Encoding（Huffman编码):
+    &lt;ul&gt;
+      &lt;li&gt;编码为n位的非零数据取值；&lt;/li&gt;
+      &lt;li&gt;编码为4位的非零元素下标。&lt;/li&gt;
+      &lt;li&gt;这两者的分布都不均匀，可以使用Huffman编码进一步压缩存储&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;squeezenet2016squeezenet--alexnet-level-accuracy-with-50x-fewer-parameters-and-05mb-model-size&quot;&gt;2. 模型压缩SqueezeNet：2016《SqueezeNet- AlexNet-level accuracy with 50x fewer parameters and 0.5MB model size》&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Iandola F N, Han S, Moskewicz M W, et al. SqueezeNet: AlexNet-level accuracy with 50x fewer parameters and &amp;lt;0.5MB model size[J]. 2016.
+UC Berkeley和Stanford
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;参考：&lt;br /&gt;
+- &lt;a href=&quot;https://www.jianshu.com/p/8e269451795d&quot;&gt;神经网络瘦身：SqueezeNet&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;用了Deep Compression的方法（上一篇）&lt;/li&gt;
+  &lt;li&gt;“多层小卷积核”策略成功的根源：
+    &lt;ul&gt;
+      &lt;li&gt;内存读取耗时要远大于计算耗时。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Dense→Sparse→Dense 的SDS训练法:
+    &lt;ul&gt;
+      &lt;li&gt;本文还有一个神奇的发现：使用裁剪之后的模型为初始值，再次进行训练调优所有参数，正确率能够提升4.3%。&lt;/li&gt;
+      &lt;li&gt;稀疏相当于一种正则化，有机会把解从局部极小中解放出来。这种方法称为DSD(dense-&amp;gt;sparse-&amp;gt;dense)&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;igcinterleaved-group-convolutioninterleaved-group-convolutions-for-deep-neural-networks&quot;&gt;3. 交错组卷积（IGC，Interleaved Group Convolution）《Interleaved Group Convolutions for Deep Neural Networks》&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;微软 ICCV 2017
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;参考：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s?__biz=MzAwMTA3MzM4Nw==&amp;amp;mid=2649441412&amp;amp;idx=1&amp;amp;sn=76b8e24616a4cdc07fbf985798ef4942&amp;amp;chksm=82c0ad00b5b724163561a9174f8213d365ca87f5d73c7ec278ac358293b55e7dcb9e488b1eb8&amp;amp;mpshare=1&amp;amp;scene=1&amp;amp;srcid=0731zmN8ulFwvXY4HRh8vpKs#rd&quot;&gt;王井东详解ICCV 2017入选论文：通用卷积神经网络交错组卷积&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;从通道角度出发，解决了神经网络基本卷积单元中的冗余问题。可以在无损性能的前提下，缩减模型、提升计算速度，有助于深度网络在移动端的部署.&lt;/p&gt;
+
+&lt;p&gt;每个交错组卷积模块包括两个组卷积过程。不同组的卷积不存在交互，不同组的输出通道并不相关。&lt;/p&gt;
+
+&lt;p&gt;为了让不同组的通道相关联，引入第二次组卷积：第二次的每组的输入通道均来自第一组输出的不同的组的通道（交错组成）。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Interleaved_Group_Convolutions_for_Deep_Neural_Networks_1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Xception可以看成是特例：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;如果第一次组的每组只有一个输出通道，那么就变成了特殊的组卷积，即 channel-wise convolution，第二次组卷积成为 1X1 的卷积，这与 Xception 相似；&lt;/li&gt;
+  &lt;li&gt;如果第一次组卷积过程里仅有一组，那么这个过程就变成了普通卷积，第二次组卷积过程则相当于分配给每个通过一个不同的权重。&lt;/li&gt;
+  &lt;li&gt;极端情况下:网络的性能会随着通道数及组数的变化而变化，最优性能配置点存在于两个极端情况之间。&lt;/li&gt;
+&lt;/ul&gt;
 
 &lt;hr /&gt;
 
-&lt;h1 id=&quot;section&quot;&gt;图片分割的传统方法&lt;/h1&gt;
+&lt;h3 id=&quot;shufflenetshufflenet-an-extremely-efficient-convolutional-neural-network-for-mobile-devices-&quot;&gt;4. 通道随机分组ShuffleNet：《ShuffleNet: An Extremely Efficient Convolutional Neural Network for Mobile Devices 》&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Face++ 2017
+ShuffleNet_An_Extremely_Efficient_Convolutional_Neural_Network_for_Mobile_Devices_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;参考：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://m.blog.csdn.net/u014380165/article/details/75137111&quot;&gt;ShuffleNet算法详解&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/28749411&quot;&gt;变形卷积核、可分离卷积？卷积神经网络中十大拍案叫绝的操作&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;降低深度网络计算量。&lt;/p&gt;
+
+&lt;p&gt;采用&lt;strong&gt;Channel-Shuffle、Pointwise和Depthwise&lt;/strong&gt;来修改原来的ResNet单元.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Channel Shuffle:&lt;br /&gt;
+&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/ShuffleNet_An_Extremely_Efficient_Convolutional_Neural_Network_for_Mobile_Devices_1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;pointwise group convolution：
+    &lt;ul&gt;
+      &lt;li&gt;带组的卷积核为1*1的卷积。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;depthwise separable convolution，将传统卷积过程分两步：
+    &lt;ul&gt;
+      &lt;li&gt;如先用M个3*3卷积核一对一卷积成M个特征图。卷积时候互不相交。&lt;/li&gt;
+      &lt;li&gt;接着用N个1*1的卷积核对这M个特征图全部卷积（正常卷积），生成N个特征图。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;ShuffleNet的核心:&lt;/p&gt;
+
+  &lt;p&gt;用pointwise group convolution，channel shuffle和depthwise separable convolution,代替ResNet block的相应层构成了ShuffleNet uint，达到了减少计算量和提高准确率的目的。&lt;/p&gt;
+
+  &lt;p&gt;channel shuffle解决了多个group convolution叠加出现的边界效应，pointwise group convolution和depthwise separable convolution主要减少了计算量&lt;/p&gt;
+
+&lt;/blockquote&gt;
+
+&lt;p&gt;增强了全局信息的流通，超少量的参数。&lt;/p&gt;
+
+&lt;p&gt;相比Xception和Mobilenet，ShuffleNet都获得了性能上的提升，至于速度带来的提升则不是很明显。&lt;br /&gt;
+以及超越mobilenet、媲美AlexNet的准确率.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;微软亚洲研究院MSRA最近也有类似的工作，他们提出了一个IGC单元（Interleaved Group Convolution,如上），即通用卷积神经网络交错组卷积，形式上类似进行了两次组卷积。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;要注意的是，Group conv是一种channel分组的方式，Depthwise +Pointwise是卷积的方式，只是ShuffleNet里面把两者应用起来了。&lt;/p&gt;
+
+  &lt;p&gt;因此Group conv和Depthwise +Pointwise并不能划等号。&lt;/p&gt;
+
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;senet-2017squeeze-and-excitation-networks&quot;&gt;5. SENet 2017《Squeeze-and-Excitation Networks》&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2017 ImageNet 冠军
+CVPR，国内自动驾驶创业公司Momenta
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h5 id=&quot;section-2&quot;&gt;特点：&lt;/h5&gt;
+&lt;ul&gt;
+  &lt;li&gt;考虑特征通道间的关系，动态调整各通道的特征响应值&lt;/li&gt;
+  &lt;li&gt;构造简单、容易被部署。增加很小的计算消耗，获得高的性能提升&lt;/li&gt;
+  &lt;li&gt;可能用于辅助网络修剪/压缩的工作&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5 id=&quot;section-3&quot;&gt;模块构造&lt;/h5&gt;
+&lt;p&gt;|Squeeze-and-Excitation 模块|&lt;br /&gt;
+|-|&lt;br /&gt;
+|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_1.jpg&quot; alt=&quot;&quot; /&gt;|&lt;br /&gt;
+|图中输入是X，有$c_1$特征通道。经过一系列卷积变换后，得$c_2$个大小为$w×h$的通道（map）|&lt;br /&gt;
+|&lt;strong&gt;Squeeze&lt;/strong&gt;： 顺着空间维度进行特征压缩，每个二维特征通道变成一个实数，如图得到$1×1×c_2$.表征着特征通道相应的全局分布.全局平均池化来生成各通道的统计量|&lt;br /&gt;
+|&lt;strong&gt;Excitation&lt;/strong&gt;: 考察各通道的依赖程度,W被学习表示特征通道间的相关性。最后sigmoid的输出就是各通道的权重，根据输入数据调节各通道特征的权重，有助于增强特征的可分辨性|&lt;br /&gt;
+|&lt;strong&gt;Reweight&lt;/strong&gt;: 通过乘法逐通道加权到先前特征，完成对原始特征的重标定。|&lt;/p&gt;
+
+&lt;h5 id=&quot;section-4&quot;&gt;示例：部署简单，如插件&lt;/h5&gt;
+&lt;p&gt;|SE_Inception图示|SE_ResNet图示|&lt;br /&gt;
+|-|-|&lt;br /&gt;
+|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_4.png&quot; alt=&quot;&quot; /&gt;|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_5.png&quot; alt=&quot;&quot; /&gt;|&lt;/p&gt;
+
+&lt;p&gt;#####　实验情况：增加小的计算消耗，获得大的性能提升&lt;br /&gt;
+||&lt;br /&gt;
+|-|&lt;br /&gt;
+|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_3.png&quot; alt=&quot;&quot; /&gt;|&lt;br /&gt;
+|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_6.jpg&quot; alt=&quot;&quot; /&gt;|&lt;/p&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;## 模型变换&lt;/p&gt;
+
+&lt;h3 id=&quot;deformable-convolutional-networks&quot;&gt;1. 可变形卷积网络2017《Deformable Convolutional Networks》&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;微软亚洲研究院.可变卷积和可变ROI采样
+Dai J, Qi H, Xiong Y, et al. Deformable Convolutional Networks[J]. 2017.
+Deformable_Convolutional_Networks_
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;参考：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/msracver/Deformable-ConvNets&quot;&gt;https://github.com/msracver/Deformable-ConvNets&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://valser.org/thread-1261-1-1.html&quot;&gt;【VALSE 前沿技术选介17-02期】可形变的神经网络&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.cnblogs.com/lillylin/p/6277094.html&quot;&gt;目标检测方法——R-FCN&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://m.blog.csdn.net/yucicheung/article/details/78113843&quot;&gt;Deformable ConvNets论文笔记&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;对卷积核每个采样点位置都增加偏移变量。用convolution去学习dilatation值，和STN异曲同工。&lt;/p&gt;
+
+&lt;p&gt;引入了两种模块：&lt;strong&gt;deformable convolution&lt;/strong&gt; 、 &lt;strong&gt;deformable RoI pooling&lt;/strong&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;对象尺度，姿态，视点和部分形变的几何变换一般有两种方法：&lt;/p&gt;
+
+  &lt;ul&gt;
+    &lt;li&gt;建立足够期望变化的训练数据集，通常增加数据样本，如仿射变换等，从数据集中学习鲁棒表示。但需要昂贵的训练和复杂的模型参数&lt;/li&gt;
+    &lt;li&gt;使用变换不变的特征和算法，如SIFT（尺度不变特征变换）、基于滑动窗口的检测范例。&lt;/li&gt;
+  &lt;/ul&gt;
+
+  &lt;p&gt;上述的几何变换是固定已知的。这样的先验知识的假设阻止了未知的几何变换，并且，人工设计的特征和算法对于过度复杂的变换是困难不可行的。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Deformable Convolution:&lt;/strong&gt;
+    &lt;ul&gt;
+      &lt;li&gt;将2D偏移量加入标准卷积中的网格区，使网格区自由形变（再进行卷积）。偏移量通过附加的卷积层从前面的特征图中学习。因此，变形以局部的，密集的和自适应的方式受到输入特征的限制。&lt;/li&gt;
+      &lt;li&gt;
+        &lt;table&gt;
+          &lt;thead&gt;
+            &lt;tr&gt;
+              &lt;th&gt; &lt;/th&gt;
+              &lt;th&gt; &lt;/th&gt;
+            &lt;/tr&gt;
+          &lt;/thead&gt;
+          &lt;tbody&gt;
+            &lt;tr&gt;
+              &lt;td&gt;(a)是标准卷积的采样网格。&lt;br /&gt;(b)是变形后采样位置和变形卷积中的偏移量箭头&lt;br /&gt;(c)和(d)是形变后的特殊情况。&lt;br /&gt;&lt;br /&gt;表明可变形卷积推广了各种尺度(各向异性)纵横比和旋转的变换&lt;/td&gt;
+              &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Deformable_Convolutional_Networks_1.png&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+          &lt;/tbody&gt;
+        &lt;/table&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;table&gt;
+          &lt;thead&gt;
+            &lt;tr&gt;
+              &lt;th&gt; &lt;/th&gt;
+              &lt;th&gt; &lt;/th&gt;
+            &lt;/tr&gt;
+          &lt;/thead&gt;
+          &lt;tbody&gt;
+            &lt;tr&gt;
+              &lt;td&gt;在相同的输入特征图上应用卷积层，获得偏移。2N的通道表示N个通道的2维偏移。&lt;br /&gt;&lt;br /&gt;训练时，同时学习偏移量的卷积核参数以及普通卷积核参&lt;/td&gt;
+              &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Deformable_Convolutional_Networks_2.png&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+          &lt;/tbody&gt;
+        &lt;/table&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Deformable RoI(region-of-interest) pooling&lt;/strong&gt;
+    &lt;ul&gt;
+      &lt;li&gt;为RoI（region-of-interest）池的常规bin分区中的每个bin位置添加一个偏移量。（池化时，池化区的每个位置都加入对应偏移量，再进行池化）。&lt;br /&gt;类似地，从前面的特征映射和RoI学习偏移，使得具有不同形状的对象的自适应部分定位成为可能。&lt;/li&gt;
+      &lt;li&gt;
+        &lt;table&gt;
+          &lt;thead&gt;
+            &lt;tr&gt;
+              &lt;th&gt; &lt;/th&gt;
+              &lt;th&gt; &lt;/th&gt;
+            &lt;/tr&gt;
+          &lt;/thead&gt;
+          &lt;tbody&gt;
+            &lt;tr&gt;
+              &lt;td&gt;fc层产生归一化偏移量，再归一化偏移量（让偏移的学习不因RoI尺寸不同而变化）&lt;/td&gt;
+              &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Deformable_Convolutional_Networks_3.png&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+          &lt;/tbody&gt;
+        &lt;/table&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Position-Sensitive (PS) RoI Pooling&lt;/strong&gt; （目标检测方法R-FCN提及到）
+    &lt;ul&gt;
+      &lt;li&gt;位置敏感RoI池是完全卷积的,&lt;a href=&quot;https://www.cnblogs.com/lillylin/p/6277094.html&quot;&gt;目标检测R-FCN中率先提出position sensitive score map概念&lt;/a&gt;。&lt;/li&gt;
+      &lt;li&gt;
+        &lt;table&gt;
+          &lt;thead&gt;
+            &lt;tr&gt;
+              &lt;th&gt;deformable PS RoI pooling&lt;/th&gt;
+              &lt;th&gt; &lt;/th&gt;
+            &lt;/tr&gt;
+          &lt;/thead&gt;
+          &lt;tbody&gt;
+            &lt;tr&gt;
+              &lt;td&gt;下面分支：通过一个卷积层，所有的 input 特征图先被转化。每个物体类别都生成$k^2$个分数图（如果物体类别是C，那么总共有C+1个,C类物体外加1个背景）&lt;br /&gt;&lt;br /&gt;上面分支：通过卷积层，生成完全的空间像素偏移域。&lt;br /&gt;&lt;br /&gt;对每个RoI（同时还指定了某个类别），PS RoI pooling会被应用在这些域上以获取归一化的偏移量$\Delta \hat{p}&lt;em&gt;{ij}$，然后通过上述deformable RoI pooling中一样的方法变成真正的偏移量$\Delta p&lt;/em&gt;{ij}$。&lt;/td&gt;
+              &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Deformable_Convolutional_Networks_4.png&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+          &lt;/tbody&gt;
+        &lt;/table&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;梯度是通过双线性运算反向传播，详情阅读论文公式及附录。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;section-5&quot;&gt;集成方面：&lt;/h2&gt;
+
+&lt;h3 id=&quot;section-6&quot;&gt;1. 数据上的集成：&lt;/h3&gt;
+
+&lt;h4 id=&quot;data-distillation-towards-omni-supervised-learning&quot;&gt;对图片转换，半监督《Data Distillation: Towards Omni-Supervised Learning》&lt;/h4&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Ilija Radosavovic Piotr Dollar Ross Girshick Georgia Gkioxari Kaiming He 
+Facebook AI Research (FAIR)
+人体姿态估计   物体识别框
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;一些参考：&lt;br /&gt;
+  &lt;a href=&quot;https://www.zhihu.com/question/264009268/answer/275800268&quot;&gt;如何评价FAIR的最新工作Data Distillation？&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;思想主要如图：&lt;br /&gt;
+&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Data_Distillation_Towards_Omni-Supervised_Learning_1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;数据变换：&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;选择多变换推理的几何变换（使用&lt;strong&gt;缩放和水平翻转&lt;/strong&gt;）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;在未标记的数据上生成标签（聚合多变换推断（Multi-transform inference）的结果）：&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;将输入的数据进行多种变换，都应用于相同的模型，然后汇总结果。&lt;/li&gt;
+  &lt;li&gt;某数据可能某单个变换比任何其他的变换得到的模型预测更好。
+    &lt;ul&gt;
+      &lt;li&gt;观察发现，聚合预测产生新的知识，使用这些信息生成的标签，原则上能让模型进行学习。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;生成的标签可能是 &lt;strong&gt;“软标签”&lt;/strong&gt;（即是概率向量，而非分类标签），重新训练时候如果考虑到概率值，则要重新设计损失函数。且对于结构化输出空间的问题，如对象检测或人体姿态估计，&lt;strong&gt;平均输出没有意义&lt;/strong&gt;。&lt;/p&gt;
+
+    &lt;ul&gt;
+      &lt;li&gt;故本文&lt;strong&gt;只聚合那些和真实标签有相同结构、类型（或分布）的“硬标签”&lt;/strong&gt;：
+        &lt;ul&gt;
+          &lt;li&gt;&lt;strong&gt;额外设计专用逻辑结构&lt;/strong&gt;来处理，如非极大值抑制来组合多组方框之类的做法。&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;期望预测的框和关键点足够可靠，可以生成良好的培训标签：
+        &lt;ul&gt;
+          &lt;li&gt;以预测的检测分数作为预测质量的评估，&lt;strong&gt;超过某个分数阈值的预测才能产生注释&lt;/strong&gt;。&lt;/li&gt;
+          &lt;li&gt;&lt;strong&gt;专用逻辑结构&lt;/strong&gt;：(作者自己设计)发现如果使得“每个未标记图像的预测标注实例的平均数量”大致等于“每个真实标记图像的标注实例的平均数量”，则分数阈值运行良好。虽然这种启发式假定未标记和标记的图像遵循&lt;strong&gt;类似的分布&lt;/strong&gt;，但是作者发现它是稳健的并且即使在假设不成立的情况下也工作良好。&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;看法：&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;从数据而非模型来思考集成&lt;/strong&gt;。&lt;/li&gt;
+  &lt;li&gt;不知道 &lt;strong&gt;数据转换是静态转换，还是可学习的转换（学习转换矩阵Ｗ)&lt;/strong&gt;，文中似乎是前者，但后者或许更佳。&lt;/li&gt;
+  &lt;li&gt;感觉是作者添加的&lt;strong&gt;专用逻辑结构起了很大作用&lt;/strong&gt;。即&lt;strong&gt;添加了发现的规律&lt;/strong&gt;，增加了额外有用信息（先验知识），从而督促了网络学习吧。&lt;br /&gt;
+&amp;gt;　发现如果“每个未标记图像的预测标注实例的平均数量”大致等于“每个真实标记图像的标注实例的平均数量”，则分数阈值运行良好.&lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Mon, 01 Jan 2018 00:00:00 +0800</pubDate>
+        <link>http://luonango.github.io/2018/01/01/%E6%9D%82%E4%B9%B1%E7%9A%84%E5%87%A0%E7%AF%87%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/</link>
+        <guid isPermaLink="true">http://luonango.github.io/2018/01/01/%E6%9D%82%E4%B9%B1%E7%9A%84%E5%87%A0%E7%AF%87%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/</guid>
+        
+        <category>CNN</category>
+        
+        <category>网络结构</category>
+        
+        <category>模型压缩</category>
+        
+        <category>集成</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>表情识别_一些整理</title>
+        <description>&lt;h1 id=&quot;section&quot;&gt;表情识别_一些整理&lt;/h1&gt;
+
+&lt;p&gt;记录表情识别的一些些进展。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/24483573&quot;&gt;什么是人脸表情识别技术？&lt;/a&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;section-1&quot;&gt;&lt;strong&gt;基于特征的面部表情识别&lt;/strong&gt;&lt;/h1&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;置信点集的几何位置&lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;这些点的多尺度多方向Gabor小波系数&lt;/p&gt;
+
+    &lt;p&gt;二者既可以独立使用也可以结合使用。张正友博士的研究结果表明，Gabor小波系数更为有效&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;面部表情识别难点&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;不同人表情变化&lt;/li&gt;
+  &lt;li&gt;同一人上下文变化&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;自动FER系统需要解决&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;面部检测和定位&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;人脸特征提取&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;表情识别&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;strong&gt;面部检测和定位&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;定位问题前人已经做得很好.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;联合级联检测与校准（the joint cascade detection and alignment (JDA) detector）&lt;/li&gt;
+  &lt;li&gt;基于深度卷积神经网络（DCNN）；&lt;/li&gt;
+  &lt;li&gt;混合树（Mot）。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;strong&gt;人脸特征提取&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;为了找到人脸最合适的表示方式，从而便于识别&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;整体模板匹配系统&lt;/strong&gt; :
+    &lt;ul&gt;
+      &lt;li&gt;模板可以是像素点或是向量&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;基于几何特征系统&lt;/strong&gt; :
+    &lt;ul&gt;
+      &lt;li&gt;广泛采用主成份分析和多层神经网络来获取人脸的低维表示，并在图片中检测到主要的特征点和主要部分。通过特征点的距离和主要部分的相对尺寸得到特征向量&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;基于特征的方法比基于模板的方法计算量更大，但是对尺度、大小、头部方向、面部位置不敏感。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;①首先定位一系列特征点：
+②再通过图像卷积抽取特征点的Gabor小波系数，以Gabor特征的匹配距离作为相似度的度量标准。在特征点：
+③提取特征之后，表情识别就成为了一个传统的分类问题。可以通过多层神经网络来解决： 
+准则是最小化交叉熵（Cross-entropy）：
+t是label，y是实际输出。
+
+从结果看，Gabor方法优于几何方法，二者结合效果更佳
+[链接](https://zhuanlan.zhihu.com/p/24552881)
+可以看到，隐含层单元达到5-7个时，识别率已经趋于稳定，那就是说5-7个单元已经足够了。
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;SIFT特征描述算子、SURF特征描述算子、ORB特征描述算子、HOG特征描述、LBP特征描述以及Harr特征描述。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;strong&gt;人脸图像处理&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;去掉无关噪声，统一人脸图片尺寸。&lt;/li&gt;
+  &lt;li&gt;转为灰度图、标准直接方图均衡化。去掉不平衡光照&lt;/li&gt;
+  &lt;li&gt;化为0均值，单位方差向量。（或者归一化到[-1,1])&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;strong&gt;网络模型&lt;/strong&gt;&lt;br /&gt;
+基本网络模型：  略。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;加入随机扰动： 增加对脸部偏移和旋转的鲁棒性。 如随机仿射扭曲图像。&lt;/li&gt;
+  &lt;li&gt;扰动下的learning与voting： 由于数据有扰动，损失函数应当包含所有扰动情况。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;&lt;strong&gt;多网络学习&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;模型顶端放置多网络（Multiple Network）增强性能。&lt;/p&gt;
+
+    &lt;p&gt;典型的就是对输出求均值。观察表明，随机初始化不仅导致网络参数变化，同时使得不同网络对不同数据的分类能力产生差别。因此，平均权重可能是次最优的因为voting没有变化。更好的方法是对每个网络适应地分配权重，使得整体网络互补。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;为了学习权重W，先独立训练不同初始化的CNN，在权重上轻易损失函数：&lt;/p&gt;
+
+    &lt;ul&gt;
+      &lt;li&gt;最优整体对数似然损失&lt;/li&gt;
+      &lt;li&gt;最有整体合页损失&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;###衡量目标检测器：&lt;br /&gt;
+  - 检测框，一般为IOU（交并比）&lt;br /&gt;
+  - 分类指标：Precision,Accuracy,Recall,Miss Rate,,FPPI(False Positive per Image)&lt;/p&gt;
+
+&lt;p&gt;###设计检测器&lt;br /&gt;
+窗口–&amp;gt; 特征提取–&amp;gt;分类–&amp;gt;检测结果&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;窗口&lt;/th&gt;
+      &lt;th&gt;特征提取&lt;/th&gt;
+      &lt;th&gt;分类&lt;/th&gt;
+      &lt;th&gt;检测结果&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;silding window&lt;/td&gt;
+      &lt;td&gt;Harr&lt;/td&gt;
+      &lt;td&gt;SVM&lt;/td&gt;
+      &lt;td&gt;NMS&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;MCG&lt;/td&gt;
+      &lt;td&gt;HOG&lt;/td&gt;
+      &lt;td&gt;Softmax&lt;/td&gt;
+      &lt;td&gt;边框回归&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Selective Search&lt;/td&gt;
+      &lt;td&gt;LBP&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+      &lt;td&gt;窗口合并&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;RPN&lt;/td&gt;
+      &lt;td&gt;CNN&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;…&lt;/td&gt;
+      &lt;td&gt;…&lt;/td&gt;
+      &lt;td&gt;…&lt;/td&gt;
+      &lt;td&gt;…&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;1. silding window: 滑动窗口
+2. MCG ：组合聚合(Multiscale Combinatorial Grouping，MCG)方法，传统方法的巅峰之作。
+3. Selective Search: RCNN使用的ROI提取方法
+4. RPN：Region Proposal Networks, Faster R-CNN则直接利用RPN网络来计算候选框
+5. NMS: Non-maximum suppression,非极大抑制
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h1 id=&quot;section-2&quot;&gt;** 图像&amp;amp;&amp;amp;表情分类&amp;amp;&amp;amp;人脸识别**&lt;/h1&gt;
+&lt;hr /&gt;
+
+&lt;h4 id=&quot;lbp&quot;&gt;1994-特征提取之&lt;strong&gt;LBP&lt;/strong&gt;（局部二值模式）&lt;/h4&gt;
+&lt;ul&gt;
+  &lt;li&gt;参考：
+    &lt;ul&gt;
+      &lt;li&gt;T. Ojala, M. Pietikäinen, and D. Harwood (1994), “Performance evaluation of texture measures with classification based on Kullback discrimination of distributions”, Proceedings of the 12th IAPR International Conference on Pattern Recognition (ICPR 1994), vol. 1, pp. 582 - 585.&lt;/li&gt;
+      &lt;li&gt;T. Ojala, M. Pietikäinen, and D. Harwood (1996), “A Comparative Study of Texture Measures with Classification Based on Feature Distributions”, Pattern Recognition, vol. 29, pp. 51-59.&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;http://blog.csdn.net/songzitea/article/details/17686135&quot;&gt;LPB特征分析&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;描述图像局部纹理特征的算子,具有旋转不变性和灰度不变性等显著的优点,纹理分类上能提取强大的特征。&lt;/li&gt;
+  &lt;li&gt;感觉卷积结构已经很好包括了。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&quot;adaboostviola-jones&quot;&gt;2001-基于&lt;strong&gt;Adaboost和级联&lt;/strong&gt;的人脸检测器，称&lt;strong&gt;Viola-Jones检测器&lt;/strong&gt;：简单特征的优化级联在快速目标检测中的应用.&lt;/h4&gt;
+&lt;ul&gt;
+  &lt;li&gt;参考：
+    &lt;ul&gt;
+      &lt;li&gt;Viola P, Jones M. Rapid object detection using a boosted cascade of simple features[C]// Computer Vision and Pattern Recognition, 2001. CVPR 2001. Proceedings of the 2001 IEEE Computer Society Conference on. IEEE, 2003:I-511-I-518 vol.1.&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;http://www.cnblogs.com/wjgaas/p/3618557.html#commentform&quot;&gt;Viola–Jones object detection framework–Rapid Object Detection using a Boosted Cascade of Simple Features中文翻译 及 matlab实现(见文末链接)&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;一个视觉目标检测的机器学习法，能快速地处理图像而且能实现高检测速率。这项工作可分为三个创新性研究成果。
+    &lt;ul&gt;
+      &lt;li&gt;第一个是一种新的图像表征说明，称为&lt;strong&gt;积分图&lt;/strong&gt;，它允许我们的检测的特征得以很快地计算出来。&lt;/li&gt;
+      &lt;li&gt;第二个是一个学习算法，基于&lt;strong&gt;Adaboost自适应增强法&lt;/strong&gt;，可以从一些更大的设置和产量极为有效的分类器中选择出几个关键的视觉特征。&lt;/li&gt;
+      &lt;li&gt;第三个成果是一个方法：用一个&lt;strong&gt;“级联”的形式不断合并分类器&lt;/strong&gt;，这样便允许图像的背景区域被很快丢弃,从而将更多的计算放在可能是目标的区域上。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;这个级联可以视作一个目标特定的注意力集中机制，它不像以前的途径提供统计保障，保证舍掉的地区不太可能包含感兴趣的对象。在人脸检测领域，此系统的检测率比得上之前系统的最佳值。在实时监测的应用中，探测器以每秒15帧速度运行，不采用帧差值或肤色检测的方法。&lt;/li&gt;
+  &lt;li&gt;称为Viola-Jones检测器&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&quot;opencvhaarhaar-like&quot;&gt;2002-opencv的“Haar分类器”：用对角特征&lt;strong&gt;Haar-like特征&lt;/strong&gt;对检测器进行扩展。&lt;/h4&gt;
+&lt;ul&gt;
+  &lt;li&gt;参考：
+    &lt;ul&gt;
+      &lt;li&gt;Lienhart R, Maydt J. An extended set of Haar-like features for rapid object detection[C]// International Conference on Image Processing. 2002. Proceedings. IEEE, 2002:I-900-I-903 vol.1.&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;http://www.cnblogs.com/ello/archive/2012/04/28/2475419.html#!comments&quot;&gt;浅析人脸检测之Haar分类器方法&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Haar分类器 =  Haar-like特征 + 积分图方法 + AdaBoost + 级联&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;Haar分类器用到了Boosting算法中的AdaBoost算法，只是把AdaBoost算法训练出的强分类器进行了级联，并且在底层的特征提取中采用了高效率的矩形特征和积分图方法.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;#### 2010年前-DPM、LSVM目标检测  &lt;br /&gt;
+  - 参考：&lt;br /&gt;
+      + &lt;a href=&quot;http://blog.csdn.net/masibuaa/article/details/17924671&quot;&gt;使用判别训练的部件模型进行目标检测 Object Detection with Discriminatively Trained Part Based Models&lt;/a&gt;&lt;br /&gt;
+      + &lt;a href=&quot;http://blog.csdn.net/masibuaa/article/details/17533419&quot;&gt;判别训练的多尺度可变形部件模型 A Discriminatively Trained, Multiscale, Deformable Part Model&lt;/a&gt;&lt;br /&gt;
+      + &lt;a href=&quot;http://blog.csdn.net/holybin/article/details/28292991&quot;&gt;目标检测之LatentSVM和可变形部件模型（Deformable Part Model，DPM）&lt;/a&gt;&lt;br /&gt;
+      + &lt;a href=&quot;http://masikkk.com/article/DPM-model-explanation/&quot;&gt;有关可变形部件模型(Deformable Part Model)的一些说明&lt;/a&gt;&lt;br /&gt;
+      + &lt;a href=&quot;http://blog.csdn.net/ttransposition/article/details/12966521&quot;&gt;DPM(Deformable Parts Model)–原理(一)&lt;/a&gt;&lt;br /&gt;
+  -  Dalal和Triggs的检测器即&lt;strong&gt;Dalal-Triggs检测器模型&lt;/strong&gt;，在&lt;strong&gt;PASCAL 2006目标检测挑战赛上表现最好&lt;/strong&gt;,他使用基于HOG特征的单独滤波器(模版)来表示目标。它使用滑动窗口方法，将滤波器应用到图像的所有可能位置和尺度。可以将此检测器看做一个分类器，它将一张图片以及图片中的一个位置和尺度作为输入，然后判断在指定位置和尺度是否有目标类别的实例。&lt;br /&gt;
+  - &lt;strong&gt;Deformable Part Model(DPM)&lt;/strong&gt;和 &lt;strong&gt;LatentSVM&lt;/strong&gt; 结合用于目标检测由大牛P.Felzenszwalb提出，代表作是以下3篇paper：&lt;br /&gt;
+       + [1] P. Felzenszwalb, D. McAllester, D.Ramaman. A Discriminatively Trained, Multiscale, Deformable Part Model. Proceedingsof the IEEE CVPR 2008.&lt;br /&gt;
+       + [2] P. Felzenszwalb, R. Girshick, D.McAllester, D. Ramanan. Object Detection with Discriminatively Trained PartBased Models. IEEE Transactions on Pattern Analysis and Machine Intelligence,Vol. 32, No. 9, September 2010.&lt;br /&gt;
+       + [3] P. Felzenszwalb, R. Girshick, D.McAllester. Cascade Object Detection with Deformable Part Models. Proceedingsof the IEEE CVPR 2010.&lt;br /&gt;
+  - [2]阐述了如何利用&lt;strong&gt;DPM（Deformable Part Model，DPM）来做检测&lt;/strong&gt;（特征处理+分类阶段），[3]阐述了如何利用&lt;strong&gt;cascade思想来加速检测&lt;/strong&gt;。综合来说，作者的思想是&lt;strong&gt;HogFeatures+DPM+LatentSVM的结合&lt;/strong&gt;：&lt;br /&gt;
+      + 1、通过Hog特征模板来刻画每一部分，然后进行匹配。并且采用了金字塔，即在不同的分辨率上提取Hog特征。&lt;br /&gt;
+      + 2、利用提出的Deformable PartModel，在进行object detection时，detect window的得分等于part的匹配得分减去模型变化的花费。&lt;br /&gt;
+      + 3、在训练模型时，需要训练得到每一个part的Hog模板，以及衡量part位置分布cost的参数。文章中提出了LatentSVM方法，将deformable part model的学习问题转换为一个分类问题：利用SVM学习，将part的位置分布作为latent values，模型的参数转化为SVM的分割超平面。具体实现中，作者采用了迭代计算的方法，不断地更新模型。&lt;br /&gt;
+  -  DPM是一个非常成功的目标检测算法，&lt;strong&gt;DPM连续获得VOC（Visual Object Class）2007,2008,2009年的检测冠军&lt;/strong&gt;。成为众多分类器、分割、人体姿态和行为分类的重要部分。&lt;br /&gt;
+  -  DPM可以做到人脸检测和关键点定位的一气呵成，但是其计算量太大导致时间消耗过高。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&quot;msrajoint-cascade-face-detection-and-alignmen-eccv&quot;&gt;2014-MSRA的新技术《Joint Cascade Face Detection and Alignmen》 [ECCV]&lt;/h4&gt;
+&lt;ul&gt;
+  &lt;li&gt;参考：
+    &lt;ul&gt;
+      &lt;li&gt;Chen D, Ren S, Wei Y, et al. Joint Cascade Face Detection and Alignment[C]// European Conference on Computer Vision. Springer, Cham, 2014:109-122.&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;http://www.cnblogs.com/sciencefans/p/4394861.html#!comments&quot;&gt;人脸识别技术大总结1——Face Detection &amp;amp; Alignment&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;http://blog.csdn.net/u010333076/article/details/50637342&quot;&gt;论文《Joint Cascade Face Detection and Alignment》笔记&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;https://github.com/FaceDetect/jointCascade_py&quot;&gt;github:FaceDetect/jointCascade_py&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;结合了 cascade 和 alignment,在30ms的时间里完成detection和alignment，PR曲线很高，时效性高，内存占用却非常低，在一些库上虐了Face++和Google Picasa。&lt;/li&gt;
+  &lt;li&gt;步骤：
+    &lt;ul&gt;
+      &lt;li&gt;1.样本准备：首先作者调用opencv的Viola-Jones分类器，将recal阀值设到99%，这样能够尽可能地检测出所有的脸，但是同时也会有非常多的不是脸的东东被检测出来。于是，检测出来的框框们被分成了两类：是脸和不是脸。这些图片被resize到96*96。&lt;/li&gt;
+      &lt;li&gt;2.特征提取.作者采用了三种方法：
+        &lt;ul&gt;
+          &lt;li&gt;第一种：把window划分成6*6个小windows，分别提取SIFT特征，然后连接着36个sift特征向量成为图像的特征。&lt;/li&gt;
+          &lt;li&gt;第二种：先求出一个固定的脸的平均shape（27个特征点的位置，比如眼睛左边，嘴唇右边等等），然后以这27个特征点为中心提取sift特征，然后连接后作为特征。&lt;/li&gt;
+          &lt;li&gt;第三种：用他们组去年的另一个成果Face Alignment at 3000 FPS via Regressing Local Binary Features (CVPR14) ，也就是图中的3000FPS方法，回归出每张脸的shape，然后再以每张脸自己的27个shape points为中心做sift，然后连接得到特征。&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;3.分类：将上述的三种特征分别扔到线性SVM中做分类，训练出一个能分辨一张图是不是脸的SVM模型。&lt;/li&gt;
+      &lt;li&gt;作者将用于关键点校准的回归树结合上用于检测的弱分类器重建为一棵新的决策树，并命名为 classification/regression decision tree （分类回归决策树）,输出一个用于判决人脸得分的同时还会输出关键点的增量，可以说这两步是完全同步的，并且采用的是相同的特征。越靠前(根节点）的层里，较多的结点用于分类，较少的结点用于回归；越靠后的层（叶节点）里，较少的结点用于分类，较多的结点用于回归。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&quot;deepid1---cvpr-&quot;&gt;2014-DeepID1   [CVPR ]&lt;/h4&gt;
+&lt;ul&gt;
+  &lt;li&gt;参考：
+    &lt;ul&gt;
+      &lt;li&gt;Sun Y, Wang X, Tang X. Deep Learning Face Representation from Predicting 10,000 Classes[C]// IEEE Conference on Computer Vision and Pattern Recognition. IEEE Computer Society, 2014:1891-1898.&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;http://www.cnblogs.com/zzq1989/p/4373680.html&quot;&gt;Deep Learning Face Representation from Predicting 10,000 Classes论文笔记&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;步骤：
+    &lt;ul&gt;
+      &lt;li&gt;人脸标注裁剪出60个patches，分别训练出60个CNN模型ConvNets（softmax多分类）。&lt;/li&gt;
+      &lt;li&gt;每个ConvNets提取两个160维的特征（两个指镜像，160维是ConvNet模型的倒数第二层提取出),一张图片提取19200维（160×60×2）。所有这些160维特征，称为Deep hidden identity feature(DeepID)。&lt;/li&gt;
+      &lt;li&gt;接下来是Face Verification（人脸验证）过程，即传入两张图片，判断是否同一人。传入两张图片，分别获得DeepID特征，将他们（为60个组拼接而成，一组表示一个patch且有640维，640维= 160维特征×2张镜像x2张图片的某patch）送到&lt;strong&gt;联合贝叶斯(Joint Bayesian，JB)&lt;/strong&gt;或者一个神经网络( Neural Network，NN)进行Face Verification。&lt;/li&gt;
+      &lt;li&gt;联合贝叶斯网络准确率显然高于NN，所以最终实验作者采用的是JB。这个实验也说明，随着网络输入种类(人数)的增大，能够提高网络的泛化能力，更利于提取的DeepID特征进行分类。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;当时的人脸识别方法：&lt;strong&gt;过完全的低级别特征+浅层模型&lt;/strong&gt;。而ConvNet 能够有效地提取高级视觉特征。已有的DL方法：
+    &lt;ul&gt;
+      &lt;li&gt;Huang【CVPR2012】的生成模型+非监督；&lt;/li&gt;
+      &lt;li&gt;Cai 【2012】的深度非线性度量学习；&lt;/li&gt;
+      &lt;li&gt;Sun【CVPR2013】的监督学习+二类分类（人脸校验 verfication），是作者2013年写的。本文是1W类的多分类问题。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;1张图片通过Deep ConvNets得到DeepID特征向量，再通过PCA降维特征向量。最终在LFW库上测试可以得到97.20%的精度.对齐人脸后能达到97.45%。而目前（2014年）几种流行算法数据:&lt;img src=&quot;pictures/LFW_Face_Method_before2014.png&quot; alt=&quot;2014年前&quot; /&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;#### 2014-DeepID2   [CVPR ]&lt;br /&gt;
+  - 参考：&lt;br /&gt;
+    * Sun Y, Wang X, Tang X. Deep Learning Face Representation by Joint Identification-Verification[J]. Advances in Neural Information Processing Systems, 2014, 27:1988-1996.&lt;br /&gt;
+    * &lt;a href=&quot;http://blog.csdn.net/stdcoutzyx/article/details/41497545&quot;&gt;DeepID2——强大的人脸分类算法&lt;/a&gt;&lt;br /&gt;
+    * &lt;a href=&quot;http://blog.csdn.net/stdcoutzyx/article/details/42091205&quot;&gt;DeepID人脸识别算法之三代&lt;/a&gt;&lt;br /&gt;
+  - 在DeepID的softmax使用Logistic Regression作为最终的目标函数，即识别信号。而DeepID2继续&lt;strong&gt;添加验证信号&lt;/strong&gt;，两个信号使用加权的方式进行了组合。 &lt;strong&gt;识别信号（identification）增大类间距离，验证信号（verification）减少类内距离&lt;/strong&gt;。&lt;br /&gt;
+  - 由于验证信号的计算需要两个样本，所以整个卷积神经网络的训练过程也就发生了变化，之前是将全部数据切分为小的batch来进行训练。现在则是每次迭代时随机抽取两个样本，然后进行训练。&lt;br /&gt;
+  - 首先使用&lt;strong&gt;SDM(supervised descent method)算法&lt;/strong&gt;对每张人脸检测出21个landmarks，然后根据这些landmarks，再加上位置、尺度、通道、水平翻转等因素，每张人脸形成了400张patch，使用200个CNN对其进行训练，水平翻转形成的patch跟原始图片放在一起进行训练。这样，就形成了400×160维的向量。这样形成的特征维数太高，所以要进行特征选择，不同于之前的DeepID直接采用PCA的方式，DeepID2先对patch进行选取，使用&lt;strong&gt;前向-后向贪心算法&lt;/strong&gt;选取了25个最有效的patch，这样就只有25×160维向量，然后使用PCA进行降维，降维后为180维，然后再输入到联合贝叶斯模型中进行分类&lt;br /&gt;
+  - 在LFW数据库上得到了99.15%人脸准确率。&lt;br /&gt;
+  - &lt;a href=&quot;http://www.cnblogs.com/Anita9002/p/7095380.html&quot;&gt;机器学习–详解人脸对齐算法SDM-LBF&lt;/a&gt; ,   &lt;a href=&quot;机器学习----人脸对齐的算法-ASM.AAM..CLM.SDM&quot;&gt;机器学习—-人脸对齐的算法-ASM.AAM..CLM.SDM&lt;/a&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;#### 2015-DeepID2+   [CVPR]&lt;br /&gt;
+  - 参考： &lt;br /&gt;
+    * Sun Y, Wang X, Tang X. Deeply learned face representations are sparse, selective, and robust[C]// Computer Vision and Pattern Recognition. IEEE, 2015:2892-2900.&lt;br /&gt;
+    * &lt;a href=&quot;http://blog.csdn.net/yuanchheneducn/article/details/51034463&quot;&gt;DeepID1 DeepID2 DeepID2+ DeepID3&lt;/a&gt;&lt;br /&gt;
+    * &lt;a href=&quot;http://blog.csdn.net/stdcoutzyx/article/details/42091205&quot;&gt;DeepID人脸识别算法之三代&lt;/a&gt;&lt;br /&gt;
+  - 相比于DeepID2，DeepID2+做了如下三点修改：&lt;br /&gt;
+    * DeepID特征从160维提高到512维。&lt;br /&gt;
+    * 训练集将CelebFaces+和WDRef数据集进行了融合，共有12000人，290000张图片。&lt;br /&gt;
+    * 将DeepID层不仅和第四层和第三层的max-pooling层连接，还连接了第一层和第二层的max-pooling层。&lt;br /&gt;
+    * DeepID2+自动就对遮挡有很好的鲁棒性&lt;br /&gt;
+    * 最后的DeepID2+的网络结构中ve是验证信号和识别信号加权和的监督信号;FC-n表示第几层的max-pooling。&lt;img src=&quot;pictures/DeepID2_plus_net.png&quot; alt=&quot;DeepID2_plus_net&quot; /&gt;&lt;br /&gt;
+  - &lt;strong&gt;适度稀疏与二值化&lt;/strong&gt;: DeepID2+有一个性质，即对每个人照片，最后的DeepID层都大概有半数的单元是激活的，半数的单元是抑制的。而不同的人，激活或抑制的单元是不同的。基于此性质。使用阈值对最后输出的512维向量进行了二值化处理，发现效果降低仅[0.5%,1%],但二值化后会有好处，即通过计算汉明距离就可以进行检索了。然后精度保证的情况下，可以使人脸检索变得速度更快，更接近实用场景。&lt;br /&gt;
+  - 在后续调查极度深网络的效果，在VGG和GooLeNet的基础上进行构建合适的结构&lt;strong&gt;DeepID3&lt;/strong&gt;，结果发现DeepID3的结果和DeepID2+相当。&lt;/p&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;#### 2015-CNN级联实现Viola-Jones人脸检测器 [CVPR]&lt;br /&gt;
+  - 参考：&lt;br /&gt;
+    * Li H, Lin Z, Shen X, et al. A convolutional neural network cascade for face detection[C]// Computer Vision and Pattern Recognition. IEEE, 2015:5325-5334.&lt;br /&gt;
+    * &lt;a href=&quot;http://blog.csdn.net/u010333076/article/details/50637317&quot;&gt;论文《A Convolutional Neural Network Cascade for Face Detection》笔记&lt;/a&gt;&lt;br /&gt;
+    * &lt;a href=&quot;https://github.com/anson0910/CNN_face_detection&quot;&gt;github:anson0910/CNN_face_detection&lt;/a&gt;&lt;br /&gt;
+  - 基于Viola-Jones，提出级联的CNN网络结构用于人脸识别，贡献如下：&lt;br /&gt;
+    * 提出了一种级联的CNN网络结构用于高速的人脸检测。&lt;br /&gt;
+    * 设计了一种边界校订网络用于更好的定位人脸位置。&lt;br /&gt;
+    * 提出了一种多分辨率的CNN网络结构，有着比单网络结构更强的识别能力，和一个微小的额外开销。&lt;br /&gt;
+    * 在FDDB上达到了当时最高的分数。&lt;br /&gt;
+  - 级联的三个网络结构，其读入的图片分辨率和网络的复杂度是逐级递增的。前面的简单网络拒绝绝大部分非人脸区域，将难以分辨的交由下一级更复杂的网络以获得更准确的结果。&lt;br /&gt;
+  - 要想在CNN结构下实现Viola-Jones瀑布级连结构，就要保证瀑布的前端足够简单并有较高的召回率且能够拒绝大部分非人脸区域，将图片缩放可以满足需求。&lt;br /&gt;
+  - 这三个网络用于&lt;strong&gt;矫正人脸检测框&lt;/strong&gt;的边界，往往得分最高的边界框并非最佳结果，经过校准后其能更好的定位人脸，其矫正原理是对原图做45次变换（&lt;strong&gt;坐标移动比例、尺寸缩放比例&lt;/strong&gt;），然后每个变换后的边界框都有一个得分，对于得分高于某个设定的阈值时，将其累加进原边界，最后结果取平均，就是最佳边界框。&lt;br /&gt;
+  - &lt;img src=&quot;pictures/A_Convolutional_Neural_Network_Cascade_for_Face_Detection_1.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;#### 2015-Google的FaceNet [CVPR]&lt;br /&gt;
+  - 参考：&lt;br /&gt;
+    * Schroff F, Kalenichenko D, Philbin J. FaceNet: A unified embedding for face recognition and clustering[J]. 2015:815-823.&lt;br /&gt;
+    * &lt;a href=&quot;http://blog.csdn.net/stdcoutzyx/article/details/46687471&quot;&gt;FaceNet–Google的人脸识别&lt;/a&gt;&lt;br /&gt;
+    * &lt;a href=&quot;http://blog.csdn.net/jyshee/article/details/52558192&quot;&gt;Understanding FaceNet&lt;/a&gt;&lt;br /&gt;
+  - 通过卷积网络后的特征，经过L2归一化后得到特征，再采用LMNN(Large margin nearest neighbor,最大间隔最近邻居)中的Triplet Loss，从而替换掉以往的Softmax结构，Triplet loss是尽可能增大类间距离，减少类内距离。&lt;br /&gt;
+  - 三元组选择对模型收敛、效率等很重要，文中提出两种方法：&lt;br /&gt;
+    * 1 每N步线下在数据的子集上生成一些triplet&lt;br /&gt;
+    * 2 在线生成triplet，在每一个mini-batch中选择hard pos/neg 样例。&lt;br /&gt;
+    * 论文采用了第2种。为使mini-batch中生成的triplet合理，生成时确保每个mini-batch中每人图片数量均等，再随机加入反例。生成triplet的时，要找出所有的anchor-pos对，然后对每个anchor-pos对找出其hard neg样本。&lt;br /&gt;
+  - LFW上的效果：&lt;br /&gt;
+    * 直接取LFW图片的中间部分进行训练，达98.87%左右。&lt;br /&gt;
+    * 使用额外的人脸对齐工具，效果99.63左右，超过DeepID。&lt;br /&gt;
+  - FaceNet不像DeepFace和DeepID需要对齐。且FaceNet得到最终表示后不用像DeepID那样需要再训练模型进行分类，它直接计算距离就即可。&lt;br /&gt;
+  - Triplet Loss的目标函数&lt;strong&gt;不是&lt;/strong&gt;这论文首次提出。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&quot;joint-training-of-cascaded-cnn-for-face-detectioncvpr&quot;&gt;2016-人脸检测中级联卷积神经网络的联合训练《Joint Training of Cascaded CNN for Face Detection》[CVPR]&lt;/h4&gt;
+&lt;ul&gt;
+  &lt;li&gt;参考：
+    &lt;ul&gt;
+      &lt;li&gt;Qin H, Yan J, Li X, et al. Joint Training of Cascaded CNN for Face Detection[C]// Computer Vision and Pattern Recognition. IEEE, 2016:3456-3465.&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;http://note.youdao.com/share/?id=bd65a89a78c201d5c06d6636e9f45069&amp;amp;type=note#/&quot;&gt;有道云笔记：Joint Training of Cascaded CNN for Face Detection&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;本文是对《A Convolutional Neural Network Cascade for Face Detection》（CNN级联实现Viola-Jones人脸检测器）的优化，优化手段就是&lt;strong&gt;用BP进行联合训练&lt;/strong&gt;。作者提出了联合训练以达到CNN级联端对端的优化。作者展示了用于训练CNN的反向传播算法可以被用于训练CNN级联。联合训练可以被用于简单的CNN级联和RPN，fast RCNN。&lt;/li&gt;
+      &lt;li&gt;现有最好的方法（2016）基本都是用&lt;strong&gt;多阶段机制&lt;/strong&gt;。第一个阶段提出region proposal 第二个阶段是用来detection的网络。级联cnn和faster rcnn都是这个流程。这些方法都没有联合训练，都是用贪心算法去优化的。本文中提出的方法是使用bp去优化。所以不同网络的每一层都可以被联合优化。&lt;/li&gt;
+      &lt;li&gt;使用联合训练的情况如下：
+        &lt;ul&gt;
+          &lt;li&gt;1.detection network 和calibration network可以共享multi-loss network用于detection 和bounding box 回归。&lt;/li&gt;
+          &lt;li&gt;2 因为multi-resolution得到了使用，那么后一个network将会包括前一个network，那么可以让卷积层在三个stage中共享。&lt;/li&gt;
+          &lt;li&gt;3.某一个stage的network的参数可以被别的branch联合优化。&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;可以使用联合训练的方法训练RPN+fast RCNN。&lt;/li&gt;
+      &lt;li&gt;&lt;img src=&quot;pictures/Joint_Training_of_Cascaded_CNN_for_Face_Detection_1.png&quot; alt=&quot;&quot; /&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;咦做表情识别呢？？怎么突然就不见了  = =&lt;/p&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;## 表情识别&lt;/p&gt;
+
+&lt;h4 id=&quot;image-based-static-facial-expression-recognition-with-multiple-deep-network-learning&quot;&gt;2015-多种方法联合改进《Image based Static Facial Expression Recognition with Multiple Deep Network Learning》&lt;/h4&gt;
+&lt;ul&gt;
+  &lt;li&gt;1 多种串联方式检测人脸&lt;br /&gt;
+&lt;img src=&quot;pictures/Image_based_Static_Facial_Expression_Recognition_with_Multiple_Deep_Network_Learning_1.png&quot; alt=&quot;&quot; /&gt;&lt;/li&gt;
+  &lt;li&gt;2 五个卷积层，三个随机池层和三个完全连接的层的网络结构。&lt;/li&gt;
+  &lt;li&gt;3 较完整地对训练图片进行随机裁剪、翻转、旋转、倾斜等等。
+    &lt;ul&gt;
+      &lt;li&gt;&lt;img src=&quot;pictures/Image_based_Static_Facial_Expression_Recognition_with_Multiple_Deep_Network_Learning_2.png&quot; alt=&quot;&quot; /&gt;&lt;/li&gt;
+      &lt;li&gt;其中θ是从三个不同值随机采样的旋转角度：{ - π/18，0，π/18}。&lt;/li&gt;
+      &lt;li&gt;s1和s2是沿着x和y方向的偏斜参数，并且都是从{-0.1,0,0.1}随机采样的。&lt;/li&gt;
+      &lt;li&gt;c是随机尺度参数。定义为c = 47 /（47 - δ），其中δ是[0，4]上随机采样的整数。&lt;/li&gt;
+      &lt;li&gt;实际上，用下面的逆映射产生变形的图像：
+        &lt;ul&gt;
+          &lt;li&gt;&lt;img src=&quot;pictures/Image_based_Static_Facial_Expression_Recognition_with_Multiple_Deep_Network_Learning_4.png&quot; alt=&quot;&quot; /&gt;&lt;/li&gt;
+          &lt;li&gt;其中A是歪斜，旋转和缩放矩阵的组成。输入（x’∈[0,47]，y’∈[0,47]）是变形图像的像素坐标。简单地计算逆映射以找到对应的（x，y）。由于所计算的映射大多包含非整数坐标，因此使用双线性插值来获得扰动的图像像素值&lt;/li&gt;
+          &lt;li&gt;t1和t2是两个平移参数，其值从{0，δ}被采样并且与c耦合。&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;4 扰动的学习和投票:
+    &lt;ul&gt;
+      &lt;li&gt;架构最后有P个Dense(7)，这P个扰动样本的输出结果的平均投票，（合并后）作为该图像的预测值。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;5 预训练：
+    &lt;ul&gt;
+      &lt;li&gt;样本随机扰动&lt;/li&gt;
+      &lt;li&gt;训练时候增加了超过25%或者连续5次增加train loss ，则降低学习率为之前的一半，并重新加载之前损失最好的模型，继续训练.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;6 克服过拟合问题:
+    &lt;ul&gt;
+      &lt;li&gt;冻结所有卷积图层的参数，只允许在完全连接的图层上更新参数。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;7 上述都是单一网络，现采用集成多网络方式。
+    &lt;ul&gt;
+      &lt;li&gt;常用方法是对输出响应进行简单平均。&lt;/li&gt;
+      &lt;li&gt;此处采用自适应地为每个网络分配不同的权重，即要学习集合权重w。采用独立地训练多个不同初始化的CNN并输出他们的训练响应。在加权的集合响应上定义了损失，其中w优化以最小化这种损失。在测试中，学习的w也被用来计算整体的测试响应。&lt;/li&gt;
+      &lt;li&gt;在本文中，我们考虑以下两个优化框架：
+        &lt;ul&gt;
+          &lt;li&gt;最大似然方法&lt;/li&gt;
+          &lt;li&gt;最小化Hinge loss&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;figure class=&quot;half&quot;&gt;
+  &amp;lt;img src=&quot;pictures/Image_based_Static_Facial_Expression_Recognition_with_Multiple_Deep_Network_Learning_6.png&quot;, width=&quot;380&quot;&amp;gt;
+  &amp;lt;img src=&quot;pictures/Image_based_Static_Facial_Expression_Recognition_with_Multiple_Deep_Network_Learning_7.png&quot;, width=&quot;380&quot;&amp;gt;
+&lt;/figure&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;p&gt;&amp;lt;/figure&amp;gt;&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;#### 2015-用LBP特征作为CNN输入《Emotion Recognition in the Wild via Convolutional Neural Networks and Mapped Binary Patterns》对照明变化有鲁棒性&lt;br /&gt;
+作者采用了：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;4个cnn模型VGG S,VGG M-2048,VGG M-4096和GoogleNet&lt;/li&gt;
+  &lt;li&gt;5种不同特征作为CNN输入 （RGB, LBP，以及作者额外三种处理的LBP特征）&lt;/li&gt;
+  &lt;li&gt;进行了20次实验。实验中10个最好的model中只有一个是RGB作为输入的。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;figure class=&quot;half&quot;&gt;
+    &amp;lt;img src=&quot;pictures/Emotion_Recognition_in_the_Wild_via_Convolutional_Neural_Networks_and_Mapped_Binary_Patterns_1.png&quot;, width=&quot;600&quot;&amp;gt; 
+&lt;/figure&gt;
+&lt;p&gt;由于LBP的差值不能反映两点间的差异，作者提出了mapping方法让其差能代表两点真实差距。&lt;br /&gt;
+将图像转换为LBP代码，使模型对照明亮度变化具有鲁棒性。&lt;/p&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;#### 2015-不同CNN及组合+数据改进《Hierarchical Committee of Deep CNNs with Exponentially-Weighted Decision Fusion for Static Facial Expression Recognition》&lt;br /&gt;
+EmotiW 2015的冠军，和《2015-Image based Static Facial Expression Recognition with Multiple Deep Network Learning》类似的方法。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;先对图片做align,&lt;/li&gt;
+  &lt;li&gt;然后设计了三种CNN,由不同的输入,不同的训练数据和不同的初始化训练了216个model,&lt;/li&gt;
+  &lt;li&gt;然后用自己提出的方法将这些model组合起来&lt;/li&gt;
+  &lt;li&gt;都是想办法增加训练集,让一张图片生成多张,&lt;/li&gt;
+  &lt;li&gt;又比如训练多个model结合起来&lt;/li&gt;
+  &lt;li&gt;就经常见到的那些方法。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;#### 2013-级联网络5个人脸特征点定位《Deep Convolutional Network Cascade for Facial Point Detection》&lt;/p&gt;
+
+&lt;p&gt;2013年CVPR，&lt;a href=&quot;http://mmlab.ie.cuhk.edu.hk/archive/CNN_FacePoint.htm&quot;&gt;论文的主页&lt;/a&gt;&lt;br /&gt;
+比较经典的做法，分为3大部分进行一步步定位。分别是level1,level2,level3。每个level中有好几个cnn模型。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;其中level1（深层网络）是对关键点进行准确估计，&lt;/li&gt;
+  &lt;li&gt;接下的两层将对小局部区域进行精细估计（浅层网络）。&lt;/li&gt;
+  &lt;li&gt;level1中几个cnn模型分别交错预测关键点（一个cnn模型预测多个点，不同cnn模型预测点有合集）。&lt;/li&gt;
+  &lt;li&gt;全部level中会多次预测同一关键点，取平均值。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;#### 2013-改进的内外轮廓68人脸特征点定位《Extensive Facial Landmark Localization with Coarse-to-fine Convolutional Network Cascade》[ICCV]&lt;br /&gt;
+2013年face++的作品ICCV.&lt;br /&gt;
+这篇是基于face++的前一篇定位5个特征点《2013-Deep Convolutional Network Cascade for Facial Point Detection》的。&lt;/p&gt;
+
+&lt;p&gt;参考： &lt;a href=&quot;http://blog.csdn.net/hjimce/article/details/50099115&quot;&gt;基于改进Coarse-to-fine CNN网络的人脸特征点定位&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;也是采用由粗到细，和上一篇步骤类似，这篇分开了内特征点和轮廓特征点的定位。&lt;br /&gt;
+让cnn预测bounding box而不是其他人脸检测器（让人脸框住最小化无关背景，如内特征点时可以把人脸轮廓那些部分不纳入bounding box）。各个部分分开训练（五官分开训练，减少因为不同种类的点定位难度不同而影响训练）&lt;/p&gt;
+
+&lt;p&gt;下图中表示了全步骤：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;level1是两个cnn来预测bounding box（crop输出）。&lt;/li&gt;
+  &lt;li&gt;level2是对定位的粗估计&lt;/li&gt;
+  &lt;li&gt;level3是细定位（裁剪后的五官进行训练预测）&lt;/li&gt;
+  &lt;li&gt;level4是将level3中图片进行旋转再预测（这层的精度提高很小）。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;figure class=&quot;half&quot;&gt;
+    &amp;lt;img src=&quot;pictures/Extensive_Facial_Landmark_Localization_with_Coarse-to-fine_Convolutional_Network_Cascade_1.png&quot;, width=&quot;700&quot;&amp;gt; 
+&lt;/figure&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;#### 2016-两个Inception+ SDM提取特征点来截更小的人脸框《Going Deeper in Facial Expression Recognition using Deep Neural Networks》&lt;br /&gt;
+人脸特征点来获取更小的人脸框（提高4-10%）、两个Inception的CNN框架。&lt;/p&gt;
+&lt;figure class=&quot;half&quot;&gt;
+    &amp;lt;img src=&quot;pictures/Going_Deeper_in_Facial_Expression_Recognition_using_Deep_Neural_Networks_1.png&quot;, width=&quot;900&quot;&amp;gt; 
+&lt;/figure&gt;
+
+&lt;hr /&gt;
+&lt;p&gt;#### 2013-fer2013第一名71.2%：损失函数为L2-SVM的表情分类《Deep Learning using Linear Support Vector Machines》&lt;br /&gt;
+将损失函数Softmax改为L2-SVM，相比L1-SVM,它具有可微，并且对误分类有更大的惩罚。&lt;/p&gt;
+
+&lt;p&gt;SVM约束函数如右公式4。改写为无约束优化问题如公式5,即为L1-SVM的最初形式。公式6为L2-SVM的形式。&lt;/p&gt;
+&lt;figure class=&quot;half&quot;&gt;
+    &amp;lt;img src=&quot;pictures/Deep_Learning_using_Linear_Support_Vector_Machines_1.png&quot;, width=&quot;400&quot;&amp;gt;
+
+&lt;/figure&gt;
+&lt;figure class=&quot;half&quot;&gt;
+    &amp;lt;img src=&quot;pictures/Deep_Learning_using_Linear_Support_Vector_Machines_2.png&quot;, width=&quot;400&quot;&amp;gt;
+    &amp;lt;img src=&quot;pictures/Deep_Learning_using_Linear_Support_Vector_Machines_3.png&quot;, width=&quot;400&quot;&amp;gt;
+&lt;/figure&gt;
+&lt;p&gt;L2-svm通过  $arg_t max (w^Tx)t \quad (t_n \in \lbrace −1, +1\rbrace)$来判断x的类别。&lt;/p&gt;
+
+&lt;p&gt;在反向传播需要对其求导。如公式10为L1-SVM的，它是不可微。而公式11是L2-SVM的且是可微的。&lt;br /&gt;
+且L2-SVM比L1-SVM效果好些。&lt;/p&gt;
+
+&lt;p&gt;Softmax和L2-SVM在FER2013中的效果如图:&lt;/p&gt;
+
+&lt;figure class=&quot;half&quot;&gt;
+    &amp;lt;img src=&quot;pictures/Deep_Learning_using_Linear_Support_Vector_Machines_6.png&quot;, width=&quot;500&quot;&amp;gt; 
+&lt;/figure&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;考试啦，先暂停看论文。。 Ort&lt;/p&gt;
+
+&lt;p&gt;之后我转向图像分类网络的研究了= =&lt;/p&gt;
+
+&lt;hr /&gt;
+</description>
+        <pubDate>Wed, 01 Nov 2017 00:00:00 +0800</pubDate>
+        <link>http://luonango.github.io/2017/11/01/%E8%A1%A8%E6%83%85%E8%AF%86%E5%88%AB_%E4%B8%80%E4%BA%9B%E6%95%B4%E7%90%86/</link>
+        <guid isPermaLink="true">http://luonango.github.io/2017/11/01/%E8%A1%A8%E6%83%85%E8%AF%86%E5%88%AB_%E4%B8%80%E4%BA%9B%E6%95%B4%E7%90%86/</guid>
+        
+        <category>表情识别</category>
+        
+        <category>人脸识别</category>
+        
+        <category>图像分类</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>图片分割的传统方法</title>
+        <description>&lt;h1 id=&quot;section&quot;&gt;图片分割的传统方法&lt;/h1&gt;
 
 &lt;hr /&gt;
 
@@ -1188,6 +2350,368 @@ tags:&lt;br /&gt;
         <pubDate>Wed, 01 Nov 2017 00:00:00 +0800</pubDate>
         <link>http://luonango.github.io/2017/11/01/%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2%E7%9A%84%E4%BC%A0%E7%BB%9F%E6%96%B9%E6%B3%95/</link>
         <guid isPermaLink="true">http://luonango.github.io/2017/11/01/%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2%E7%9A%84%E4%BC%A0%E7%BB%9F%E6%96%B9%E6%B3%95/</guid>
+        
+        <category>图像分割</category>
+        
+        <category>传统方法</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>部分GAN论文的阅读整理</title>
+        <description>&lt;h3 id=&quot;good-semi-supervised-learning-that-requires-a-bad-gan&quot;&gt;Good Semi-supervised Learning That Requires a Bad GAN&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Zihang Dai∗, Zhilin Yang∗, Fan Yang, William W. Cohen, Ruslan Salakhutdinov
+School of Computer Science
+Carnegie Melon University
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;f-gan-2016-training-generative-neural-samplers-using-variational-divergence-minimization&quot;&gt;f-GAN: 2016-Training Generative Neural Samplers using Variational Divergence Minimization&lt;/h3&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Nowozin S, Cseke B, Tomioka R. Minimization[J]. 2016. NIPS
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;本文贡献：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;推导f-散度的GAN训练目标，并提供了KL散度、Pearson散度的例子&lt;/li&gt;
+  &lt;li&gt;简化Goodfellow等人提出的鞍点优化程序&lt;/li&gt;
+  &lt;li&gt;实验测试哪个散度更适合作为自然图像的生成性神经采样器&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;使用变分散度最小化训练生成神经采样器&lt;/p&gt;
+
+&lt;p&gt;里面有关于f-散度的推导，以及其他散度分析。有很多公式。需要就去看吧。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;explaining-and-harnessing-adversarial-examples&quot;&gt;解释及运用对抗样本：2015-Explaining and Harnessing Adversarial Examples&lt;/h3&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Ian J. Goodfellow, Jonathon Shlens &amp;amp; Christian Szegedy. Google Inc., Mountain View, CA.  ICLR
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h4 id=&quot;abstruct&quot;&gt;Abstruct：&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;当数据被进行有意小绕动后，许多神经网络模型将以高置信度输出错误答案。早期解释集中在非线性、过度拟合方面。&lt;/li&gt;
+  &lt;li&gt;本文认为主要是神经网络的线性特性。这解释在架构和训练集间的泛化的定量实验结果得到支持。&lt;/li&gt;
+  &lt;li&gt;且本文还提供了生成对抗样本的方法，采用对抗样本，减少了Maxout网络在mnist的错误率。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;introduction&quot;&gt;Introduction:&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Szegedy等人(2014)发现：几种前沿的神经网络模型在对抗样本上仍然显得脆弱。对抗样本的原因未知，前人推测是DNN的极端非线性、或是纯粹监督学习中的模型且正则化相结合不足有关。&lt;/li&gt;
+  &lt;li&gt;但本文表明这些推测都是不必要的。高维空间的线性属性足以造成面对对抗样本脆弱情况，&lt;/li&gt;
+  &lt;li&gt;这观点促使我们设计一个快速生成对抗样本的方法，使模型能对抗样本训练。&lt;/li&gt;
+  &lt;li&gt;我们表明对抗样本训练能比单独使用dropout方法提供额外的正则效果。&lt;/li&gt;
+  &lt;li&gt;通过dropout、预训练、模型平均等方法不会降低模型在对抗样本训练时脆弱性，但是非线性模型（如RBF网络）可以。&lt;/li&gt;
+  &lt;li&gt;设计易于训练的线性模型和能抵抗样本绕动的非线性模型存在根本的张力。长远来看可以通过设计能成功训练非线性模型的更强大的优化方法来抵抗样本绕动。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;related-work&quot;&gt;Related Work：&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Szegedy等人（2014b）展示了神经网络和相关模型的各种有趣特性。与本文最相关的内容包括：
+    &lt;ul&gt;
+      &lt;li&gt;Box-constrained（箱约束） L-BFGS 可以找到对抗样本。&lt;/li&gt;
+      &lt;li&gt;一些数据集上（ImageNet等）对抗样本和真实例子很接近，人类难以区分。&lt;/li&gt;
+      &lt;li&gt;相同的对抗样本经常被各种分类器错分类，或者让各种分类器在训练数据子集上进行训练&lt;/li&gt;
+      &lt;li&gt;浅Softmax回归模型在对抗样本上也很脆弱&lt;/li&gt;
+      &lt;li&gt;在对抗样本上的训练能够让模型正则，但要在内部循环进行昂贵的约束优化，这在当时很不现实。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;当前性能优异的分类器，也没能学习确定正确输出标签的真正基础概念。&lt;/li&gt;
+  &lt;li&gt;它们建立了Potemkin village从而在自然图片中很好分类，但当出现一个数据在数据分布中不具有高概率出现的情况时，这些算法缺点就暴露出来了。当前流行方法是采用欧几里得距离接近感知距离的空间，如果网络感知距离很小的图像表示却与不同的类别相对应时候，这相似性显然有缺陷。&lt;/li&gt;
+  &lt;li&gt;尽管线性分类也有这个问题，但这结果常被解释为深度网络的缺陷。&lt;/li&gt;
+  &lt;li&gt;已经有人开始设计对抗样本的模型，但还没成功地同时让测试集达到领先准确度。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;the-linear-explanation-of-adversarial-examples-&quot;&gt;The Linear Explanation of Adversarial Examples 对抗样本上的线性解释：&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;输入样本$x$，对抗样本$\tilde{x}=x+\eta$ 其中$\eta$ 是绕动因子，它足够小以至于不影响数据的表示($\mid\mid \eta \mid\mid _\infty &amp;lt; \epsilon$):&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;$w^x \tilde{x}=w^T x+w^T \eta$&lt;/li&gt;
+  &lt;li&gt;对抗绕动造成的激活值是$w^T \eta$，为了让这个扰动达到最大，我们让 $\eta=sign(w)$&lt;/li&gt;
+  &lt;li&gt;如果$w$有$n$维，权重的元素平均长度量是$m$，按激活值将增加$mn$，虽然$\eta$不受维度变化而增长，但多个维度绕动造成的激活变化将非常大（足以改变输出）。&lt;/li&gt;
+  &lt;li&gt;即如果一个简单的线性模型的输入有足够的维度，它就可能拥有对抗样本。&lt;/li&gt;
+  &lt;li&gt;这简单的线性例子，也能解释为什么softmax回归在对抗样本前很脆弱。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;linear-perturbation-of-non-linear-models--&quot;&gt;Linear Perturbation of Non-Linear Models ： 非线性模型的线性绕动&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;我们假设太线性的神经网络不能抵抗对抗样本。LSTMs、ReLUs、Maxout网络等等都有意设计成非常线性的方式表现（易于优化），复杂的非线性模型（Sigmoid网络）将大部分时间在非饱和上（依旧非常线性），这些线性方式虽然简洁易用，但是会损害神经网络。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;设$\theta$是模型的参数，$x$是模型的输入，$y$是与$x$相关的目标（对于具有目标的机器学习任务）和$J(\theta,x,y)$是用于训练神经网络的成本。我们可以将成本函数线性化为$\theta$的当前值，得到最优的最大范数约束：&lt;/li&gt;
+  &lt;li&gt;$\eta=\epsilon sign (\nabla _x J(\theta,x,y))$&lt;/li&gt;
+  &lt;li&gt;从而得到对抗样本$\tilde{x}=x+\eta$&lt;/li&gt;
+  &lt;li&gt;以此对抗样本测试许多模型，发现此方法能产生有效的对抗样本。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;adversarial-training-of-linear-models-versus-weight-decay-&quot;&gt;Adversarial Training of Linear Models Versus Weight Decay 线性模型与权值衰减的对抗训练&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;标签$y \in \lbrace -1,1 \rbrace$且$P(y=1)=\sigma(w^Tx+b)$,$w^Tsign(w)=\mid\mid w\mid\mid _1$&lt;/li&gt;
+  &lt;li&gt;$\zeta(y) = log (1 + exp(z))$ 是 softplus 函数，逻辑回归的对抗样本是最小化从：&lt;/li&gt;
+  &lt;li&gt;${\Bbb E}&lt;em&gt;{x,y \sim p&lt;/em&gt;{data}} \zeta(-y(w^T x+b))$&lt;br /&gt;
+变为：${\Bbb E}&lt;em&gt;{x,y \sim p&lt;/em&gt;{data}} \zeta(y(\epsilon \mid\mid w \mid\mid _1 -w^T x-b))$&lt;/li&gt;
+  &lt;li&gt;这有点类似于$L^1$正则化。但是$L^1$的惩罚从训练期间模型的激活中减去，而不是加到训练成本上。这意味着如果模型学习到预测足够好以使$\zeta$饱和，那么惩罚最终会开始消失。但在欠拟合时候对抗样本训练不一定会加重欠拟合。故可认为在欠拟合情况下$L^1$的权重衰减会比对抗样本训练差很多，因为$L^1$在好的结果上没有停止。&lt;/li&gt;
+  &lt;li&gt;在多类别的softmax回归上,$L^1$正则将更糟糕。它将softmax每个输出当成独立的绕动。事实上不可能找到一个$\eta$符合（对齐）所有类的权重向量。&lt;/li&gt;
+  &lt;li&gt;权重衰减高估了绕动造成的影响（即使是深度神经网络），所以有必要使用比$L^1$权重衰减方法精度更小的方法，即采用我们的对抗样本训练。&lt;/li&gt;
+  &lt;li&gt;实验测试发现$L^1$太重了难以调（0,0025依旧太大了），而用$\epsilon=0.25$效果就很好（$\mid\mid \eta \mid\mid _\infty &amp;lt; \epsilon$）&lt;/li&gt;
+  &lt;li&gt;较小的重量衰减系数允许成功的训练，但不赋予正则化效益&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;adversarial-training-of-deep-networks-&quot;&gt;Adversarial Training of Deep Networks 深度网络的对抗训练&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;混合训练对抗样本和原样本，神经网络能以某程度被正则化。&lt;/li&gt;
+  &lt;li&gt;数据增强和对抗样本不同。数据增强的样本一般不是真实自然图片云云。模型的决策功能将会缺陷云云。&lt;/li&gt;
+  &lt;li&gt;基于快速梯度sign的对抗样本目标函数训练是一种有效的正则化方法：&lt;/li&gt;
+  &lt;li&gt;$\tilde{J}(\theta,x,y)=\alpha J(\theta,x,y)+(1-\alpha)J(\theta,x+\epsilon sign(\nabla _x J(\theta,xy))$&lt;/li&gt;
+  &lt;li&gt;本文不考虑超参$\theta$的u优化，取值0.5即可。&lt;/li&gt;
+  &lt;li&gt;实验发现对抗样本训练很有效。&lt;/li&gt;
+  &lt;li&gt;不仅提高了精度，学习模型的权重还发生了显着变化，对抗训练模型的权重明显更加局部化和可解释。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;why-do-adversarial-examples-generalize-&quot;&gt;Why Do Adversarial Examples Generalize? 为什么对抗样本通用（泛化能力）？&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;有趣的是：对抗样本常被其他模型错分类（且他们不同架构、不同数据集上训练），且还被他们错分为统一类（互相认可）。&lt;/li&gt;
+  &lt;li&gt;线性角度：对抗样本是出现在宽广的子空间，而不是某个精确的特别区域。这解释了为什么对抗样本丰富，且错分类的样本还被相互认可。&lt;/li&gt;
+  &lt;li&gt;分类器能学到大致相同的分类权重（即使在不同子集上训练），这基础的分类权重的稳定性会影响对抗样本的稳定性。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;为了解释为什么多个分类器将相同的类分配到敌对的例子，我们假设用当前的方法训练的神经网络都类似于在相同训练集上学习的线性分类器。这个参考分类器在训练集的不同子集上训练时能够学习大致相同的分类权重，这仅仅是因为机器学习算法能够推广。基础分类权重的稳定性反过来又会导致敌对性的例子的稳定性。&lt;/p&gt;
+
+&lt;h3 id=&quot;alternative-hypotheses-&quot;&gt;Alternative Hypotheses 另一些猜想：&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;生成训练可以提供更多的训练过程，，从而让模型学习得更好：
+    &lt;ul&gt;
+      &lt;li&gt;其他的模型要么不可区分推理过程，使得难以计算对抗样本，要么需要额外的非生成的鉴别器模型才能得到高精度分类。&lt;/li&gt;
+      &lt;li&gt;MP-DBM中我们确保生成模型本身就对应着对抗样本，而不是非生成的分类器模型。但这种模型依旧容易受到对抗样本攻击。一些其他形式的生成模型可能提供抵抗力，但这个事实不足够。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;为什么对抗样本存在的猜想：
+    &lt;ul&gt;
+      &lt;li&gt;单模型容易存在偏向，多个模型的平均能够冲淡这问题，（能抵抗对抗样本的攻击）。&lt;/li&gt;
+      &lt;li&gt;而实验确实证明如此。但面对对抗样本，相比单模型，集成的方法虽然有提升但依旧有限。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;summary-and-discussion&quot;&gt;Summary and Discussion&lt;/h3&gt;
+
+&lt;p&gt;作为总结，本文提出了以下意见：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;对抗样本可解释为一个高维点产品的属性。它们 &lt;strong&gt;是模型过于线性,,而不是非线性导致的结果&lt;/strong&gt;。&lt;/li&gt;
+  &lt;li&gt;不同模型之间，对抗样本的泛化能力可以解释为对抗性扰动与模型的权重向量方向一致，而不同模型在进行相同任务训练时会学习到类似的权重。&lt;/li&gt;
+  &lt;li&gt;扰动的方向，而不是空间中的特定点，而是实体。空间中不是充满了对抗样本（不像有理数一样充满着空间）。&lt;/li&gt;
+  &lt;li&gt;因为是实体方向，故对抗绕动会概括不同的原始样本。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;提出一系列能快速产生对抗样本的方法。&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;已经证明对抗性训练可以导致正规化。甚至Dropout进一步正规化。&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;对$L^1$权重衰减和添加噪音两种方法进行了控制实验，想达到类似对抗性训练的正则效果（或比较好一点的效果），但均难以调控，失败了。&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;易于优化的模型容易受到扰动。&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;线性模型缺乏抗对抗性扰动的能力;只有具有隐藏层的结构（通用逼近定理适用）才能被训练来抵抗对抗样本。&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;RBF网络能抵抗对抗样本。&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;训练模型输入分布的模型不能抵抗对抗样本。&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;集成模型方法，不能抵抗对抗样本（对抗有限）。&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;垃圾类别的样本（无关类的样本，即无意义的样本，如全噪音图）：&lt;br /&gt;
+- 垃圾类样本无处不在，容易生成。&lt;br /&gt;
+- 浅线模型不能抵抗垃圾类的样本。&lt;br /&gt;
+- RBF网络抵制垃圾类样本。&lt;/p&gt;
+
+&lt;p&gt;要优化训练局部更加稳定的模型，才能让模型不容易被对抗样本欺骗。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;generative-adversarial-networks-an-overview&quot;&gt;综述： 2017-Generative Adversarial Networks: An Overview&lt;/h3&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Creswell A, White T, Dumoulin V, et al.[J]. 2017. 笔记记在纸质版论文上。 概括得挺好，从中选一些论文作为后续论文阅读。
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;gan2016-improved-techniques-for-training-gans&quot;&gt;更好训练GAN：2016-Improved Techniques for Training GANs&lt;/h3&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; Tim Salimans，Ian Goodfellow，Wojciech Zaremba，Vicki Cheung
+ [github-tensorflow](https://github.com/openai/improved_gan)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;提出Feature matching,mnibatch feature,Virtural batch normalization三种提高训练GAN的方法。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Feature matching 特征匹配：&lt;/strong&gt;
+    &lt;ul&gt;
+      &lt;li&gt;指定G的新目标，从而防止GAN训练不稳定、防止D过度训练。新目标是要求G生成与实际数据相匹配的特征。通过训练G，来匹配D中间层的特征期望值。&lt;/li&gt;
+      &lt;li&gt;将G的目标定义为：&lt;br /&gt;
+  &lt;script type=&quot;math/tex&quot;&gt;\begin{align}
+  \mid\mid E_{x \sim p_{data}} f(x)-E_{z \sim {p_z(z)})}f(G(z))) \mid\mid_{2}^2 
+  \end{align}&lt;/script&gt;&lt;/li&gt;
+      &lt;li&gt;实验证明，特征匹配确实在常规GAN变得不稳定的情况下有效&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Minibatch discrimination（小样本鉴别）：&lt;/strong&gt;
+    &lt;ul&gt;
+      &lt;li&gt;GAN失效原因之一是：G总是生成相同的数据（Generator collapse)。D反馈的梯度都指向同一方向，让G容易收敛到一个点。&lt;/li&gt;
+      &lt;li&gt;是因为每次D都是独立处理样本，这导致没有机制告诉G要生成的样本不一样。G会向某一个方向改进，从而让最终G生成样本的分布无法收敛到正确样本的熵分布。&lt;/li&gt;
+      &lt;li&gt;解决方法是允许D同时观察多样本的组合，并执行minbatch discrimination（小样本鉴别）&lt;/li&gt;
+      &lt;li&gt;假设$f(x_i)\in R^{A}$ 表示D中间层的输出向量。将$f(x_{i})$乘以矩阵 $T \in R^{A×B×C}$，得到一个矩阵 $M_{i} \in R^{B×C}$,其中 $i \in\lbrace1,2,…,n\rbrace$ 。&lt;/li&gt;
+      &lt;li&gt;计算$M_{i}$中每行间的$L_{1}-distance$，并加以负对数得到$c_b(x_i,x_j)= exp(- \mid\mid M_{i,b} - M_{j,b} \mid\mid _{L_1})$&lt;/li&gt;
+      &lt;li&gt;再将$c_b(x_i,x_j)$的和作为下一层的输入$o(x_i)$。&lt;br /&gt;
+  &lt;script type=&quot;math/tex&quot;&gt;% &lt;![CDATA[
+\begin{align}
+  o(x_i)_b =&amp; \sum_{j=1}^n c_b(x_i,x_j) \in {\cal R} \\
+  o(x_i) =&amp;{\big [} o(x_i)_1, o(x_i)_2,...,o(x_i)_B {\big]} \in {\cal R^B} \\
+  o(X) \in &amp; R^{n \times B} \\
+  \end{align} %]]&gt;&lt;/script&gt;&lt;/li&gt;
+      &lt;li&gt;D中依旧有原先的判断机制，而这个机制起辅助作用。能防止collapse，也能让D容易分辨G是否生成相同样本。快速生成更吸引的图像。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Historical averaging（历史平均):&lt;/strong&gt;
+    &lt;ul&gt;
+      &lt;li&gt;每个样本的损失项包括：$\mid\mid \theta - \frac{1}{t} \sum_{i=1}^t \theta[i] \mid\mid ^2$&lt;/li&gt;
+      &lt;li&gt;这样梯度将不容易进入稳定的轨道，就能向纳什均衡点靠近。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;One-sided label smoothing（单边标签平滑）&lt;/strong&gt;
+    &lt;ul&gt;
+      &lt;li&gt;用$\alpha$代替正分类目标，用$\beta$代替负目标，最优鉴别器变为:&lt;br /&gt;
+  &lt;script type=&quot;math/tex&quot;&gt;\begin{align}
+  D(x)= \frac{\alpha p_{data}(x)+\beta p_{model}(x)}{p_{data}(x)+p_{model}(x)}
+  \end{align}&lt;/script&gt;&lt;/li&gt;
+      &lt;li&gt;其中$p_{data}(x)\rightarrow 0$且$p_{model}(x)\rightarrow 1$时候，来自$p_{model}(x)$的loss特别小（D的辨别能力太强），从而让G没办法得到训练。&lt;/li&gt;
+      &lt;li&gt;因此只将正标签平滑到如0.9而非1，负标签设置为0。这样就算D很自信，也能正常反向更新G参数&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Virtual batch normalization：&lt;/strong&gt;
+    &lt;ul&gt;
+      &lt;li&gt;BN 能提高网络性能，但是它强依赖于同一个batch所有样本的输入。为了解决这问题，提出了VBN。&lt;/li&gt;
+      &lt;li&gt;每个batch在训练开始前就要固定好：从训练集中取出另一个batch，计算它均值方差，用它来更新当前batch的所有样本。然后再将更新完后的batch传入网络。&lt;/li&gt;
+      &lt;li&gt;弊端：每次都要两份数据，故网络中只在G中使用这方法。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Semi-supervised learning (半监督学习):&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;可用任何标准分类器进行半监督学习。只需要将GAN生成的样本加入数据集中（标签为$y=K+1$），并将分类器最终输出为$K+1$维。然后有：&lt;br /&gt;
+  &lt;script type=&quot;math/tex&quot;&gt;% &lt;![CDATA[
+\begin{align}
+  &amp;L=-{\Bbb E}_{x,y \sim p_{data}(x,y)}{\big [}\log p_{model}(y|x){\big]} - {\Bbb E}_{x\sim G}{\big[}\log p_{model}(y=K+1|x){\big]} \\
+  &amp;\quad= L_{supervised}+L_{unsupervised} ,where: \\
+  &amp;L_{supervised}=-{\Bbb E}_{x,y \sim p_{data}(x,y)}{\big [}\log p_{model}(y|x,y&lt;K+1){\big]} \\
+  &amp;L_{unsupervised}=- \big\lbrace {\Bbb E}_{x\sim p_{data}(x)}\log {\big[}1- p_{model}(y=K+1|x){\big]} + {\Bbb E}_{x\sim G}\log {\big[}p_{model}(y=K+1|x){\big ]} \big\rbrace
+  \end{align} %]]&gt;&lt;/script&gt;
+    &lt;ul&gt;
+      &lt;li&gt;将$D(x)=1-p_{model}(y=K+1|x)$代入表达式得：&lt;br /&gt;
+  &lt;script type=&quot;math/tex&quot;&gt;\begin{align}
+  L_{unsupervised}= - \big\lbrace {\Bbb E}_{x \sim p_{data}(x)} \log D(x)+{\Bbb E}_{z \sim noise} \log (1- D(G(z)))\big\rbrace
+  \end{align}&lt;/script&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;最小化$L_{supervised}$和$L_{unsupervised}$这两个损失函数可以得到最优解。&lt;/li&gt;
+  &lt;li&gt;在实验中，使用Feature matching(特征匹配)GAN对G进行优化对于半监督学习非常有效，而使用带有minibatch discrimination(小样本鉴别)的GAN进行G训练不起作用。此处采用这些方法来展示作者实证结果，而方法对于G和D间的相互作用的全面理解将留到将来工作。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;结论：&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;提出了几种技术来稳定培训，使能够训练以前不可能的模型。&lt;/li&gt;
+  &lt;li&gt;提出的评估指标（初始评分）提供了比较这些模型质量的基础。&lt;/li&gt;
+  &lt;li&gt;运用提到的技术来解决半监督学习问题，在计算机视觉的许多不同的数据集上实现了最新的结果。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;dnn-2017-distilling-a-neural-network-into-a-soft-decision-tree&quot;&gt;软决策树 理解DNN如何分类 2017-Distilling a Neural Network Into a Soft Decision Tree&lt;/h3&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Nicholas Frosst, Geoffrey Hinton
+Google Brain Team
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;通过层级决策模型把 DNN 所习得的知识表达出来，具体决策解释容易很多。这最终缓解了泛化能力与可解释性之间的张力。&lt;/p&gt;
+
+&lt;p&gt;Introduction:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;深度神经网络优秀的泛化能力依赖于其隐藏层中对分布式表征的使用，但是这些表征难以理解。&lt;/li&gt;
+  &lt;li&gt;相比之下，很容易解释决策树是如何做出特定分类的。因为它依赖于一个相对短的决策序列，直接基于输入数据做出每个决策。&lt;/li&gt;
+  &lt;li&gt;但是决策树并不像深度神经网络一样可以很好地泛化。与神经网络中的隐藏单元不同，决策树较低级别的典型节点仅被一小部分训练数据所使用，所以决策树的较低部分倾向于过拟合，除非相对于树的深度，训练集是指数量级的规模。&lt;/li&gt;
+  &lt;li&gt;在测试过程中，我们使用决策树作为我们的模型。该模型的性能可能会略微低于神经网络，但速度快得多，并且该模型的决策是可解释的。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The Hierarchical Mixture of Bigots(专家的层次化混合):&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;使用小批量梯度下降训练软决策树。对于内部节点$i$，有一个学习到的过滤器$w_i$和偏置$b$，每个叶节点(left node)$l$有一个学习到的分布$Q_l$，对于每个内部节点，模型的输入$x$，$\sigma$是激活函数时，选择右分支的概率是：&lt;br /&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\begin{align}
+p_i(x)=\sigma(xw_i+b_i)
+\end{align}&lt;/script&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;由于每个专家（决策树的点）都是Bigots(偏执固执),训练完后，对任何输入都生成相同的分布。模型学习到一个过滤器分层体系，会对每个样本分配特定的路径概率，并且每个Bigots都学习到一个简单、固定的关于所有可能输出类别K的概率,$Q_.^{\scr l}$ 表示第$l^th$层的叶的概率分布，$\phi_.^{\scr l}$ 是该叶的学习参数。&lt;br /&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\begin{align}
+ Q_{k}^{\scr l}=\frac{exp(\phi_{k}^{\scr l})}{\sum_{k&#39;}exp(\phi_{k&#39;}^{\scr l})}
+\end{align}&lt;/script&gt;&lt;/li&gt;
+  &lt;li&gt;为了避免决策树有非常的软决策，引入了inverse temperature $\beta$到激活函数，让节点$i$采取右分支的概率变为$p_i(x)= \sigma(\beta(xw_i+b_i))$ .&lt;/li&gt;
+  &lt;li&gt;使用损失函数来训练软决策树，寻求最小化每个叶子之间的交叉熵，通过它的路径概率来加权，并且目标分布。对于输入$x$和目标分布$T$、x到达叶子$\scr {l}&lt;script type=&quot;math/tex&quot;&gt;层时候的概率P^{\scr l}(x)$，对应的损失函数是：&lt;/script&gt;\begin{align}&lt;br /&gt;
+ L(x)=-\log{\big (} \sum _{ {\scr l}\in LeafNodes} P^{\scr l}(x) \sum_k T_k \log Q_k^{\scr l} {\big )}&lt;br /&gt;
+\end{align}$$&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Regularizer(正则)：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;为了避免在训练时停留在差解，故引入了一个惩罚项，鼓励每个内部节点平等使用左右子树（否则一个或多个节点将几乎所有概率分给某子树时，逻辑梯度总是非常接近0）。这个惩罚是平均分布$(0.5,0.5)$和实际分布$(\alpha,1-\alpha)$间的交叉熵，$P^i(x)$是从根节点传递到节点$i$的路径概率，则有：&lt;br /&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\begin{align}
+ \alpha _i = \frac{\sum_x P^i(x)p_i(x)}{\sum_x P^i(x)}
+\end{align}&lt;/script&gt;&lt;/li&gt;
+  &lt;li&gt;则所有内部节点的惩罚是（其中$\lambda$是惩罚强度的超参数）：&lt;br /&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\begin{align}
+C=-\lambda \sum_{i \in InnerNodes} 0.5\log(\alpha_i)+0.5\log(1-\alpha_i)
+\end{align}&lt;/script&gt;&lt;/li&gt;
+  &lt;li&gt;随着树节点的深度$d$加大，节点上分类的数目将会很小（如倒数第二层可能只负责两个输入类别，不等分的比例容易很大），此时对节点进行不等分的惩罚会损害模型的准确性。故采用随着深度$d$增大，惩罚强度$\lambda$呈指数衰减。实验发现得到好的测试精度结果。&lt;/li&gt;
+  &lt;li&gt;当一棵树下降时候，每个节点能处理的数据（对同一个批次来说）呈指数下降，这意味着用两个子树来计算实际概率变得不准确。故采用一个平均实际概率值的时间窗口（它和深度$d$呈指数函数关系），保持实际概率的指数衰减。实验发现得到好的测试精度结果。&lt;/li&gt;
+  &lt;li&gt;软决策树开始过度拟合的参数总数通常少于多层神经网络开始过拟合的参数总数。这是因为决策树的较低节点只接收到一小部分训练数据。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;MNIST上的表现：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;对于深度为8的软决策树，当对真实目标进行训练时，我们能够达到至多94.45％的测试精度。（软决策树直接对MNIST分类）&lt;/li&gt;
+  &lt;li&gt;2个卷积层+两层完全连接层（最后一层是Dense(10)）的神经网络的测试精度达到了99.21％&lt;/li&gt;
+  &lt;li&gt;利用神经网络的准确性，通过训练真实标签和神经网络的预测相结合的软目标制作成的更好的软决策树，测试准确度达到了96.76％。&lt;/li&gt;
+  &lt;li&gt;准确度在 直接去训练数据的 神经网络 和 软决策树 之间。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;hr /&gt;
+</description>
+        <pubDate>Sun, 01 Oct 2017 00:00:00 +0800</pubDate>
+        <link>http://luonango.github.io/2017/10/01/%E9%83%A8%E5%88%86GAN%E7%9A%84%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E6%95%B4%E7%90%86/</link>
+        <guid isPermaLink="true">http://luonango.github.io/2017/10/01/%E9%83%A8%E5%88%86GAN%E7%9A%84%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E6%95%B4%E7%90%86/</guid>
+        
+        <category>GAN</category>
+        
+        <category>论文阅读笔记</category>
         
         
       </item>

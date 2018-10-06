@@ -1,14 +1,14 @@
 ---
 layout:     post
 title:      CapsulesNet的解析
-subtitle:   
-date:       2018-02-01
+subtitle:   原理及两篇论文的解析
+date:       2018-03-01
 author:     BY
 header-img: img/post-bg-ios9-web.jpg
 catalog: true
 tags:
     - CNN
-    - 图像分类识别
+    - 图像分类
     - Capsule网络
 
 ---
@@ -16,6 +16,7 @@ tags:
 # CapsulesNet的解析
 
 ## 前言：
+
 
 本文先简单介绍传统CNN的局限性及Hinton提出的Capsule性质，再详细解析Hinton团队近期发布的基于动态路由及EM路由的CapsuleNet论文。
 
