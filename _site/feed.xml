@@ -5,19 +5,13 @@
     <description>Every failure is leading towards success.</description>
     <link>http://luonango.github.io/</link>
     <atom:link href="http://luonango.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Sun, 30 Sep 2018 14:42:28 +0800</pubDate>
-    <lastBuildDate>Sun, 30 Sep 2018 14:42:28 +0800</lastBuildDate>
+    <pubDate>Sat, 06 Oct 2018 10:30:33 +0800</pubDate>
+    <lastBuildDate>Sat, 06 Oct 2018 10:30:33 +0800</lastBuildDate>
     <generator>Jekyll v3.0.1</generator>
     
       <item>
         <title>Fusedmax与Oscarmax</title>
-        <description>&lt;h1 id=&quot;fusedmaxoscarmaxattention&quot;&gt;Fusedmax与Oscarmax：稀疏及结构化的Attention正则化框架&lt;/h1&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2017_NIPS
-康奈尔大学, Vlad Niculae
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h1 id=&quot;attention&quot;&gt;稀疏及结构化的Attention正则化框架&lt;/h1&gt;
+        <description>&lt;h1 id=&quot;fusedmaxoscarmaxattention&quot;&gt;2017_Fusedmax与Oscarmax_稀疏及结构化的Attention正则化框架&lt;/h1&gt;
 
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2017_NIPS
 康奈尔大学, Vlad Niculae
@@ -251,11 +245,7 @@ supervised clustering of predictors with OSCAR&lt;/a&gt;中的OSCAR惩罚函数�
 &amp;gt; 论文的附录中还有大量实验结果，可以加深理解。&lt;/p&gt;
 
 &lt;p&gt;来看一个 法语-英语翻译 Attention实验效果：&lt;br /&gt;
-&lt;img src=&quot;https://pic2.zhimg.com/80/v2-f1c62fb2bef70e0262e11bfea7e6fb1d_hd.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;&amp;lt;img src=”http://127.0.0.1:4000/img/pictures/fusedmax_oscarmax.png”, width=”1000”&amp;gt;&lt;/p&gt;
-
-&lt;p&gt;&amp;lt;img src=”img/pictures/fusedmax_oscarmax.png”, width=”1000”&amp;gt;&lt;/p&gt;
+&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img//pictures/fusedmax_oscarmax.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
 &lt;hr /&gt;
 &lt;p&gt;## 5. TV与OSCAR的简单介绍：&lt;/p&gt;
@@ -282,7 +272,7 @@ supervised clustering of predictors with OSCAR&lt;/a&gt;中的OSCAR惩罚函数�
   &lt;tbody&gt;
     &lt;tr&gt;
       &lt;td&gt;当绿点遍历整个函数时，&amp;lt;p&amp;gt;绿点在y-轴上的投影红点走过的&lt;strong&gt;路程&lt;/strong&gt;&amp;lt;p&amp;gt;就是该函数的总变分TV&lt;/td&gt;
-      &lt;td&gt;&lt;img src=&quot;./pictures/Total_variation.gif&quot; alt=&quot;Total_variation&quot; /&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Total_variation.gif&quot; alt=&quot;Total_variation&quot; /&gt;&lt;/td&gt;
     &lt;/tr&gt;
   &lt;/tbody&gt;
 &lt;/table&gt;
@@ -306,7 +296,7 @@ supervised clustering of predictors with OSCAR&lt;/a&gt;中的OSCAR惩罚函数�
   \right) %]]&gt;&lt;/script&gt;&lt;br /&gt;
 将上述方法应用在1维数据得到结果如下(图来自&lt;a href=&quot;http://euler.stat.yale.edu/~tba3/stat612/lectures/lec22/lecture22.pdf&quot;&gt;The Generalized Lasso，Lecture 22&lt;/a&gt;）：&lt;/p&gt;
 
-&lt;p&gt;&amp;lt;img src=”img/pictures/Fuse_lasso_1.png”, width=”500”&amp;gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Fuse_lasso_1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;可以看出，数据最终呈现连续区域的聚集，即空间聚集（spatial clutering)，也就得到了稀疏形式的数据表示。 得到更平滑的数据表示，也能防止过拟合的数据表示。&lt;/p&gt;
 
@@ -349,8 +339,8 @@ supervised clustering of predictors with OSCAR&lt;/a&gt;中的OSCAR惩罚函数�
   &lt;/thead&gt;
   &lt;tbody&gt;
     &lt;tr&gt;
-      &lt;td style=&quot;text-align: center&quot;&gt;&amp;lt;img src=”img/pictures/oscar_elasticnet.png”,width=”500”&amp;gt;&lt;/td&gt;
-      &lt;td style=&quot;text-align: center&quot;&gt;&amp;lt;img src=”img/pictures/oscar_oscar.png”,width=”500”&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/oscar_elasticnet.png&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/oscar_oscar.png&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
     &lt;/tr&gt;
     &lt;tr&gt;
       &lt;td style=&quot;text-align: center&quot;&gt;$L_1$和$L_2$范式组合&lt;/td&gt;

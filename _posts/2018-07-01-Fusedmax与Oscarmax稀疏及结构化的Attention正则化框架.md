@@ -12,12 +12,7 @@ tags:
     - 函数式编程
     - 开源框架
 ---
-
-# Fusedmax与Oscarmax：稀疏及结构化的Attention正则化框架
-    2017_NIPS
-    康奈尔大学, Vlad Niculae
-
-# 稀疏及结构化的Attention正则化框架
+# 2017_Fusedmax与Oscarmax_稀疏及结构化的Attention正则化框架
      
     2017_NIPS
     康奈尔大学, Vlad Niculae
@@ -263,11 +258,7 @@ $$
 > 论文的附录中还有大量实验结果，可以加深理解。
 
 来看一个 法语-英语翻译 Attention实验效果：
-![](https://pic2.zhimg.com/80/v2-f1c62fb2bef70e0262e11bfea7e6fb1d_hd.jpg)
-
-<img src="http://127.0.0.1:4000/img/pictures/fusedmax_oscarmax.png", width="1000">
-
-<img src="img/pictures/fusedmax_oscarmax.png", width="1000">
+![](https://github.com/luonango/luonango.github.io/raw/master/img//pictures/fusedmax_oscarmax.png)
 
 ---
 ## 5. TV与OSCAR的简单介绍：
@@ -284,7 +275,7 @@ TV(Total variation, 全变分)，也称为全变差，在图像复原中常用�
 
 |TV图解||
 |-|-|
-|当绿点遍历整个函数时，<p>绿点在y-轴上的投影红点走过的**路程**<p>就是该函数的总变分TV|![Total_variation](./pictures/Total_variation.gif)|
+|当绿点遍历整个函数时，<p>绿点在y-轴上的投影红点走过的**路程**<p>就是该函数的总变分TV|![Total_variation](https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Total_variation.gif)|
 
 因为细节或假细节（如噪音）区域较多的信号则TV值较大，那假如我们得到观察信号$x_i$, 希望对$x_i$进行去噪，就可以通过引入最小化$x_i$的全变分，得到去噪且保持了图像边缘的图像。即对原复原函数引入TV正则项，如一维去噪：
 $$
@@ -310,7 +301,7 @@ $$
 $$
 将上述方法应用在1维数据得到结果如下(图来自[The Generalized Lasso，Lecture 22](http://euler.stat.yale.edu/~tba3/stat612/lectures/lec22/lecture22.pdf)）：
 
-<img src="img/pictures/Fuse_lasso_1.png", width="500">
+![](https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Fuse_lasso_1.png)
 
 可以看出，数据最终呈现连续区域的聚集，即空间聚集（spatial clutering)，也就得到了稀疏形式的数据表示。 得到更平滑的数据表示，也能防止过拟合的数据表示。
 
@@ -342,7 +333,7 @@ $$
 
 |Elastic Net|OSCAR|
 |:-:|:-:|
-|<img src="img/pictures/oscar_elasticnet.png",width="500">|<img src="img/pictures/oscar_oscar.png",width="500">|
+|![](https://github.com/luonango/luonango.github.io/raw/master/img/pictures/oscar_elasticnet.png)|![](https://github.com/luonango/luonango.github.io/raw/master/img/pictures/oscar_oscar.png)|
 |$L_1$和$L_2$范式组合|$L_1$和$L_{\infty}$范式组合|
 
 看上图也就能理解“八边形收缩”这名称了. 该OSCAR基于惩罚最小二乘法，将一些系数收缩至恰好为零。同时这惩罚函数能产生值相同的系数，鼓励相关的预测因子(即指$x_i$)它们对最终结果有着相同的影响，从而形成单个系数表示预测因子群集。
