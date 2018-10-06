@@ -4,7 +4,7 @@ title:      RA-CNN 多尺度循环Attention
 subtitle:   细粒度图像识别：区域检测与特征提取协同合作
 date:       2018-09-28
 author:     BY
-header-img: img/post-bg-ios9-web.jpg
+header-img: img/tag-bg-o.jpg
 catalog: true
 tags:
     - 细粒度图像识别
@@ -145,3 +145,10 @@ $$
 让我惊艳的是论文采用Attention mask来近似裁剪操作，从而让反向传播顺利进行。并且$L_{rank}$(inter-scale pairwise ranking loss​,尺度间排序损失)的设计也很巧妙合理。这些解决问题思路方法都值得好好思考思考。
 
 同时论文提到的导数图（导数范数的负平方与人类感知的优化方向一致），这个我还是第一次听说，有时间得好好理解学习下。
+
+
+---
+
+若出现格式问题，可移步查看知乎同款文章：[RA-CNN_多尺度循环Attention_区域检测与特征提取协同合作](https://zhuanlan.zhihu.com/p/45653729)
+
+---

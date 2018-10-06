@@ -2,9 +2,9 @@
 layout:     post
 title:      用SE结构的Multi-Attention Multi-Class约束
 subtitle:   弱监督细粒度图像识别：多个SE结构获得部位的Attention
-date:       2018-09-28
+date:       2018-09-25
 author:     BY
-header-img: img/post-bg-ios9-web.jpg
+header-img: img/tag-bg-o.jpg
 catalog: true
 tags:
     - 细粒度图像识别
@@ -21,7 +21,8 @@ tags:
     还提供了 Dogs-in-the-Wild 数据集。
 
 论文:《[Multi-Attention Multi-Class Constraint for Fine-grained Image Recognition](https://arxiv.org/pdf/1806.05372v1.pdf)》
- 
+
+
 ---
 
 # 引言
@@ -137,3 +138,10 @@ L^{mamc}=L^{softmax} + \lambda \big(L^{np}_{sasc} + L^{np}_{sadc}+ L^{np}_{dasc}
 - [N-pair Loss论文：2016_nips_Improved Deep Metric Learning with Multi-class N-pair Loss Objective](http://www.nec-labs.com/uploads/images/Department-Images/MediaAnalytics/papers/nips16_npairmetriclearning.pdf)
 - [理解公式的参考链接：从最优化的角度看待Softmax损失函数](https://zhuanlan.zhihu.com/p/45014864)
 - [理解公式的参看链接：LogSumExp](https://en.wikipedia.org/wiki/LogSumExp)
+
+
+---
+
+若出现格式问题，可移步查看知乎同款文章：[Multi-Attention Multi-Class 约束的弱监督细粒度图像识别](https://zhuanlan.zhihu.com/p/45345038)
+
+---

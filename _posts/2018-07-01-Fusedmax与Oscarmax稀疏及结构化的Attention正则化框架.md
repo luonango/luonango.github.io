@@ -4,7 +4,7 @@ title:      Fusedmax与Oscarmax
 subtitle:   稀疏及结构化的Attention正则化框架
 date:       2018-07-01
 author:     BY
-header-img: img/post-bg-ios9-web.jpg
+header-img: img/tag-bg-o.jpg
 catalog: true
 tags:
     - Attention
@@ -361,6 +361,6 @@ Attention的输出值进行稀疏，这个原因和理由容易理解（即稀�
 
 ---
 
-[若出现格式问题，可移步查看知乎同款文章：Fusedmax与Oscarmax：稀疏及结构化的Attention正则化框架](https://zhuanlan.zhihu.com/p/38897903)
+若出现格式问题，可移步查看知乎同款文章：[Fusedmax与Oscarmax：稀疏及结构化的Attention正则化框架](https://zhuanlan.zhihu.com/p/38897903)
 
 ---

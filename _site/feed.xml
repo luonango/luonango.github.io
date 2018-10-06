@@ -5,8 +5,8 @@
     <description>Every failure is leading towards success.</description>
     <link>http://luonango.github.io/</link>
     <atom:link href="http://luonango.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Sat, 06 Oct 2018 14:03:04 +0800</pubDate>
-    <lastBuildDate>Sat, 06 Oct 2018 14:03:04 +0800</lastBuildDate>
+    <pubDate>Sat, 06 Oct 2018 14:26:46 +0800</pubDate>
+    <lastBuildDate>Sat, 06 Oct 2018 14:26:46 +0800</lastBuildDate>
     <generator>Jekyll v3.0.1</generator>
     
       <item>
@@ -146,6 +146,12 @@ t_{x(br)}=t_x + t_l,\quad t_{y(br)}=t_y + t_l&lt;/script&gt;&lt;/p&gt;
 &lt;p&gt;让我惊艳的是论文采用Attention mask来近似裁剪操作，从而让反向传播顺利进行。并且$L_{rank}$(inter-scale pairwise ranking loss​,尺度间排序损失)的设计也很巧妙合理。这些解决问题思路方法都值得好好思考思考。&lt;/p&gt;
 
 &lt;p&gt;同时论文提到的导数图（导数范数的负平方与人类感知的优化方向一致），这个我还是第一次听说，有时间得好好理解学习下。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;若出现格式问题，可移步查看知乎同款文章：&lt;a href=&quot;https://zhuanlan.zhihu.com/p/45653729&quot;&gt;RA-CNN_多尺度循环Attention_区域检测与特征提取协同合作&lt;/a&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
 </description>
         <pubDate>Fri, 28 Sep 2018 00:00:00 +0800</pubDate>
         <link>http://luonango.github.io/2018/09/28/RA-CNN_%E5%A4%9A%E5%B0%BA%E5%BA%A6%E5%BE%AA%E7%8E%AFAttention_%E5%8C%BA%E5%9F%9F%E6%A3%80%E6%B5%8B%E4%B8%8E%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%8D%8F%E5%90%8C%E5%90%88%E4%BD%9C_%E7%AB%AF%E5%88%B0%E7%AB%AF%E8%AE%AD%E7%BB%83%E5%BC%B1%E7%9B%91%E7%9D%A3%E7%BB%86%E7%B2%92%E5%BA%A6%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/</link>
@@ -305,10 +311,16 @@ L^{mamc}=L^{softmax} + \lambda \big(L^{np}_{sasc} + L^{np}_{sadc}+ L^{np}_{dasc}
   &lt;li&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/45014864&quot;&gt;理解公式的参考链接：从最优化的角度看待Softmax损失函数&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/LogSumExp&quot;&gt;理解公式的参看链接：LogSumExp&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;若出现格式问题，可移步查看知乎同款文章：&lt;a href=&quot;https://zhuanlan.zhihu.com/p/45345038&quot;&gt;Multi-Attention Multi-Class 约束的弱监督细粒度图像识别&lt;/a&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
 </description>
-        <pubDate>Fri, 28 Sep 2018 00:00:00 +0800</pubDate>
-        <link>http://luonango.github.io/2018/09/28/Multi-Attention-Multi-Class-%E7%BA%A6%E6%9D%9F%E7%9A%84%E5%BC%B1%E7%9B%91%E7%9D%A3%E7%BB%86%E7%B2%92%E5%BA%A6%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/</link>
-        <guid isPermaLink="true">http://luonango.github.io/2018/09/28/Multi-Attention-Multi-Class-%E7%BA%A6%E6%9D%9F%E7%9A%84%E5%BC%B1%E7%9B%91%E7%9D%A3%E7%BB%86%E7%B2%92%E5%BA%A6%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/</guid>
+        <pubDate>Tue, 25 Sep 2018 00:00:00 +0800</pubDate>
+        <link>http://luonango.github.io/2018/09/25/Multi-Attention-Multi-Class-%E7%BA%A6%E6%9D%9F%E7%9A%84%E5%BC%B1%E7%9B%91%E7%9D%A3%E7%BB%86%E7%B2%92%E5%BA%A6%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/</link>
+        <guid isPermaLink="true">http://luonango.github.io/2018/09/25/Multi-Attention-Multi-Class-%E7%BA%A6%E6%9D%9F%E7%9A%84%E5%BC%B1%E7%9B%91%E7%9D%A3%E7%BB%86%E7%B2%92%E5%BA%A6%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/</guid>
         
         <category>细粒度图像识别</category>
         
@@ -317,6 +329,137 @@ L^{mamc}=L^{softmax} + \lambda \big(L^{np}_{sasc} + L^{np}_{sadc}+ L^{np}_{dasc}
         <category>SE结构</category>
         
         <category>弱监督信息</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>促使残差零响应，并裁剪Resnet的block</title>
+        <description>&lt;h1 id=&quot;resnetblock&quot;&gt;促使残差零响应，并裁剪Resnet的block&lt;/h1&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2018年,  Xin Yu. Utah&amp;amp;NVIDIA
+让ResV2的残差倾向0响应，从而学习严格的IdentityMapping
+剪去冗余零响应残差，让预测网络参数量少且精度不变
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;论文:《&lt;a href=&quot;https://arxiv.org/abs/1804.01661v3&quot;&gt;Learning Strict Identity Mappings in Deep Residual Networks&lt;/a&gt;》&lt;/p&gt;
+
+&lt;p&gt;基于pre-act Resnet，文章中提出的 $\epsilon-ResNet$能自动丢弃产生的响应小于阈值的残差块， 让网络性能略有下降或没有损失。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h1 id=&quot;section&quot;&gt;引言&lt;/h1&gt;
+
+&lt;p&gt;Resnet论文中提到 &lt;em&gt;“我们推测，优化带残差的网络比以前的网络起来更容易。在极端情况下，如果身份映射是最优的，那么将残差被推到零，这比通过一堆非线性层去拟合身份映射更容易”&lt;/em&gt;。&lt;/p&gt;
+
+&lt;p&gt;然而实际情况中，深网络并不能完美地让一些残差块的输出接近0，该论文提出促进零残差的方法，即让网络学习严格意义上的身份映射关系。&lt;/p&gt;
+
+&lt;p&gt;为了测试深度对残差网络的影响，文中设计从100-300层的残差网络，测试它们在cifar10上的精度。  实验发现随着深度，精度会呈微弱上升的趋势，但波动很大。因此想： 对于训练N层的残差网络，能否找到一个层数远低于N的子网络，让其性能相当？&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h1 id=&quot;section-1&quot;&gt;本文方法&lt;/h1&gt;
+
+&lt;p&gt;对于Resnet中，映射函数$H(x)=x+F(x)$.  于是本文作者修改为$H(x)=x+S\big(F(x)\big)$. 其中若$F(x)$ 小于阈值$\boldsymbol{\epsilon}$, 则$S\big(F(x)\big)=\boldsymbol{0}$.如果$F(x)$的响应值都不小，那么$S\big(F(x)\big)=F(x)$ . $S(\cdot)$为sparsity-promoting function.&lt;/p&gt;
+
+&lt;p&gt;如果某残差块使用提出的变量产生0响应时，交叉熵项与L2组成的损失函数将把那么它的filter权值推到0。因此在预测时，就可以将这些残差块给删去。&lt;/p&gt;
+
+&lt;p&gt;看起来整体思想简单合理，我们拆分得三个子问题：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;1 如何让$F(x_i)$小于阈值$\boldsymbol{\epsilon_i}$时输出0响应值？&lt;/li&gt;
+  &lt;li&gt;2 如何让 对应的残差块参数更新推向0？&lt;/li&gt;
+  &lt;li&gt;3 预测时如何删去残差块？（这个其实不算问题了，手动删都可以实现了）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;fxiboldsymbolepsiloni0&quot;&gt;问题1：如何让$F(x_i)$小于阈值$\boldsymbol{\epsilon_i}$时输出0响应值&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/4_ReLU_to_zero_or_one.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
+文中采用4个ReLU结构，解决了这个问题（看图）。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;(a,b)表示: $a\cdot F(x_l) + b$ . 参考自论文《Highway Networks》提出的方法。&lt;/li&gt;
+  &lt;li&gt;对于$F(x_l)&amp;gt;\epsilon$ 或者 $F(x_l)&amp;lt; - \epsilon$ , $S(F(x_l))= F(x_l)$：&lt;/li&gt;
+  &lt;li&gt;对于$\mid F(x_l)\mid &amp;lt; \epsilon$ 则 $S(F(x_l))= 0$.&lt;/li&gt;
+  &lt;li&gt;$\epsilon$是阈值。$L$是个极大的正数。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;建议模拟下，这四个ReLU的设计还是挺有意思的.&lt;/p&gt;
+
+  &lt;p&gt;但笔者觉得还是有点问题，如果$F(x_l)&amp;gt;\epsilon, and \; F(x_l) \rightarrow \epsilon$时，在第三个ReLU中，如何保证$L\cdot\big(F(x_l)- \epsilon\big) + 1 &amp;lt;0 $ ? 这样到最后到第四个ReLU的输出，不能保证输出为1。&lt;/p&gt;
+
+  &lt;p&gt;当然这也是当$F(x_l)= \epsilon + \sigma$ 且$\sigma &amp;lt; \frac{1}{L}$ 时才会出现问题。&lt;br /&gt;
+不过这已经满足这个结构的需求。&lt;/p&gt;
+
+  &lt;p&gt;其实如果采用Mxnet.gluon框架，用代码:&lt;/p&gt;
+
+  &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;S = (F &amp;gt; epsilon) * F
+&lt;/code&gt;&lt;/pre&gt;
+  &lt;/div&gt;
+
+  &lt;p&gt;就可以实现这个结构功能。 但得到的$S$是ndarray格式，这不是符号流的代码。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;section-2&quot;&gt;问题2：如何让 对应的残差块参数更新推向0 ？&lt;/h3&gt;
+
+&lt;p&gt;当$F(x_l)$特别小时，稀疏促进函数$S$ 的输出为0. 所以这些参数从交叉熵损失函数获得的梯度为0。&lt;/p&gt;
+
+&lt;p&gt;但损失函数中还有正则项，正则项会为这些参数提供梯度，从而让这些参数越来越小（推向0）。&lt;/p&gt;
+
+&lt;p&gt;残差块中某层的权重直方图如下所示，当残差块被认定可裁剪时，它的参数被迅速收敛到0：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/weight_collapse.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;这样所有问题就解决了。&lt;/p&gt;
+
+&lt;p&gt;论文还添加了side-supervision，即在损失函数上，除了原先的交叉熵、L2正则项外，还增加了side-loss：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;假设还存在N个残差块，那么用N/2 个残差块输出来计算side-loss：
+    &lt;ul&gt;
+      &lt;li&gt;对侧面的输出后添加全连接层(最后一层输出维度是类别数)、Softmax、交叉熵。&lt;/li&gt;
+      &lt;li&gt;计算损失后BP回去更新前N/2层的参数&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;在训练期间，缩短前半层的反向传播路径。&lt;/li&gt;
+  &lt;li&gt;在总的损失函数中，side-loss的系数设置为0.1。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;感觉和GoogleNet的做法差不多，但是GoogleNet是为了更好优化网络(梯度消失/爆炸问题)，而此处是想让后N/2个残差块倾向恒等映射（这样就可以删减掉了）。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;
+
+&lt;h1 id=&quot;section-3&quot;&gt;总结&lt;/h1&gt;
+
+&lt;p&gt;$\epsilon-Resnet$ 是标准残差网络的一种变体，可以端到端地自动裁剪无效的冗余残差层。且$\epsilon-Resnet$ 让模型尺寸显著减少，同时在Cifar10/100、SVHN上保持良好精度。&lt;/p&gt;
+
+&lt;p&gt;这种简单有效的模型压缩方法还是挺吸引人的，相比其他的采用强化学习、L1正则等等方法，本文方法实现起来简单许多。&lt;/p&gt;
+
+&lt;p&gt;文中提到与其特别相似的论文:&lt;a href=&quot;https://arxiv.org/abs/1707.01213&quot;&gt;Data-driven sparse structure selection for deep neural networks&lt;/a&gt;. 类似的还有BlockDrop等.&lt;/p&gt;
+
+&lt;p&gt;且还有往其他层次思考：ChannelPruning，如2018_ICLR的《&lt;a href=&quot;https://arxiv.org/abs/1802.00124&quot;&gt;Rethinking the smaller-norm-less-informative assumption in channel pruning of convolution layers&lt;/a&gt;》&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;若出现格式问题，可移步查看知乎同款文章：&lt;a href=&quot;https://zhuanlan.zhihu.com/p/42385039&quot;&gt;促使残差零响应，并裁剪Resnet的block&lt;/a&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+</description>
+        <pubDate>Sat, 01 Sep 2018 00:00:00 +0800</pubDate>
+        <link>http://luonango.github.io/2018/09/01/%E4%BF%83%E4%BD%BF%E6%AE%8B%E5%B7%AE%E9%9B%B6%E5%93%8D%E5%BA%94%E5%B9%B6%E8%A3%81%E5%89%AAResnet%E7%9A%84block/</link>
+        <guid isPermaLink="true">http://luonango.github.io/2018/09/01/%E4%BF%83%E4%BD%BF%E6%AE%8B%E5%B7%AE%E9%9B%B6%E5%93%8D%E5%BA%94%E5%B9%B6%E8%A3%81%E5%89%AAResnet%E7%9A%84block/</guid>
+        
+        <category>模型压缩</category>
+        
+        <category>正则化</category>
+        
+        <category>稀疏</category>
+        
+        <category>修剪block</category>
         
         
       </item>
@@ -543,6 +686,12 @@ MAC =&amp; hw(c_1+c_2) + \frac{c_1c_2}{g}\\
 
 &lt;p&gt;论文还提到了特征重用(Feature reuse)的观点，这也是Densenet的关键。 感觉很多网络，用上了特征重用的方法（Densenet类型、Resnet类型、残差金字塔类型等等），效果就会变得不错。之后需要多了解这方面的论文和方法。&lt;/p&gt;
 
+&lt;hr /&gt;
+
+&lt;p&gt;若出现格式问题，可移步查看知乎同款文章：&lt;a href=&quot;https://zhuanlan.zhihu.com/p/42288448&quot;&gt;ShufflenetV2_高效网络的4条实用准则&lt;/a&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
 </description>
         <pubDate>Sat, 25 Aug 2018 00:00:00 +0800</pubDate>
         <link>http://luonango.github.io/2018/08/25/ShufflenetV2_%E9%AB%98%E6%95%88%E7%BD%91%E7%BB%9C%E7%9A%84%E8%AE%BE%E8%AE%A1%E6%8C%87%E5%8D%97/</link>
@@ -553,130 +702,6 @@ MAC =&amp; hw(c_1+c_2) + \frac{c_1c_2}{g}\\
         <category>网络设计</category>
         
         <category>组卷积</category>
-        
-        
-      </item>
-    
-      <item>
-        <title>促使残差零响应，并裁剪Resnet的block</title>
-        <description>&lt;h1 id=&quot;resnetblock&quot;&gt;促使残差零响应，并裁剪Resnet的block&lt;/h1&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2018年,  Xin Yu. Utah&amp;amp;NVIDIA
-让ResV2的残差倾向0响应，从而学习严格的IdentityMapping
-剪去冗余零响应残差，让预测网络参数量少且精度不变
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;论文:《&lt;a href=&quot;https://arxiv.org/abs/1804.01661v3&quot;&gt;Learning Strict Identity Mappings in Deep Residual Networks&lt;/a&gt;》&lt;/p&gt;
-
-&lt;p&gt;基于pre-act Resnet，文章中提出的 $\epsilon-ResNet$能自动丢弃产生的响应小于阈值的残差块， 让网络性能略有下降或没有损失。&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h1 id=&quot;section&quot;&gt;引言&lt;/h1&gt;
-
-&lt;p&gt;Resnet论文中提到 &lt;em&gt;“我们推测，优化带残差的网络比以前的网络起来更容易。在极端情况下，如果身份映射是最优的，那么将残差被推到零，这比通过一堆非线性层去拟合身份映射更容易”&lt;/em&gt;。&lt;/p&gt;
-
-&lt;p&gt;然而实际情况中，深网络并不能完美地让一些残差块的输出接近0，该论文提出促进零残差的方法，即让网络学习严格意义上的身份映射关系。&lt;/p&gt;
-
-&lt;p&gt;为了测试深度对残差网络的影响，文中设计从100-300层的残差网络，测试它们在cifar10上的精度。  实验发现随着深度，精度会呈微弱上升的趋势，但波动很大。因此想： 对于训练N层的残差网络，能否找到一个层数远低于N的子网络，让其性能相当？&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h1 id=&quot;section-1&quot;&gt;本文方法&lt;/h1&gt;
-
-&lt;p&gt;对于Resnet中，映射函数$H(x)=x+F(x)$.  于是本文作者修改为$H(x)=x+S\big(F(x)\big)$. 其中若$F(x)$ 小于阈值$\boldsymbol{\epsilon}$, 则$S\big(F(x)\big)=\boldsymbol{0}$.如果$F(x)$的响应值都不小，那么$S\big(F(x)\big)=F(x)$ . $S(\cdot)$为sparsity-promoting function.&lt;/p&gt;
-
-&lt;p&gt;如果某残差块使用提出的变量产生0响应时，交叉熵项与L2组成的损失函数将把那么它的filter权值推到0。因此在预测时，就可以将这些残差块给删去。&lt;/p&gt;
-
-&lt;p&gt;看起来整体思想简单合理，我们拆分得三个子问题：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;1 如何让$F(x_i)$小于阈值$\boldsymbol{\epsilon_i}$时输出0响应值？&lt;/li&gt;
-  &lt;li&gt;2 如何让 对应的残差块参数更新推向0？&lt;/li&gt;
-  &lt;li&gt;3 预测时如何删去残差块？（这个其实不算问题了，手动删都可以实现了）&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;fxiboldsymbolepsiloni0&quot;&gt;问题1：如何让$F(x_i)$小于阈值$\boldsymbol{\epsilon_i}$时输出0响应值&lt;/h3&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/4_ReLU_to_zero_or_one.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
-文中采用4个ReLU结构，解决了这个问题（看图）。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;(a,b)表示: $a\cdot F(x_l) + b$ . 参考自论文《Highway Networks》提出的方法。&lt;/li&gt;
-  &lt;li&gt;对于$F(x_l)&amp;gt;\epsilon$ 或者 $F(x_l)&amp;lt; - \epsilon$ , $S(F(x_l))= F(x_l)$：&lt;/li&gt;
-  &lt;li&gt;对于$\mid F(x_l)\mid &amp;lt; \epsilon$ 则 $S(F(x_l))= 0$.&lt;/li&gt;
-  &lt;li&gt;$\epsilon$是阈值。$L$是个极大的正数。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;建议模拟下，这四个ReLU的设计还是挺有意思的.&lt;/p&gt;
-
-  &lt;p&gt;但笔者觉得还是有点问题，如果$F(x_l)&amp;gt;\epsilon, and \; F(x_l) \rightarrow \epsilon$时，在第三个ReLU中，如何保证$L\cdot\big(F(x_l)- \epsilon\big) + 1 &amp;lt;0 $ ? 这样到最后到第四个ReLU的输出，不能保证输出为1。&lt;/p&gt;
-
-  &lt;p&gt;当然这也是当$F(x_l)= \epsilon + \sigma$ 且$\sigma &amp;lt; \frac{1}{L}$ 时才会出现问题。&lt;br /&gt;
-不过这已经满足这个结构的需求。&lt;/p&gt;
-
-  &lt;p&gt;其实如果采用Mxnet.gluon框架，用代码:&lt;/p&gt;
-
-  &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;S = (F &amp;gt; epsilon) * F
-&lt;/code&gt;&lt;/pre&gt;
-  &lt;/div&gt;
-
-  &lt;p&gt;就可以实现这个结构功能。 但得到的$S$是ndarray格式，这不是符号流的代码。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h3 id=&quot;section-2&quot;&gt;问题2：如何让 对应的残差块参数更新推向0 ？&lt;/h3&gt;
-
-&lt;p&gt;当$F(x_l)$特别小时，稀疏促进函数$S$ 的输出为0. 所以这些参数从交叉熵损失函数获得的梯度为0。&lt;/p&gt;
-
-&lt;p&gt;但损失函数中还有正则项，正则项会为这些参数提供梯度，从而让这些参数越来越小（推向0）。&lt;/p&gt;
-
-&lt;p&gt;残差块中某层的权重直方图如下所示，当残差块被认定可裁剪时，它的参数被迅速收敛到0：&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/weight_collapse.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;这样所有问题就解决了。&lt;/p&gt;
-
-&lt;p&gt;论文还添加了side-supervision，即在损失函数上，除了原先的交叉熵、L2正则项外，还增加了side-loss：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;假设还存在N个残差块，那么用N/2 个残差块输出来计算side-loss：
-    &lt;ul&gt;
-      &lt;li&gt;对侧面的输出后添加全连接层(最后一层输出维度是类别数)、Softmax、交叉熵。&lt;/li&gt;
-      &lt;li&gt;计算损失后BP回去更新前N/2层的参数&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;在训练期间，缩短前半层的反向传播路径。&lt;/li&gt;
-  &lt;li&gt;在总的损失函数中，side-loss的系数设置为0.1。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;感觉和GoogleNet的做法差不多，但是GoogleNet是为了更好优化网络(梯度消失/爆炸问题)，而此处是想让后N/2个残差块倾向恒等映射（这样就可以删减掉了）。&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;hr /&gt;
-
-&lt;h1 id=&quot;section-3&quot;&gt;总结&lt;/h1&gt;
-
-&lt;p&gt;$\epsilon-Resnet$ 是标准残差网络的一种变体，可以端到端地自动裁剪无效的冗余残差层。且$\epsilon-Resnet$ 让模型尺寸显著减少，同时在Cifar10/100、SVHN上保持良好精度。&lt;/p&gt;
-
-&lt;p&gt;这种简单有效的模型压缩方法还是挺吸引人的，相比其他的采用强化学习、L1正则等等方法，本文方法实现起来简单许多。&lt;/p&gt;
-
-&lt;p&gt;文中提到与其特别相似的论文:&lt;a href=&quot;https://arxiv.org/abs/1707.01213&quot;&gt;Data-driven sparse structure selection for deep neural networks&lt;/a&gt;. 类似的还有BlockDrop等.&lt;/p&gt;
-
-&lt;p&gt;且还有往其他层次思考：ChannelPruning，如2018_ICLR的《&lt;a href=&quot;https://arxiv.org/abs/1802.00124&quot;&gt;Rethinking the smaller-norm-less-informative assumption in channel pruning of convolution layers&lt;/a&gt;》&lt;/p&gt;
-</description>
-        <pubDate>Wed, 01 Aug 2018 00:00:00 +0800</pubDate>
-        <link>http://luonango.github.io/2018/08/01/%E4%BF%83%E4%BD%BF%E6%AE%8B%E5%B7%AE%E9%9B%B6%E5%93%8D%E5%BA%94%E5%B9%B6%E8%A3%81%E5%89%AAResnet%E7%9A%84block/</link>
-        <guid isPermaLink="true">http://luonango.github.io/2018/08/01/%E4%BF%83%E4%BD%BF%E6%AE%8B%E5%B7%AE%E9%9B%B6%E5%93%8D%E5%BA%94%E5%B9%B6%E8%A3%81%E5%89%AAResnet%E7%9A%84block/</guid>
-        
-        <category>模型压缩</category>
-        
-        <category>正则化</category>
-        
-        <category>稀疏</category>
-        
-        <category>修剪block</category>
         
         
       </item>
@@ -822,6 +847,7 @@ smooth_{L1} (x)=\left\{
 
 &lt;hr /&gt;
 
+&lt;p&gt;若出现格式问题，可移步查看知乎同款文章：&lt;a href=&quot;https://zhuanlan.zhihu.com/p/39761855&quot;&gt;模型压缩：利用BN放缩因子来修剪Channel&lt;/a&gt;&lt;/p&gt;
 </description>
         <pubDate>Wed, 01 Aug 2018 00:00:00 +0800</pubDate>
         <link>http://luonango.github.io/2018/08/01/%E6%A8%A1%E5%9E%8B%E5%8E%8B%E7%BC%A9_%E5%88%A9%E7%94%A8BN%E6%94%BE%E7%BC%A9%E5%9B%A0%E5%AD%90%E6%9D%A5%E4%BF%AE%E5%89%AAChannel/</link>
@@ -1200,7 +1226,7 @@ supervised clustering of predictors with OSCAR&lt;/a&gt;中的OSCAR惩罚函数�
 
 &lt;hr /&gt;
 
-&lt;p&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/38897903&quot;&gt;若出现格式问题，可移步查看知乎同款文章：Fusedmax与Oscarmax：稀疏及结构化的Attention正则化框架&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;若出现格式问题，可移步查看知乎同款文章：&lt;a href=&quot;https://zhuanlan.zhihu.com/p/38897903&quot;&gt;Fusedmax与Oscarmax：稀疏及结构化的Attention正则化框架&lt;/a&gt;&lt;/p&gt;
 
 &lt;hr /&gt;
 </description>
@@ -2885,14 +2911,9 @@ t是label，y是实际输出。
           &lt;li&gt;最小化Hinge loss&lt;/li&gt;
         &lt;/ul&gt;
       &lt;/li&gt;
-      &lt;li&gt;
-        &lt;figure class=&quot;half&quot;&gt;
-  &amp;lt;img src=&quot;pictures/Image_based_Static_Facial_Expression_Recognition_with_Multiple_Deep_Network_Learning_6.png&quot;, width=&quot;380&quot;&amp;gt;
-  &amp;lt;img src=&quot;pictures/Image_based_Static_Facial_Expression_Recognition_with_Multiple_Deep_Network_Learning_7.png&quot;, width=&quot;380&quot;&amp;gt;
-&lt;/figure&gt;
-      &lt;/li&gt;
+      &lt;li&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Image_based_Static_Facial_Expression_Recognition_with_Multiple_Deep_Network_Learning_6.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
+  &lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Image_based_Static_Facial_Expression_Recognition_with_Multiple_Deep_Network_Learning_7.png&quot; alt=&quot;&quot; /&gt;&lt;/li&gt;
     &lt;/ul&gt;
-    &lt;p&gt;&amp;lt;/figure&amp;gt;&lt;/p&gt;
   &lt;/li&gt;
 &lt;/ul&gt;
 
@@ -2903,13 +2924,11 @@ t是label，y是实际输出。
 &lt;ul&gt;
   &lt;li&gt;4个cnn模型VGG S,VGG M-2048,VGG M-4096和GoogleNet&lt;/li&gt;
   &lt;li&gt;5种不同特征作为CNN输入 （RGB, LBP，以及作者额外三种处理的LBP特征）&lt;/li&gt;
-  &lt;li&gt;进行了20次实验。实验中10个最好的model中只有一个是RGB作为输入的。&lt;/li&gt;
+  &lt;li&gt;进行了20次实验。实验中10个最好的model中只有一个是RGB作为输入的。&lt;br /&gt;
+&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Emotion_Recognition_in_the_Wild_via_Convolutional_Neural_Networks_and_Mapped_Binary_Patterns_1.png&amp;quot;&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
+由于LBP的差值不能反映两点间的差异，作者提出了mapping方法让其差能代表两点真实差距。&lt;br /&gt;
+将图像转换为LBP代码，使模型对照明亮度变化具有鲁棒性。&lt;/li&gt;
 &lt;/ul&gt;
-&lt;figure class=&quot;half&quot;&gt;
-    &amp;lt;img src=&quot;pictures/Emotion_Recognition_in_the_Wild_via_Convolutional_Neural_Networks_and_Mapped_Binary_Patterns_1.png&quot;, width=&quot;600&quot;&amp;gt; 
-&lt;/figure&gt;
-&lt;p&gt;由于LBP的差值不能反映两点间的差异，作者提出了mapping方法让其差能代表两点真实差距。&lt;br /&gt;
-将图像转换为LBP代码，使模型对照明亮度变化具有鲁棒性。&lt;/p&gt;
 
 &lt;hr /&gt;
 &lt;p&gt;#### 2015-不同CNN及组合+数据改进《Hierarchical Committee of Deep CNNs with Exponentially-Weighted Decision Fusion for Static Facial Expression Recognition》&lt;br /&gt;
@@ -2953,42 +2972,32 @@ EmotiW 2015的冠军，和《2015-Image based Static Facial Expression Recogniti
   &lt;li&gt;level1是两个cnn来预测bounding box（crop输出）。&lt;/li&gt;
   &lt;li&gt;level2是对定位的粗估计&lt;/li&gt;
   &lt;li&gt;level3是细定位（裁剪后的五官进行训练预测）&lt;/li&gt;
-  &lt;li&gt;level4是将level3中图片进行旋转再预测（这层的精度提高很小）。&lt;/li&gt;
+  &lt;li&gt;level4是将level3中图片进行旋转再预测（这层的精度提高很小）。&lt;br /&gt;
+&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Extensive_Facial_Landmark_Localization_with_Coarse-to-fine_Convolutional_Network_Cascade_1.png&quot; alt=&quot;&quot; /&gt;&lt;/li&gt;
 &lt;/ul&gt;
-&lt;figure class=&quot;half&quot;&gt;
-    &amp;lt;img src=&quot;pictures/Extensive_Facial_Landmark_Localization_with_Coarse-to-fine_Convolutional_Network_Cascade_1.png&quot;, width=&quot;700&quot;&amp;gt; 
-&lt;/figure&gt;
 
 &lt;hr /&gt;
 &lt;p&gt;#### 2016-两个Inception+ SDM提取特征点来截更小的人脸框《Going Deeper in Facial Expression Recognition using Deep Neural Networks》&lt;br /&gt;
-人脸特征点来获取更小的人脸框（提高4-10%）、两个Inception的CNN框架。&lt;/p&gt;
-&lt;figure class=&quot;half&quot;&gt;
-    &amp;lt;img src=&quot;pictures/Going_Deeper_in_Facial_Expression_Recognition_using_Deep_Neural_Networks_1.png&quot;, width=&quot;900&quot;&amp;gt; 
-&lt;/figure&gt;
+人脸特征点来获取更小的人脸框（提高4-10%）、两个Inception的CNN框架。&lt;br /&gt;
+&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Going_Deeper_in_Facial_Expression_Recognition_using_Deep_Neural_Networks_1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
 &lt;hr /&gt;
 &lt;p&gt;#### 2013-fer2013第一名71.2%：损失函数为L2-SVM的表情分类《Deep Learning using Linear Support Vector Machines》&lt;br /&gt;
 将损失函数Softmax改为L2-SVM，相比L1-SVM,它具有可微，并且对误分类有更大的惩罚。&lt;/p&gt;
 
-&lt;p&gt;SVM约束函数如右公式4。改写为无约束优化问题如公式5,即为L1-SVM的最初形式。公式6为L2-SVM的形式。&lt;/p&gt;
-&lt;figure class=&quot;half&quot;&gt;
-    &amp;lt;img src=&quot;pictures/Deep_Learning_using_Linear_Support_Vector_Machines_1.png&quot;, width=&quot;400&quot;&amp;gt;
+&lt;p&gt;SVM约束函数如右公式4。改写为无约束优化问题如公式5,即为L1-SVM的最初形式。公式6为L2-SVM的形式。&lt;br /&gt;
+&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Deep_Learning_using_Linear_Support_Vector_Machines_1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
-&lt;/figure&gt;
-&lt;figure class=&quot;half&quot;&gt;
-    &amp;lt;img src=&quot;pictures/Deep_Learning_using_Linear_Support_Vector_Machines_2.png&quot;, width=&quot;400&quot;&amp;gt;
-    &amp;lt;img src=&quot;pictures/Deep_Learning_using_Linear_Support_Vector_Machines_3.png&quot;, width=&quot;400&quot;&amp;gt;
-&lt;/figure&gt;
-&lt;p&gt;L2-svm通过  $arg_t max (w^Tx)t \quad (t_n \in \lbrace −1, +1\rbrace)$来判断x的类别。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Deep_Learning_using_Linear_Support_Vector_Machines_2.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
+&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Deep_Learning_using_Linear_Support_Vector_Machines_3.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
+L2-svm通过  $arg_t max (w^Tx)t \quad (t_n \in \lbrace −1, +1\rbrace)$来判断x的类别。&lt;/p&gt;
 
 &lt;p&gt;在反向传播需要对其求导。如公式10为L1-SVM的，它是不可微。而公式11是L2-SVM的且是可微的。&lt;br /&gt;
 且L2-SVM比L1-SVM效果好些。&lt;/p&gt;
 
 &lt;p&gt;Softmax和L2-SVM在FER2013中的效果如图:&lt;/p&gt;
 
-&lt;figure class=&quot;half&quot;&gt;
-    &amp;lt;img src=&quot;pictures/Deep_Learning_using_Linear_Support_Vector_Machines_6.png&quot;, width=&quot;500&quot;&amp;gt; 
-&lt;/figure&gt;
+&lt;p&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Deep_Learning_using_Linear_Support_Vector_Machines_6.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
 &lt;hr /&gt;
 
@@ -2997,6 +3006,8 @@ EmotiW 2015的冠军，和《2015-Image based Static Facial Expression Recogniti
 &lt;p&gt;之后我转向图像分类网络的研究了= =&lt;/p&gt;
 
 &lt;hr /&gt;
+
+&lt;p&gt;若出现格式问题，可移步查看知乎同款文章：&lt;a href=&quot;https://zhuanlan.zhihu.com/p/31638581&quot;&gt;【论文笔记】：图像&amp;amp;&amp;amp;表情分类&amp;amp;&amp;amp;人脸识别&lt;/a&gt;&lt;/p&gt;
 </description>
         <pubDate>Wed, 01 Nov 2017 00:00:00 +0800</pubDate>
         <link>http://luonango.github.io/2017/11/01/%E8%A1%A8%E6%83%85%E8%AF%86%E5%88%AB_%E4%B8%80%E4%BA%9B%E6%95%B4%E7%90%86/</link>

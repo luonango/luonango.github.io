@@ -155,7 +155,7 @@
 
     <!-- Image to hack wechat -->
 <!-- <img src="/img/icon_wechat.png" width="0" height="0"> -->
-<!-- <img src="/img/post-bg-ios9-web.jpg" width="0" height="0"> -->
+<!-- <img src="/img/tag-bg-o.jpg" width="0" height="0"> -->
 <head>
     <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
     <script type="text/x-mathjax-config">
@@ -172,7 +172,7 @@
 <style type="text/css">
     header.intro-header{
         position: relative;
-        background-image: url('/img/post-bg-ios9-web.jpg')
+        background-image: url('/img/tag-bg-o.jpg')
     }
 
     
@@ -660,14 +660,9 @@ t是label，y是实际输出。
           <li>最小化Hinge loss</li>
         </ul>
       </li>
-      <li>
-        <figure class="half">
-  &lt;img src="pictures/Image_based_Static_Facial_Expression_Recognition_with_Multiple_Deep_Network_Learning_6.png", width="380"&gt;
-  &lt;img src="pictures/Image_based_Static_Facial_Expression_Recognition_with_Multiple_Deep_Network_Learning_7.png", width="380"&gt;
-</figure>
-      </li>
+      <li><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Image_based_Static_Facial_Expression_Recognition_with_Multiple_Deep_Network_Learning_6.png" alt="" /><br />
+  <img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Image_based_Static_Facial_Expression_Recognition_with_Multiple_Deep_Network_Learning_7.png" alt="" /></li>
     </ul>
-    <p>&lt;/figure&gt;</p>
   </li>
 </ul>
 
@@ -678,13 +673,11 @@ t是label，y是实际输出。
 <ul>
   <li>4个cnn模型VGG S,VGG M-2048,VGG M-4096和GoogleNet</li>
   <li>5种不同特征作为CNN输入 （RGB, LBP，以及作者额外三种处理的LBP特征）</li>
-  <li>进行了20次实验。实验中10个最好的model中只有一个是RGB作为输入的。</li>
+  <li>进行了20次实验。实验中10个最好的model中只有一个是RGB作为输入的。<br />
+<img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Emotion_Recognition_in_the_Wild_via_Convolutional_Neural_Networks_and_Mapped_Binary_Patterns_1.png&quot;" alt="" /><br />
+由于LBP的差值不能反映两点间的差异，作者提出了mapping方法让其差能代表两点真实差距。<br />
+将图像转换为LBP代码，使模型对照明亮度变化具有鲁棒性。</li>
 </ul>
-<figure class="half">
-    &lt;img src="pictures/Emotion_Recognition_in_the_Wild_via_Convolutional_Neural_Networks_and_Mapped_Binary_Patterns_1.png", width="600"&gt; 
-</figure>
-<p>由于LBP的差值不能反映两点间的差异，作者提出了mapping方法让其差能代表两点真实差距。<br />
-将图像转换为LBP代码，使模型对照明亮度变化具有鲁棒性。</p>
 
 <hr />
 <p>#### 2015-不同CNN及组合+数据改进《Hierarchical Committee of Deep CNNs with Exponentially-Weighted Decision Fusion for Static Facial Expression Recognition》<br />
@@ -728,42 +721,32 @@ EmotiW 2015的冠军，和《2015-Image based Static Facial Expression Recogniti
   <li>level1是两个cnn来预测bounding box（crop输出）。</li>
   <li>level2是对定位的粗估计</li>
   <li>level3是细定位（裁剪后的五官进行训练预测）</li>
-  <li>level4是将level3中图片进行旋转再预测（这层的精度提高很小）。</li>
+  <li>level4是将level3中图片进行旋转再预测（这层的精度提高很小）。<br />
+<img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Extensive_Facial_Landmark_Localization_with_Coarse-to-fine_Convolutional_Network_Cascade_1.png" alt="" /></li>
 </ul>
-<figure class="half">
-    &lt;img src="pictures/Extensive_Facial_Landmark_Localization_with_Coarse-to-fine_Convolutional_Network_Cascade_1.png", width="700"&gt; 
-</figure>
 
 <hr />
 <p>#### 2016-两个Inception+ SDM提取特征点来截更小的人脸框《Going Deeper in Facial Expression Recognition using Deep Neural Networks》<br />
-人脸特征点来获取更小的人脸框（提高4-10%）、两个Inception的CNN框架。</p>
-<figure class="half">
-    &lt;img src="pictures/Going_Deeper_in_Facial_Expression_Recognition_using_Deep_Neural_Networks_1.png", width="900"&gt; 
-</figure>
+人脸特征点来获取更小的人脸框（提高4-10%）、两个Inception的CNN框架。<br />
+<img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Going_Deeper_in_Facial_Expression_Recognition_using_Deep_Neural_Networks_1.png" alt="" /></p>
 
 <hr />
 <p>#### 2013-fer2013第一名71.2%：损失函数为L2-SVM的表情分类《Deep Learning using Linear Support Vector Machines》<br />
 将损失函数Softmax改为L2-SVM，相比L1-SVM,它具有可微，并且对误分类有更大的惩罚。</p>
 
-<p>SVM约束函数如右公式4。改写为无约束优化问题如公式5,即为L1-SVM的最初形式。公式6为L2-SVM的形式。</p>
-<figure class="half">
-    &lt;img src="pictures/Deep_Learning_using_Linear_Support_Vector_Machines_1.png", width="400"&gt;
+<p>SVM约束函数如右公式4。改写为无约束优化问题如公式5,即为L1-SVM的最初形式。公式6为L2-SVM的形式。<br />
+<img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Deep_Learning_using_Linear_Support_Vector_Machines_1.png" alt="" /></p>
 
-</figure>
-<figure class="half">
-    &lt;img src="pictures/Deep_Learning_using_Linear_Support_Vector_Machines_2.png", width="400"&gt;
-    &lt;img src="pictures/Deep_Learning_using_Linear_Support_Vector_Machines_3.png", width="400"&gt;
-</figure>
-<p>L2-svm通过  $arg_t max (w^Tx)t \quad (t_n \in \lbrace −1, +1\rbrace)$来判断x的类别。</p>
+<p><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Deep_Learning_using_Linear_Support_Vector_Machines_2.png" alt="" /><br />
+<img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Deep_Learning_using_Linear_Support_Vector_Machines_3.png" alt="" /><br />
+L2-svm通过  $arg_t max (w^Tx)t \quad (t_n \in \lbrace −1, +1\rbrace)$来判断x的类别。</p>
 
 <p>在反向传播需要对其求导。如公式10为L1-SVM的，它是不可微。而公式11是L2-SVM的且是可微的。<br />
 且L2-SVM比L1-SVM效果好些。</p>
 
 <p>Softmax和L2-SVM在FER2013中的效果如图:</p>
 
-<figure class="half">
-    &lt;img src="pictures/Deep_Learning_using_Linear_Support_Vector_Machines_6.png", width="500"&gt; 
-</figure>
+<p><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Deep_Learning_using_Linear_Support_Vector_Machines_6.png" alt="" /></p>
 
 <hr />
 
@@ -772,6 +755,8 @@ EmotiW 2015的冠军，和《2015-Image based Static Facial Expression Recogniti
 <p>之后我转向图像分类网络的研究了= =</p>
 
 <hr />
+
+<p>若出现格式问题，可移步查看知乎同款文章：<a href="https://zhuanlan.zhihu.com/p/31638581">【论文笔记】：图像&amp;&amp;表情分类&amp;&amp;人脸识别</a></p>
 
 
                 <hr style="visibility: hidden;">

@@ -4,7 +4,7 @@ title:      模型压缩：利用BN放缩因子来修剪Channel
 subtitle:   用L1将BN的放缩因子推向0
 date:       2018-08-01
 author:     BY
-header-img: img/post-bg-ios9-web.jpg
+header-img: img/tag-bg-o.jpg
 catalog: true
 tags:
     - 模型压缩
@@ -130,3 +130,4 @@ $$
 
 ---
 
+若出现格式问题，可移步查看知乎同款文章：[模型压缩：利用BN放缩因子来修剪Channel](https://zhuanlan.zhihu.com/p/39761855)

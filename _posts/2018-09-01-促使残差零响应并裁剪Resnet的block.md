@@ -2,9 +2,9 @@
 layout:     post
 title:      促使残差零响应，并裁剪Resnet的block
 subtitle:   设计Relu结构，让残差的输出倾向0
-date:       2018-08-01
+date:       2018-09-01
 author:     BY
-header-img: img/post-bg-ios9-web.jpg
+header-img: img/tag-bg-o.jpg
 catalog: true
 tags:
     - 模型压缩
@@ -111,3 +111,10 @@ $\epsilon-Resnet$ 是标准残差网络的一种变体，可以端到端地自�
 文中提到与其特别相似的论文:[Data-driven sparse structure selection for deep neural networks](https://arxiv.org/abs/1707.01213). 类似的还有BlockDrop等.
 
 且还有往其他层次思考：ChannelPruning，如2018_ICLR的《[Rethinking the smaller-norm-less-informative assumption in channel pruning of convolution layers](https://arxiv.org/abs/1802.00124)》
+
+---
+
+若出现格式问题，可移步查看知乎同款文章：[促使残差零响应，并裁剪Resnet的block](https://zhuanlan.zhihu.com/p/42385039)
+
+---
+

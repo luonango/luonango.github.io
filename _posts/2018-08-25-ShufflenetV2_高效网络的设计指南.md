@@ -4,7 +4,7 @@ title:      ShufflenetV2_高效网络的设计指南
 subtitle:   几个设计网络的准则
 date:       2018-08-25
 author:     BY
-header-img: img/post-bg-ios9-web.jpg
+header-img: img/tag-bg-o.jpg
 catalog: true
 tags:
     - shufflenetv2
@@ -183,6 +183,10 @@ G1准则（相同通道宽度）从VGG、Resnet后大家几乎都默认遵循了
 
 论文还提到了特征重用(Feature reuse)的观点，这也是Densenet的关键。 感觉很多网络，用上了特征重用的方法（Densenet类型、Resnet类型、残差金字塔类型等等），效果就会变得不错。之后需要多了解这方面的论文和方法。 
 
+---
 
+若出现格式问题，可移步查看知乎同款文章：[ShufflenetV2_高效网络的4条实用准则](https://zhuanlan.zhihu.com/p/42288448)
+
+---
 
 

@@ -4,7 +4,7 @@ title:      CapsulesNet的解析
 subtitle:   原理及两篇论文的解析
 date:       2018-03-01
 author:     BY
-header-img: img/post-bg-ios9-web.jpg
+header-img: img/tag-bg-o.jpg
 catalog: true
 tags:
     - CNN
