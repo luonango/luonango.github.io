@@ -259,7 +259,7 @@ $$
 > 论文的附录中还有大量实验结果，可以加深理解。
 
 来看一个 法语-英语翻译 Attention实验效果：
-![](https://github.com/luonango/luonango.github.io/raw/master/img//pictures/fusedmax_oscarmax.png)
+![](https://github.com/luonango/luonango.github.io/raw/master/img/pictures/fusedmax_oscarmax.png)
 
 ---
 ## 5. TV与OSCAR的简单介绍：
