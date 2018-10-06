@@ -7,16 +7,18 @@ author:     BY
 header-img: img/post-bg-ios9-web.jpg
 catalog: true
 tags:
-    - iOS
-    - ReactiveCocoa
-    - 函数式编程
-    - 开源框架
+    - Attention
+    - 正则化
+    - 稀疏
+
 ---
 
 # 2017_Fusedmax与Oscarmax_稀疏及结构化的Attention正则化框架
      
     2017_NIPS
     康奈尔大学, Vlad Niculae
+
+
 
 论文提出**让Attention输出稀疏**且更关注**输入数据的片段或组**的正则化机制，它还能直接加入神经网络进行前向与反向传播。
 
@@ -356,5 +358,9 @@ Attention的输出值进行稀疏，这个原因和理由容易理解（即稀�
 由于我数学方面的功底不好，论文涉及的一些背后知识都是现查现学.
 
 欢迎讨论指错，轻喷就好 = =。
+
+---
+
+[若出现格式问题，可移步查看知乎同款文章：Fusedmax与Oscarmax：稀疏及结构化的Attention正则化框架](https://zhuanlan.zhihu.com/p/38897903)
 
 ---
