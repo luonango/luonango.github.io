@@ -213,328 +213,36 @@
 <hr>
 
 <div class="post-preview">
-    <a href="/2017/02/04/Objective-C-Runtime-%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8/">
+    <a href="/2018/02/01/CapsulesNet/">
         <h2 class="post-title">
-            Objective-C Runtime 基本使用
+            CapsulesNet的解析
         </h2>
         
-        <h3 class="post-subtitle">
-            Runtime 使用案例
-        </h3>
-        
         <div class="post-content-preview">
-            前言
+            CapsulesNet的解析
+
+前言：
+
+本文先简单介绍传统CNN的局限性及Hinton提出的Capsule性质，再详细解析Hinton团队近期发布的基于动态路由及EM路由的CapsuleNet论文。
+
+Hinton对CNN的思考
+
+Hinton认为卷积神经网络是不太正确的，它既不对应生物神经系统，也不对应认知神经科学，甚至连CNN本身的目标都是有误的。
+
+在生物神经系统上不成立
 
 
-  在上一篇文章《Objective-C Runtime详解》中我们探讨了Runtime的基本原理，这篇文章我们将总结一下Runtime的一些基本使用
-
-
-使用方法
-
-
-  查询方法
-  给分类添加属性
-  更换代码的实现方法
-  动态添加方法
-  字典转属性
-
-
-准备
-
-先创建两个类
-
-ClassA.h
-
-#import &lt;Foundation/Foundation.h&g...
+  反...
         </div>
     </a>
     <p class="post-meta">
-        Posted by BY on February 4, 2017
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2017/02/04/Objective-C-Runtime%E8%AF%A6%E8%A7%A3/">
-        <h2 class="post-title">
-            Objective-C Runtime 详解
-        </h2>
-        
-        <h3 class="post-subtitle">
-            Runtime 详解
-        </h3>
-        
-        <div class="post-content-preview">
-            前言
-
-  最近在学习Runtime的知识，恰巧发现了这篇博客《Objective-C Runtime》，在此基础上，进行了些许补充说明,如有错误或其他想法，欢迎提出交流。
-
-
-基础知识
-
-  引言
-  简介
-  与Runtime交互
-  RunTime术语
-  消息
-  动态方法解析
-  消息转发
-  健壮的实例变量
-  动态添加属性(Object-C Associated Objects...
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by BY on February 4, 2017
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2017/02/04/BYPhoneNumTF/">
-        <h2 class="post-title">
-            BYPhoneNumTF
-        </h2>
-        
-        <h3 class="post-subtitle">
-            一个电话号码格式的文本框
-        </h3>
-        
-        <div class="post-content-preview">
-            
-  BYPhoneNumTF 一个电话号码格式的文本框
-
-
-功能
-
-当在TextField输入数字时，会自动分隔为：137 9922 2299 或 137-9922-2299
-
-限制文本输入个数
-
-限制只能输入数字
-# 效果：
-
-
-
-实现方法
-
-要实现电话号码格式的输入看似简单，但是实现起来坑非常多，至于坑是什么只有各位动手写了才能体会~
-
-下面我们来实现该功能：
-
-首先要遵守协议&lt;...
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by BY on February 4, 2017
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2017/01/06/ReactiveCocoa-%E8%BF%9B%E9%98%B6/">
-        <h2 class="post-title">
-            ReactiveCocoa 进阶
-        </h2>
-        
-        <h3 class="post-subtitle">
-            函数式编程框架 ReactiveCocoa 进阶
-        </h3>
-        
-        <div class="post-content-preview">
-            
-    
-    
-
-
-前言
-
-
-  在上篇文章中介绍了ReactiveCocoa的基础知识,接下来我们来深入介绍ReactiveCocoa及其在MVVM中的用法。
-
-
-
-# 常见操作方法介绍
-
-操作须知
-
-所有的信号（RACSignal）都可以进行操作处理，因为所有操作方法都定义在RACStream.h中，因此只要继承RACStream就有了操作处理方法。
-#### 操作思想
-
-运用的是...
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by BY on January 6, 2017
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2016/12/26/ReactiveCocoa-%E5%9F%BA%E7%A1%80/">
-        <h2 class="post-title">
-            ReactiveCocoa 基础
-        </h2>
-        
-        <h3 class="post-subtitle">
-            函数式编程框架 ReactiveCocoa 基础入门
-        </h3>
-        
-        <div class="post-content-preview">
-            ReactiveCocoa基础
-
-  本文修改自最快让你上手ReactiveCocoa之基础篇
-
-  有关对 ReactiveCocoa 的看法可以看一下唐巧的这篇ReactiveCocoa 讨论会
-
-
-
-
-ReactiveCocoa简介
-
-
-
-ReactiveCocoa（简称为RAC）,是由Github开源的一个应用于iOS和OS开发的新框架,Cocoa是苹果整套框架的简称，因此很多苹果框...
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by BY on December 26, 2016
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2016/12/21/Objective-C-Category/">
-        <h2 class="post-title">
-            Objective-C：Category
-        </h2>
-        
-        <h3 class="post-subtitle">
-            深入解析 Category 的实现原理
-        </h3>
-        
-        <div class="post-content-preview">
-            
-  本文转载自美图点评技术团队的：深入理解Objective-C：Category，略有修改。
-
-
-前言
-
-无论一个类设计的多么完美，在未来的需求演进中，都有可能会碰到一些无法预测的情况。那怎么扩展已有的类呢？一般而言，继承和组合是不错的选择。但是在Objective-C 2.0中，又提供了category这个语言特性，可以动态地为已有类添加新行为。如今category已经遍布于Objec...
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by BY on December 21, 2016
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2016/12/13/%E5%AE%9A%E6%97%B6%E5%99%A8%E4%BD%A0%E7%9C%9F%E7%9A%84%E4%BC%9A%E4%BD%BF%E7%94%A8%E5%90%97/">
-        <h2 class="post-title">
-            定时器 你真的会使用吗？
-        </h2>
-        
-        <h3 class="post-subtitle">
-            iOS定时器详解
-        </h3>
-        
-        <div class="post-content-preview">
-            前言
-
-定时器的使用是软件开发基础技能，用于延时执行或重复执行某些方法。
-
-我相信大部分人接触iOS的定时器都是从这段代码开始的:
-
-[NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(action:) userInfo:nil repeats:YES]
-
-
-
-但是你真的会用吗？
-
-正文
-
-iO...
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by BY on December 13, 2016
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2016/12/07/%E5%BF%BD%E7%95%A5-Xcode8-%E4%B8%AD%E7%9A%84%E6%B3%A8%E9%87%8A%E8%AD%A6%E5%91%8A/">
-        <h2 class="post-title">
-            忽略 Xcode 8 中的注释警告
-        </h2>
-        
-        <h3 class="post-subtitle">
-            Bulid Settings -> Documentation Comments -> NO
-        </h3>
-        
-        <div class="post-content-preview">
-            原因
-
-从Xcode8.0开始，引入了文档注释警告，虽然是件好事，可是各种三方库爆出了一大堆警告：
-
-
-
-解决方法：
-
-Bulid Settings -&gt; Documentation Comments -&gt; NO
-
-
-
-
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by BY on December 7, 2016
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2016/12/01/%E5%BF%AB%E9%80%9F%E6%B7%BB%E5%8A%A0%E5%9C%86%E8%A7%92%E5%92%8C%E6%8F%8F%E8%BE%B9/">
-        <h2 class="post-title">
-            快速添加圆角和描边
-        </h2>
-        
-        <h3 class="post-subtitle">
-            iOS 为图片添加圆角和描边的几种方式
-        </h3>
-        
-        <div class="post-content-preview">
-            前言
-
-对于习惯使用Storyboard的人来说，设置圆角、描边是一件比较蛋疼的事，因为苹果没有在xcode的Interface Builder上直接提供修改控件的圆角，边框设置。
-
-我们来说说如何对某个控件进行圆角、描边处理：
-# 初级
-对于一个初学者来说，如果要进行某个控件的圆角、描边设置，就要从Storyboard关联出属性，然后再对属性进行代码处理。
-
-如下代码：
-
-self.myB...
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by BY on December 1, 2016
+        Posted by BY on February 1, 2018
     </p>
 </div>
 <hr>
 
 
 <!-- Pager -->
-
-<ul class="pager">
-    
-    
-    <li class="next">
-        <a href="/page2">Older Posts &rarr;</a>
-    </li>
-    
-</ul>
 
 
     		</div>
@@ -554,62 +262,26 @@ self.myB...
                     <div class="tags">
                         
                             
-                                <a href="/tags/#iOS" title="iOS" rel="15">
+                                <a href="/tags/#iOS" title="iOS" rel="2">
                                     iOS
                                 </a>
                             
                         
                             
-                        
-                            
-                                <a href="/tags/#开发技巧" title="开发技巧" rel="3">
-                                    开发技巧
-                                </a>
-                            
-                        
-                            
-                        
-                            
-                        
-                            
-                        
-                            
-                                <a href="/tags/#Obj-C" title="Obj-C" rel="3">
-                                    Obj-C
-                                </a>
-                            
-                        
-                            
-                        
-                            
-                        
-                            
-                        
-                            
-                        
-                            
-                                <a href="/tags/#ReactiveCocoa" title="ReactiveCocoa" rel="3">
+                                <a href="/tags/#ReactiveCocoa" title="ReactiveCocoa" rel="2">
                                     ReactiveCocoa
                                 </a>
                             
                         
                             
-                                <a href="/tags/#函数式编程" title="函数式编程" rel="3">
+                                <a href="/tags/#函数式编程" title="函数式编程" rel="2">
                                     函数式编程
                                 </a>
                             
                         
                             
-                                <a href="/tags/#开源框架" title="开源框架" rel="3">
+                                <a href="/tags/#开源框架" title="开源框架" rel="2">
                                     开源框架
-                                </a>
-                            
-                        
-                            
-                        
-                            
-                                <a href="/tags/#Runtime" title="Runtime" rel="2">
-                                    Runtime
                                 </a>
                             
                         
