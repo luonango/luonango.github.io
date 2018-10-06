@@ -10,7 +10,7 @@
     <meta name="keywords"  content="BY, BY Blog, Nango明楠的博客, luonango, Nango明楠, iOS, Apple, iPhone">
     <meta name="theme-color" content="#000000">
     
-    <title>卷积网络的特征通道 - Nango明楠的博客 | BY Blog</title>
+    <title>用SE结构的Multi-Attention Multi-Class约束 - Nango明楠的博客 | BY Blog</title>
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="/pwa/manifest.json">
@@ -22,7 +22,7 @@
     <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="http://luonango.github.io/2018/05/01/%E5%8D%B7%E7%A7%AF%E7%BD%91%E7%BB%9C%E7%9A%84%E7%89%B9%E5%BE%81%E9%80%9A%E9%81%93/">
+    <link rel="canonical" href="http://luonango.github.io/2018/09/28/Multi-Attention-Multi-Class-%E7%BA%A6%E6%9D%9F%E7%9A%84%E5%BC%B1%E7%9B%91%E7%9D%A3%E7%BB%86%E7%B2%92%E5%BA%A6%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -185,19 +185,21 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                        <a class="tag" href="/tags/#CNN" title="CNN">CNN</a>
+                        <a class="tag" href="/tags/#细粒度图像识别" title="细粒度图像识别">细粒度图像识别</a>
                         
-                        <a class="tag" href="/tags/#网络结构" title="网络结构">网络结构</a>
+                        <a class="tag" href="/tags/#Attention" title="Attention">Attention</a>
                         
-                        <a class="tag" href="/tags/#feature maps" title="feature maps">feature maps</a>
+                        <a class="tag" href="/tags/#SE结构" title="SE结构">SE结构</a>
+                        
+                        <a class="tag" href="/tags/#弱监督信息" title="弱监督信息">弱监督信息</a>
                         
                     </div>
-                    <h1>卷积网络的特征通道</h1>
+                    <h1>用SE结构的Multi-Attention Multi-Class约束</h1>
                     
                     
-                    <h2 class="subheading">论文技术分享：feature maps</h2>
+                    <h2 class="subheading">弱监督细粒度图像识别：多个SE结构获得部位的Attention</h2>
                     
-                    <span class="meta">Posted by BY on May 1, 2018</span>
+                    <span class="meta">Posted by BY on September 28, 2018</span>
                 </div>
             </div>
         </div>
@@ -215,290 +217,147 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-				<h1 id="section">卷积网络的特征通道</h1>
-<hr />
-<p>从实际的角度出发，由于深度神经网络受到大量矩阵运算的限制，往往需要海量存储及计算资源。削减神经网络中卷积单元的冗余是解决这个问题的重要研究之一，它可并分为空间（spatial）及通道（channel）两个方向。</p>
+				<h1 id="semulti-attentionnpairloss">用SE结构的Multi-Attention在同类或不同类上的进行约束_采用NpairLoss弱监督细粒度图像识别</h1>
+<div class="highlighter-rouge"><pre class="highlight"><code>2018_ECCV,  Ming Sun &amp; Baidu
+用多个SE结构获得部位的Attention，再用N-pair Loss 对这些Attention进行约束。
+使得不同SE结构生成不同的部位Attention，完成弱监督细粒度图像识别。
+还提供了 Dogs-in-the-Wild 数据集。
+</code></pre>
+</div>
 
-<p>先谈谈通道上的解决方法。</p>
-
-<hr />
-
-<h1 id="alexnet">从Alexnet说起：</h1>
-
-<table>
-  <thead>
-    <tr>
-      <th>Alexnet</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/AlexNet_1.png" alt="" /></td>
-    </tr>
-    <tr>
-      <td>单个GTX 580 GPU只有3GB内存,不能满足当时的参数规模</td>
-    </tr>
-    <tr>
-      <td>将网络分布在两个GPU上，每个GPU中放置一半核（或神经元），GPU间的通讯只在某些层进行</td>
-    </tr>
-    <tr>
-      <td>如第3层的核需要从第2层中所有核映射输入。然而，第4层的核只需要从第3层中位于同一GPU的那些核映射输入</td>
-    </tr>
-    <tr>
-      <td>即为双通道网络结构，减少了大量的连接参数消耗</td>
-    </tr>
-  </tbody>
-</table>
+<p>论文:《<a href="https://arxiv.org/pdf/1806.05372v1.pdf">Multi-Attention Multi-Class Constraint for Fine-grained Image Recognition</a>》</p>
 
 <hr />
-<p># Inception系列也是多通道</p>
 
-<table>
-  <thead>
-    <tr>
-      <th>Inception_v1</th>
-      <th>Inception_v2-v3</th>
-      <th>Xception</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Inception_v1_2.png" alt="" /></td>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Inception_v2_3.png" alt="" /></td>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Xception_1.png" alt="" /></td>
-    </tr>
-  </tbody>
-</table>
+<h1 id="section">引言</h1>
 
-<p>Xception中主要采用<strong>depthwise separable convolution</strong>技术（mobileNets中提出，深度学习模型加速网络的核心技术）。</p>
+<p>现有的基于Attention的细粒度图像识别方法大多都没有考虑 Object part的相关性。而且以往大多方法都用multi-stage 或者 multi-scale机制，导致效率不高切难以end-to-end训练。</p>
 
-<p>假设输入的是A个特征图，最终输出B个特征图。Xception的卷积就是将传统的卷积操作分成两步：</p>
+<p>此论文提出能调节不同输入图像的不同部位(object-part)的关系:</p>
 
 <ul>
-  <li>然后用A个1*1的卷积核正常卷积生成的A个特征图。求和，最后生成A个特征图</li>
-  <li>用B个3*3卷积核，一对一卷积B个特征图。不求和，直接拼生成B个特征图；</li>
+  <li>基于SE设计One-squeeze multi-excitation(OSME)方法去学习每张图的每个关注区域特征。</li>
+  <li>再用Multi-attention multi-class constraint(MAMC)方法让同类别图像具有类似的Attention，而不同类别的图像具有不一样的Attention。</li>
 </ul>
 
-<p>##　mobileNets与Xception使用depthwise的区别：</p>
+<p>此方法效率高且容易end-to-end训练。</p>
+
+<p>此外，论文还提供Dogs-in-the-Wild的综合狗种数据集。它按类别覆盖范围，数据量和注释质量超过了类似的现有数据集。</p>
+
+<h1 id="section-1">思路</h1>
+
+<p>强监督信息的细粒度图像分类的方法依赖于object part 标注，但标注这些信息开销很大，故弱监督信息的方法得到重视。但目前基于弱监督信息的细粒度图像分类的方法或多或少有着下面几个缺点：</p>
 
 <ul>
-  <li>mobileNets中与Xception中的执行顺序刚好相反。</li>
-  <li>在mobileNet中主要就是为了降低网络的复杂度。</li>
-  <li>在Xception中作者加宽了网络，使得参数数量和Inception v3差不多，然后在这前提下比较性能。Xception目的不在于模型压缩，而是提高性能。</li>
+  <li>额外步骤. 如增加额外的regions才能进行part localization 和 feature extraction，这导致计算量增大。</li>
+  <li>训练步骤复杂. 因为构建的结构复杂，需要多次交替或级联训练。</li>
+  <li>单独检测object part，而忽略它们的相关性 (这是最重要的)， 学习到的注意力模块可能只集中在相同的区域。假如好好利用“具有区分性的特征”，可能可以让注意力模块学习出多个不同的部位。</li>
 </ul>
 
-<hr />
+<p>文中提出细粒度图像分类的三个准则：</p>
 
-<h1 id="iccvigcinterleaved-group-convolution">2017_ICCV_微软的交错组卷积（IGC，Interleaved Group Convolution）</h1>
-
-<h2 id="icg">ICG模块</h2>
-
-<table>
-  <thead>
-    <tr>
-      <th>交错组卷积模块：含两个组卷积过程</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Interleaved_Group_Convolutions_for_Deep_Neural_Networks_1.png" alt="" /></td>
-    </tr>
-    <tr>
-      <td>第一次组卷积：不同组的卷积不存在交互，不同组的输出通道并不相关。</td>
-    </tr>
-    <tr>
-      <td>第二次组卷积：让不同组的通道相关联。每组的输入通道均来自第一组输出的不同的组的通道（交错组成）</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2 id="section-1">特点：</h2>
 <ul>
-  <li>从通道角度出发，解决了神经网络基本卷积单元中的冗余问题。</li>
-  <li>可以在无损性能的前提下，缩减模型、提升计算速度，有助于深度网络在<strong>移动端</strong>的部署.</li>
+  <li>检测的部位应该很好地散布在物体身上，并提取出多种不相关的features</li>
+  <li>提取出的每个part feature都应该能够区分出一些不同的类别</li>
+  <li>part extractors（部位检测器）应该能轻便使用。</li>
 </ul>
 
-<h2 id="section-2">极端和最优分配下的分析</h2>
+<p>然后论文就提出了满足这些准则的弱监督信息分类方案：</p>
 
 <ul>
-  <li>Xception 是特例：
+  <li>Attention用什么？ 用SENet的方案，设计one-squeeze multi-excitation module (OSME)来定位不同的部分。和现有的方法不同，现有的方法大多是裁剪出部位，再用额外的网络结构来前馈该特征。SEnet的输出可以看做soft-mask的作用。</li>
+  <li>如何让Attention学习出多个不同的部位？ 受到度量学习损失的启发（如TribleLoss），提出multi-attention multi-class constraint (MAMC) ，鼓励”same-calss和same-attention”的特征 和 “same-calss和different-attention”的特征 距离更接近。</li>
+  <li>现有的大多方法需要多个前馈过程或者多个交替训练步骤，而论文的方法是端到端的训练。</li>
+</ul>
+
+<h1 id="section-2">相关工作</h1>
+
+<p>在细粒度图像识别的任务中，由于类间差异是微妙的，需要特征的区分学习和对象部位定位。 一种直接的方法是手动在object parts上进行标注，并进行监督学习（强监督信息）。但是获得object part的标注开销巨大，基于弱监督信息的识别机制也就相应被提出。 如STN（空间变换网络）让人脸进行对齐（end2end方式）、如双线性模型( bilinear models)让特征提取和object part定位的两个模型协调合作。 但是论文方法不需要裁剪就可以直接提取object part的特征，切可以高效地拓展到多个object parts。</p>
+
+<p>深度量度学习是学习测量样本对之间的相似性。经典度量学习可认为是学习pairs of points间的 Mahalanobis distance。：</p>
+
+<ul>
+  <li>Siamese网络制定的深度度量学习是：最小化正对之间的距离，同时保持负对分开。</li>
+  <li>Triplet Loss 通过优化三个样本中的正对和一个负对的相对距离。虽然在细粒度产品搜索时很有效，但triplet loss 只考虑一个negative sample, 导致训练速度慢，并且易导致局部最小值。</li>
+  <li>N-pair Loss 考虑训练中的多个负样本，使用N元组，缓解了Triple Loss问题。</li>
+  <li>Angular Loss 增强了N-pair Loss。考虑角度关系作为相似性度量增加了三阶几何限制，捕获了triplet triangles的附加局部结构，收敛更好。</li>
+</ul>
+
+<h1 id="section-3">提出的方案</h1>
+
+<p>如下图，每个SE结构用于提取不同object-part的soft-mask（即注意的区域），即OSME模块是对每张图片提取P个特征向量（P个object-part的特征）。</p>
+
+<p>传入多张同类或不同类别的图片，最后得到的Attention传入MAMC中进行学习，让同类的Attention尽量相近，不同类的Attention尽量不一样。</p>
+
+<p><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/MAMC_overview_pig1.png" alt="" /></p>
+
+<p>如何将提取的Attention特征引导到正确的类标签？ 直接做法是softmax损失对这soft-mask（连续注意力）进行评估。但这方法无法调节Attention features 之间的相关性。 另一类方法是迭代地从粗略生成精细的Attention区域，但由于当前预测依赖于前一次预测，在训练过程中，初始误差会被迭代放大，需要强化学习或者仔细初始化才能较好解决这问题。</p>
+
+<p>而论文提出 multi-attention multi-class constraint (MAMC) 来探索更丰富的object-parts的相关性。</p>
+
+<p>假设现有训练图像${(x,y),…}$ 共 $K$ 张, 和N-pair Loss论文的做法一样，采样出 $N$ 对样本:$B={(x_i,x^+<em>i,y_i),…}$,其中$x_i$和$x^+_i$都属于$y_i$类，集合 $B$ 中共有 $N$ 类图片。 对于每对样本 $(x_i,x^+_i)$, 用OSME提取出的P个特征向量为: ${f^p_i,f^{p+}_i}^P</em>{p=1}$</p>
+
+<p>对于$y_i$类在第 $p$ 个Attention结构得到的特征向量$f^p_i$ 来说，其他的features可以分为四类：</p>
+
+<ul>
+  <li>same-attention same-class features: $S_{sasc}(f^p_i)={f^{p+}_i}$</li>
+  <li>same-attention different-class features: $S_{sadc}(f^p_i)={f^p_j, f^{p+}<em>j}</em>{j \neq i}$</li>
+  <li>different-attention same-class features: $S_{dasc}(f^p_i)={f^q_i, f^{q+}<em>i}</em>{p \neq q}$</li>
+  <li>different-attention different-class features: $S_{dadc}(f^p_i)={f^q_j, f^{q+}<em>j}</em>{j\neq i , p \neq q}$</li>
+</ul>
+
+<p>那么下面给出那些是需要和$f^p_i$相近的，那些是需要远离$f^p_i$的集合定义，即对于$f^p_i$来说，正负集合的定义：</p>
+
+<ul>
+  <li>Same-attention same-class:
     <ul>
-      <li>如果第一次组的每组只有一个输出通道，那么就变成了特殊的组卷积，即 channel-wise convolution，第二次组卷积成为 1X1 的卷积，这与 Xception 相似（顺序相反）。</li>
+      <li>$P_{sasc}=S_{sasc},\quad N_{sasc}=S_{sadc} \bigcup S_{dasc}\bigcup S_{dadc}$</li>
     </ul>
   </li>
-  <li>普通卷积：
+  <li>Same-attention different-class:
     <ul>
-      <li>如果第一次组卷积过程里仅有一组，那么这个过程就变成了普通卷积，第二次组卷积过程则相当于分配给每个通过一个不同的权重。</li>
+      <li>$P_{sadc}=S_{sadc},\quad N_{sadc}=S_{dadc}$</li>
     </ul>
   </li>
-  <li>分配情况：
+  <li>Different-attention same-class:
     <ul>
-      <li>极端情况下:网络的性能会随着通道数及组数的变化而变化</li>
-      <li>最优性能配置点存在于两个极端情况之间。</li>
+      <li>$P_{dasc}=S_{dasc},\quad N_{dasc}=S_{dadc}$</li>
     </ul>
   </li>
 </ul>
 
-<hr />
-<p># 2017_Face++的通道随机分组ShuffleNet</p>
+<p>所以对于任何正例集合$P\in {P_{sasc},P_{sadc},P_{dasc}}$ 和负例集合 $N\in {N_{sasc},N_{sadc},N_{dasc}}$ , 我们希望当前的部位特征 $f^p_i$ 和正例集合距离越近，而和负例集合距离越远. 令 $m &gt; 0$ 为distance margin，则：<br />
+<script type="math/tex">\mid\mid f^p_i - f^+\mid\mid^2 + m \leq \mid\mid f^p_i - f^-\mid\mid,\quad \forall f^+ \in P,\quad f^- \in N</script></p>
 
-<h2 id="section-3">模块构造</h2>
+<p>那就可以设计 hinge loss为:<br />
+<script type="math/tex">\begin{equation*}
+\big[\mid\mid f^p_i - f^+\mid\mid^2 -  \mid\mid f^p_i - f^-\mid\mid + m \big]_+
+\end{equation*}</script><br />
+上述式子虽然广泛采用standard triplet sampling 来优化，但实际中会出现收敛慢、性能不稳定的问题。论文采用2016年出来的N-pair Loss 来优化上式：<br />
+<script type="math/tex">\begin{equation*}
+L^{np} = \frac{1}{N} \sum_{f^p_i \in B}\big\lbrace \sum_{f^+\in P} \log \big(1+\sum_{f^-\in N} exp(f^{pT}_i f^- - f^{pT}_if^+) \big)  \big\rbrace
+\end{equation*}</script></p>
 
-<table>
-  <thead>
-    <tr>
-      <th><strong>Pointwise组卷积、Channel-Shuffle 和 Depthwise</strong> 组成的模块</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/ShuffleNet_An_Extremely_Efficient_Convolutional_Neural_Network_for_Mobile_Devices_1.png" alt="" /></td>
-    </tr>
-    <tr>
-      <td>GConv 指组卷积。 group convolution</td>
-    </tr>
-    <tr>
-      <td>Pointwise：卷积核为1*1的组卷积(不采用组卷积则计算量太大）。 pointwise group convolution</td>
-    </tr>
-    <tr>
-      <td>Depthwise：前面提过，先分别组卷积，再1×1卷积核一起卷积。 depthwise separable convolution</td>
-    </tr>
-    <tr>
-      <td>Channel Shuffle: 将通道洗牌，交错合并组的分块</td>
-    </tr>
-  </tbody>
-</table>
+<p>那么最终的loss定义为:<br />
+<script type="math/tex">\begin{equation*}
+L^{mamc}=L^{softmax} + \lambda \big(L^{np}_{sasc} + L^{np}_{sadc}+ L^{np}_{dasc} \big)
+\end{equation*}</script></p>
 
-<table>
-  <thead>
-    <tr>
-      <th>基于ShuffleNet的ResNet</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/ShuffleNet_An_Extremely_Efficient_Convolutional_Neural_Network_for_Mobile_Devices_2.png" alt="" /></td>
-    </tr>
-    <tr>
-      <td>a图是普通Residual block</td>
-    </tr>
-    <tr>
-      <td>b图中将Residual block用：<strong>Pointwise组卷积+ Shuffle + 3×3的Depthwise + Pointwise组卷积</strong> 替代</td>
-    </tr>
-    <tr>
-      <td>c图是实验采用的Residual block</td>
-    </tr>
-  </tbody>
-</table>
+<h1 id="section-4">个人小总结</h1>
 
-<h2 id="section-4">特点：</h2>
+<p>该方法在 CUB-200-2011、Stanford Dogs、Stanford Cars 以及论文贡献的Dogs-in-the-Wild数据集。 文中介绍了这些数据集，并且列举了许多其他方法在这些数据集上的结果以及细节（如是否采用部件级标注信息、是否能一次性训练完），这些表格数据信息实在是感人。</p>
+
+<p>文中从SENet得到启发，让SE的输出为部位的Attention，期望多个SE结构来分别学习不同部位的Attention。 为了达成这个想法，作者先对Attention出来的特征进行划分正负样例集合，利用了度量学习的N-pair Loss，引导不同的SE结构学习不同的部位。</p>
+
+<p>文中方法是基于弱监督信息的图像识别，文章大体流程清晰明朗。虽未找到论文代码，但复现起来难度应该不会特别大（需要注意训练过程中的N-pair Loss，以及正负例的归属）。</p>
+
+<p>关于N-pair Loss的解释及公式的理解，请移步至下面链接：</p>
 
 <ul>
-  <li>采用 <strong>Channel-Shuffle、Pointwise组卷积 和 Depthwise</strong> 来修改原来的ResNet单元</li>
-  <li>Pointwise组卷积和Depthwise主要为了减少了计算量</li>
-  <li>与交错组卷积IGC单元（Interleaved Group Convolution）相似。</li>
-  <li>大幅度降低网络计算量，专用于计算能力非常有限的移动端设备.</li>
-  <li>超越mobilenet、媲美AlexNet的准确率.</li>
+  <li><a href="http://www.nec-labs.com/uploads/images/Department-Images/MediaAnalytics/papers/nips16_npairmetriclearning.pdf">N-pair Loss论文：2016_nips_Improved Deep Metric Learning with Multi-class N-pair Loss Objective</a></li>
+  <li><a href="https://zhuanlan.zhihu.com/p/45014864">理解公式的参考链接：从最优化的角度看待Softmax损失函数</a></li>
+  <li><a href="https://en.wikipedia.org/wiki/LogSumExp">理解公式的参看链接：LogSumExp</a></li>
 </ul>
-
-<p>该论文和IGC在shuffle上相似，且两者都是17年7月份提交。IGC未引用该文，而此文中提到：</p>
-
-<ul>
-  <li>最近，另一项并行工作[41]也采用这个思想进行两阶段卷积。然而，[41]没有<strong>专门调查</strong>通道shuffle本身的有效性和在小模型设计上的使用。</li>
-  <li>Such “random shuffle” operation has different purpose and been seldom exploited later. Very recently, another concurrent work[41] also adopt this idea for a two-stage convolution. However,[41] did not <strong>specially investigate</strong> the effectiveness of channel shuffle itself and its usage in tiny model design.</li>
-</ul>
-
-<hr />
-
-<h1 id="senet-2017imagenet">考虑通道的不平等关系SENet (2017_ImageNet冠军)</h1>
-
-<h2 id="section-5">模块构造</h2>
-
-<table>
-  <thead>
-    <tr>
-      <th>Squeeze-and-Excitation 模块</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_1.jpg" alt="" /></td>
-    </tr>
-    <tr>
-      <td>图中输入是X，有$c_1$特征通道。经过一系列卷积变换后，得$c_2$个大小为$w×h$的通道（map）</td>
-    </tr>
-    <tr>
-      <td><strong>Squeeze</strong>： 进行特征压缩，每个二维通道变为一个实数，如图得$1×1×c_2$.它们代表相应的特征通道的全局分布.</td>
-    </tr>
-    <tr>
-      <td><strong>Excitation</strong>: 学习特征通道间的相关性。根据输入，调节各通道的权重</td>
-    </tr>
-    <tr>
-      <td><strong>Reweight</strong>: 以对应的通道权重，乘回对应通道，完成对原始特征的重标定</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2 id="section-6">部署示例</h2>
-
-<table>
-  <thead>
-    <tr>
-      <th>SE_Inception图示</th>
-      <th>SE_ResNet图示</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_4.png" alt="" /></td>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_5.png" alt="" /></td>
-    </tr>
-  </tbody>
-</table>
-
-<p>##　实验情况：增加小的计算消耗，获得大的性能提升</p>
-
-<table>
-  <thead>
-    <tr>
-      <th> </th>
-      <th> </th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_3.png" alt="" /></td>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_6.jpg" alt="" /></td>
-    </tr>
-  </tbody>
-</table>
-
-<h2 id="section-7">特点：</h2>
-<ul>
-  <li>考虑特征通道间的关系，动态调整各通道的特征响应值</li>
-  <li>构造简单、容易被部署。增加很小的计算消耗，获得高的性能提升</li>
-  <li>或许可用于辅助网络修剪/压缩的工作</li>
-</ul>
-
-<hr />
-
-<h1 id="section-8">参考</h1>
-
-<ul>
-  <li>2012-ImageNet-Classification-with-Deep-Convolutional-Neural-Networks</li>
-  <li>2016-Xception: Deep Learning with Depthwise Separable Convolutions</li>
-  <li>2017-Interleaved Group Convolutions for Deep Neural Networks</li>
-  <li>2017-ShuffleNet: An Extremely Efficient Convolutional Neural Network for Mobile Devices</li>
-  <li>2017-Squeeze-and-Excitation Networks</li>
-</ul>
-
-<hr />
-
-<h3 id="section-9">小想法：</h3>
-
-<p>在组通道网络中，采用SENet思想，对组通道进行加权（而非单通道）。让SENet为一个特例（组为单通道）。</p>
-
-<hr />
 
 
                 <hr style="visibility: hidden;">
@@ -506,17 +365,17 @@
                 <ul class="pager">
                     
                     <li class="previous">
-                        <a href="/2018/03/01/CapsulesNet/" data-toggle="tooltip" data-placement="top" title="CapsulesNet的解析">
+                        <a href="/2018/08/25/ShufflenetV2_%E9%AB%98%E6%95%88%E7%BD%91%E7%BB%9C%E7%9A%84%E8%AE%BE%E8%AE%A1%E6%8C%87%E5%8D%97/" data-toggle="tooltip" data-placement="top" title="ShufflenetV2_高效网络的设计指南">
                         Previous<br>
-                        <span>CapsulesNet的解析</span>
+                        <span>ShufflenetV2_高效网络的设计指南</span>
                         </a>
                     </li>
                     
                     
                     <li class="next">
-                        <a href="/2018/07/01/Fusedmax%E4%B8%8EOscarmax%E7%A8%80%E7%96%8F%E5%8F%8A%E7%BB%93%E6%9E%84%E5%8C%96%E7%9A%84Attention%E6%AD%A3%E5%88%99%E5%8C%96%E6%A1%86%E6%9E%B6/" data-toggle="tooltip" data-placement="top" title="Fusedmax与Oscarmax">
+                        <a href="/2018/09/28/RA-CNN_%E5%A4%9A%E5%B0%BA%E5%BA%A6%E5%BE%AA%E7%8E%AFAttention_%E5%8C%BA%E5%9F%9F%E6%A3%80%E6%B5%8B%E4%B8%8E%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%8D%8F%E5%90%8C%E5%90%88%E4%BD%9C_%E7%AB%AF%E5%88%B0%E7%AB%AF%E8%AE%AD%E7%BB%83%E5%BC%B1%E7%9B%91%E7%9D%A3%E7%BB%86%E7%B2%92%E5%BA%A6%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/" data-toggle="tooltip" data-placement="top" title="RA-CNN 多尺度循环Attention">
                         Next<br>
-                        <span>Fusedmax与Oscarmax</span>
+                        <span>RA-CNN 多尺度循环Attention</span>
                         </a>
                     </li>
                     

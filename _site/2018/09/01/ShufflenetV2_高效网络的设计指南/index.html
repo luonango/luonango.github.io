@@ -10,7 +10,7 @@
     <meta name="keywords"  content="BY, BY Blog, Nango明楠的博客, luonango, Nango明楠, iOS, Apple, iPhone">
     <meta name="theme-color" content="#000000">
     
-    <title>卷积网络的特征通道 - Nango明楠的博客 | BY Blog</title>
+    <title>ShufflenetV2_高效网络的设计指南 - Nango明楠的博客 | BY Blog</title>
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="/pwa/manifest.json">
@@ -22,7 +22,7 @@
     <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="http://luonango.github.io/2018/05/01/%E5%8D%B7%E7%A7%AF%E7%BD%91%E7%BB%9C%E7%9A%84%E7%89%B9%E5%BE%81%E9%80%9A%E9%81%93/">
+    <link rel="canonical" href="http://luonango.github.io/2018/09/01/ShufflenetV2_%E9%AB%98%E6%95%88%E7%BD%91%E7%BB%9C%E7%9A%84%E8%AE%BE%E8%AE%A1%E6%8C%87%E5%8D%97/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -185,19 +185,19 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                        <a class="tag" href="/tags/#CNN" title="CNN">CNN</a>
+                        <a class="tag" href="/tags/#shufflenetv2" title="shufflenetv2">shufflenetv2</a>
                         
-                        <a class="tag" href="/tags/#网络结构" title="网络结构">网络结构</a>
+                        <a class="tag" href="/tags/#网络设计" title="网络设计">网络设计</a>
                         
-                        <a class="tag" href="/tags/#feature maps" title="feature maps">feature maps</a>
+                        <a class="tag" href="/tags/#组卷积" title="组卷积">组卷积</a>
                         
                     </div>
-                    <h1>卷积网络的特征通道</h1>
+                    <h1>ShufflenetV2_高效网络的设计指南</h1>
                     
                     
-                    <h2 class="subheading">论文技术分享：feature maps</h2>
+                    <h2 class="subheading">几个设计网络的准则</h2>
                     
-                    <span class="meta">Posted by BY on May 1, 2018</span>
+                    <span class="meta">Posted by BY on September 1, 2018</span>
                 </div>
             </div>
         </div>
@@ -215,290 +215,226 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-				<h1 id="section">卷积网络的特征通道</h1>
-<hr />
-<p>从实际的角度出发，由于深度神经网络受到大量矩阵运算的限制，往往需要海量存储及计算资源。削减神经网络中卷积单元的冗余是解决这个问题的重要研究之一，它可并分为空间（spatial）及通道（channel）两个方向。</p>
+				<h1 id="shufflenetv2">ShufflenetV2_高效网络的设计指南</h1>
+<div class="highlighter-rouge"><pre class="highlight"><code>2018年 清华大学&amp;Face++ Ningning Ma 
+提出指导高效CNN网络设计的4种方案，并改进了shufflenetv1
+</code></pre>
+</div>
 
-<p>先谈谈通道上的解决方法。</p>
+<h2 id="section">背景介绍</h2>
 
-<hr />
+<p>在高效网络上（特别是移动端），网络必须在有限的计算能力中达到最优的精度。 目前很多论文研究着 <strong>轻量级架构设计和速度-精度的权衡</strong>。</p>
 
-<h1 id="alexnet">从Alexnet说起：</h1>
+<p>比如Xception、MobileNet、MobileNetv2、ShuffleNet、CondenseNet等等。在这些有效的网络结构中，<strong>Group Convolution(组卷积) 和 Depth-wise convolution（深度卷积）</strong> 起到关键性作用。</p>
 
-<table>
-  <thead>
-    <tr>
-      <th>Alexnet</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/AlexNet_1.png" alt="" /></td>
-    </tr>
-    <tr>
-      <td>单个GTX 580 GPU只有3GB内存,不能满足当时的参数规模</td>
-    </tr>
-    <tr>
-      <td>将网络分布在两个GPU上，每个GPU中放置一半核（或神经元），GPU间的通讯只在某些层进行</td>
-    </tr>
-    <tr>
-      <td>如第3层的核需要从第2层中所有核映射输入。然而，第4层的核只需要从第3层中位于同一GPU的那些核映射输入</td>
-    </tr>
-    <tr>
-      <td>即为双通道网络结构，减少了大量的连接参数消耗</td>
-    </tr>
-  </tbody>
-</table>
+<blockquote>
+  <ul>
+    <li>组卷积 Group Convolution：
+      <ul>
+        <li>将feature map拆分成几组，分别进行卷积，最后再将卷积结果的feature map 合并。</li>
+        <li>最早在AlexNet中出现。因为当时GPU内存有限，逼迫将feature map拆分到两个GPU上分别卷积再融合。</li>
+      </ul>
+    </li>
+    <li>深度卷积 Depth-wise convolution：
+      <ul>
+        <li>对每一个通道进行各自的卷积，输出相同的通道数，再用进行跨通道的标准$1*1$ 卷积来融合信息</li>
+        <li>Xception 就是典型的代表</li>
+      </ul>
+    </li>
+    <li>极大减少了参数，性能还有点提高（未知有无理论证明能完全替代普通卷积）。Alex认为组卷积实现类似正则的作用。</li>
+  </ul>
+</blockquote>
 
-<hr />
-<p># Inception系列也是多通道</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Inception_v1</th>
-      <th>Inception_v2-v3</th>
-      <th>Xception</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Inception_v1_2.png" alt="" /></td>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Inception_v2_3.png" alt="" /></td>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Xception_1.png" alt="" /></td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Xception中主要采用<strong>depthwise separable convolution</strong>技术（mobileNets中提出，深度学习模型加速网络的核心技术）。</p>
-
-<p>假设输入的是A个特征图，最终输出B个特征图。Xception的卷积就是将传统的卷积操作分成两步：</p>
+<p>速度(Speed)是直接指标，但不同设备不好比较， 故以往常用 FLOPs（乘或加的次数）来度量复杂度。但FLOP是一种间接指标，它不能直接作为评判的标准（如Mobilev2和Nasnet相比，他们的Flops相似，但是前者快很多）。<br />
+&gt; 个人体会： <br />
+&gt; <br />
+&gt; - 在WRN和Resnet上，WRN的Flops和参数量远大于Resnet情况下，WRN比Resnet快很多。且ResNext比WRN慢很多。<br />
+&gt; - shufflenetv2论文中在两种硬件环境中测试四种不同速度和FLOPs的网络结构。观察知道FLOPs不能替代Speed这评判指标。</p>
 
 <ul>
-  <li>然后用A个1*1的卷积核正常卷积生成的A个特征图。求和，最后生成A个特征图</li>
-  <li>用B个3*3卷积核，一对一卷积B个特征图。不求和，直接拼生成B个特征图；</li>
-</ul>
-
-<p>##　mobileNets与Xception使用depthwise的区别：</p>
-
-<ul>
-  <li>mobileNets中与Xception中的执行顺序刚好相反。</li>
-  <li>在mobileNet中主要就是为了降低网络的复杂度。</li>
-  <li>在Xception中作者加宽了网络，使得参数数量和Inception v3差不多，然后在这前提下比较性能。Xception目的不在于模型压缩，而是提高性能。</li>
-</ul>
-
-<hr />
-
-<h1 id="iccvigcinterleaved-group-convolution">2017_ICCV_微软的交错组卷积（IGC，Interleaved Group Convolution）</h1>
-
-<h2 id="icg">ICG模块</h2>
-
-<table>
-  <thead>
-    <tr>
-      <th>交错组卷积模块：含两个组卷积过程</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Interleaved_Group_Convolutions_for_Deep_Neural_Networks_1.png" alt="" /></td>
-    </tr>
-    <tr>
-      <td>第一次组卷积：不同组的卷积不存在交互，不同组的输出通道并不相关。</td>
-    </tr>
-    <tr>
-      <td>第二次组卷积：让不同组的通道相关联。每组的输入通道均来自第一组输出的不同的组的通道（交错组成）</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2 id="section-1">特点：</h2>
-<ul>
-  <li>从通道角度出发，解决了神经网络基本卷积单元中的冗余问题。</li>
-  <li>可以在无损性能的前提下，缩减模型、提升计算速度，有助于深度网络在<strong>移动端</strong>的部署.</li>
-</ul>
-
-<h2 id="section-2">极端和最优分配下的分析</h2>
-
-<ul>
-  <li>Xception 是特例：
+  <li>间接指标(Flops)和直接指标（速度）之间存在差异有两种：
     <ul>
-      <li>如果第一次组的每组只有一个输出通道，那么就变成了特殊的组卷积，即 channel-wise convolution，第二次组卷积成为 1X1 的卷积，这与 Xception 相似（顺序相反）。</li>
-    </ul>
-  </li>
-  <li>普通卷积：
-    <ul>
-      <li>如果第一次组卷积过程里仅有一组，那么这个过程就变成了普通卷积，第二次组卷积过程则相当于分配给每个通过一个不同的权重。</li>
-    </ul>
-  </li>
-  <li>分配情况：
-    <ul>
-      <li>极端情况下:网络的性能会随着通道数及组数的变化而变化</li>
-      <li>最优性能配置点存在于两个极端情况之间。</li>
+      <li>对速度影响较大的因素，但没有影响到FLOPs。
+        <ul>
+          <li>如<strong>内存访问成本(MAC, memory access cost)</strong>,它在如组卷积中占大量运行时间，导致MAC是瓶颈。</li>
+          <li>又如<strong>并行度(degree of parallelism)</strong>，FLOPs相同情况下，高并行的模型可能会快很多。</li>
+        </ul>
+      </li>
+      <li>运行平台不同。
+        <ul>
+          <li>相同的FLOPs的运算在不同的平台上运行也会导致速度差异。</li>
+          <li>如以前会采用张量分解来加速矩阵乘法，但张量分解在GPU上运行会慢很多。作者调查发现最近的CUDNN库中有专门为$3*3$ 卷积进行了优化，也就是说张量分解后的运行速度有可能慢与优化库中的张量乘法。</li>
+        </ul>
+      </li>
     </ul>
   </li>
 </ul>
 
-<hr />
-<p># 2017_Face++的通道随机分组ShuffleNet</p>
-
-<h2 id="section-3">模块构造</h2>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>Pointwise组卷积、Channel-Shuffle 和 Depthwise</strong> 组成的模块</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/ShuffleNet_An_Extremely_Efficient_Convolutional_Neural_Network_for_Mobile_Devices_1.png" alt="" /></td>
-    </tr>
-    <tr>
-      <td>GConv 指组卷积。 group convolution</td>
-    </tr>
-    <tr>
-      <td>Pointwise：卷积核为1*1的组卷积(不采用组卷积则计算量太大）。 pointwise group convolution</td>
-    </tr>
-    <tr>
-      <td>Depthwise：前面提过，先分别组卷积，再1×1卷积核一起卷积。 depthwise separable convolution</td>
-    </tr>
-    <tr>
-      <td>Channel Shuffle: 将通道洗牌，交错合并组的分块</td>
-    </tr>
-  </tbody>
-</table>
-
-<table>
-  <thead>
-    <tr>
-      <th>基于ShuffleNet的ResNet</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/ShuffleNet_An_Extremely_Efficient_Convolutional_Neural_Network_for_Mobile_Devices_2.png" alt="" /></td>
-    </tr>
-    <tr>
-      <td>a图是普通Residual block</td>
-    </tr>
-    <tr>
-      <td>b图中将Residual block用：<strong>Pointwise组卷积+ Shuffle + 3×3的Depthwise + Pointwise组卷积</strong> 替代</td>
-    </tr>
-    <tr>
-      <td>c图是实验采用的Residual block</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2 id="section-4">特点：</h2>
+<p>于是作者认为高效网络架构的设计应该考虑两个基本原则：</p>
 
 <ul>
-  <li>采用 <strong>Channel-Shuffle、Pointwise组卷积 和 Depthwise</strong> 来修改原来的ResNet单元</li>
-  <li>Pointwise组卷积和Depthwise主要为了减少了计算量</li>
-  <li>与交错组卷积IGC单元（Interleaved Group Convolution）相似。</li>
-  <li>大幅度降低网络计算量，专用于计算能力非常有限的移动端设备.</li>
-  <li>超越mobilenet、媲美AlexNet的准确率.</li>
+  <li><strong>用直接指标（如速度）评估，而不是间接指标（如Flops)。</strong></li>
+  <li><strong>在同一环境平台上进行评估。</strong></li>
 </ul>
 
-<p>该论文和IGC在shuffle上相似，且两者都是17年7月份提交。IGC未引用该文，而此文中提到：</p>
+<p>论文也是按照这两个原则，对多种网络（包括shufflenetv2)进行评估。</p>
+
+<h2 id="section-1">高效网络设计的实用准则</h2>
+
+<p>作者发现 组卷积和深度卷积是目前较优网络的关键，且FLOPs数仅和卷积有关。虽然卷积操作耗费大量时间，但是其他内部过程如 I/O、data shuffle、element-wise操作(Add、ReLU等)都会耗费一定的时间。</p>
+
+<p>作者提出设计高效网络的4条准则：</p>
 
 <ul>
-  <li>最近，另一项并行工作[41]也采用这个思想进行两阶段卷积。然而，[41]没有<strong>专门调查</strong>通道shuffle本身的有效性和在小模型设计上的使用。</li>
-  <li>Such “random shuffle” operation has different purpose and been seldom exploited later. Very recently, another concurrent work[41] also adopt this idea for a two-stage convolution. However,[41] did not <strong>specially investigate</strong> the effectiveness of channel shuffle itself and its usage in tiny model design.</li>
+  <li>G1 相同通道宽度可以最小化内存访问成本MAC。</li>
+  <li>G2 过多的组卷积会增加内存访问成本MAC</li>
+  <li>G3 网络内部碎片操作会降低并行度</li>
+  <li>G4 Element-wise操作不容忽视</li>
 </ul>
 
-<hr />
+<h4 id="g1-mac">G1 相同通道宽度可以最小化内存访问成本MAC</h4>
 
-<h1 id="senet-2017imagenet">考虑通道的不平等关系SENet (2017_ImageNet冠军)</h1>
+<p>考虑无bias的$1*1$卷积。如果输入的通道数为$c_1$, 卷积后输出通道数为$c_2$. 让 $h,w$ 分别表示feature map的高和宽。假设cache足够大。</p>
 
-<h2 id="section-5">模块构造</h2>
+<p>那么普通卷积的Flops数为 $B=hw c_1 c_2$</p>
+
+<p>则$MAC=hw(c_1+c_2)+ c_1 c_2$.</p>
+
+<blockquote>
+  <p>tips: <br />
+$hw(c_1+c_2)$ 为这两层各自的输出值(activate)，$c_1 c_2$ 为两层间卷积核的参数量。</p>
+</blockquote>
+
+<p>则得出：$MAC \geq 2\sqrt{hwB}+\frac{B}{hw}$</p>
+
+<blockquote>
+  <p>tips: <br />
+$(c_1 + c_2)^2 \geq 4c_1 c_2 \Rightarrow c_1+c_2\geq 2\sqrt{c_1c_2} \Rightarrow hw(c_1+c_2) + c_1c_2 \geq 2hw\sqrt{c_1c_2} + \frac{B}{hw} \Rightarrow MAC \geq 2\sqrt{c_1c_2B}+\frac{B}{hw}$</p>
+</blockquote>
+
+<p>上面不等式指出，同FLOPs情况下，如果相邻两层它们的通道数相等时，MAC将达到最小值。文中采用简单两层卷积网络，实验验证了这结果。</p>
+
+<p>但是实际情况下G1的前提条件“cache足够大”不一定满足。设备缓存不够大时很多计算库会采用复杂的缓存机制，这会导致MAC值和理论值有偏差。</p>
+
+<h4 id="g2-mac">G2 过多的组卷积会增加内存访问成本MAC</h4>
+
+<p>组卷积能够大量减少FLOPs，也成功被应用于多种优秀网络。</p>
+
+<p>延续G1中的符号定义及公式，此处的FLOPs为$B=hwc_1c_2 / g$,则</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+MAC =& hw(c_1+c_2) + \frac{c_1c_2}{g}\\
+    =& hwc_1 + \frac{Bg}{c_1} + \frac{B}{hw}
+\end{align} %]]></script>
+
+<blockquote>
+  <p>tips: $\frac{c_1c_2}{g}=\frac{c_1}{g} \cdot \frac{c_1}{g}$, $B=hw\frac{c_1}{g}\frac{c_2}{g} \cdot g$</p>
+</blockquote>
+
+<p>从式子看出，若组卷积的组数 $g$ 增加，则 MAC 也会增大。故太多的组卷积会增加内存访问成本。</p>
+
+<p>文中采用控制变量法实验验证了这准则。</p>
+
+<h4 id="g3-">G3 网络内部碎片操作会降低并行度</h4>
+
+<p>碎片(Fragmentation)是指多分支上，每条分支上的小卷积或pooling等（如外面的一次大的卷积操作，被拆分到每个分支上分别进行小的卷积操作）。</p>
+
+<p>如在NasNet-A就包含了大量的碎片操作，每条分支都有约13个操作，而ResnetV1上就只有2或3个操作。虽然这些Fragmented sturcture能够增加准确率，但是在高并行情况下降低了效率，增加了许多额外开销（内核启动、同步等等）。</p>
+
+<p>文中采用控制变量实验验证了这准则。</p>
+
+<h4 id="g4-element-wise">G4 Element-wise操作不容忽视</h4>
+
+<p>Element-wise操作指的是 ReLU、AddTensor、AddBias等等。虽然这些操作只增加了一点点FLOPs，但是会带来很高的MAC，尤其是Depthwise Convolution深度卷积。</p>
+
+<p>文中采用‘bottleneck’单元，进行了一系列对比实验，验证了这准则。</p>
+
+<h4 id="g1-g4">G1-G4的总结：</h4>
+
+<ul>
+  <li>平衡相邻层的卷积核数</li>
+  <li>留意组卷积带来的开销</li>
+  <li>减少碎片化的程度</li>
+  <li>减少Element-wise操作</li>
+</ul>
+
+<p>讨论其他的网络：</p>
+
+<ul>
+  <li>ShuffleNet-V1 严重依赖组卷积，违背了G2。</li>
+  <li>Bottleneck结构违背了G1</li>
+  <li>MobileNet-V2 采用了反转bottleneck（违背了G1），且用到了Depth-wise、以及在feature map上采用relu这些trick，违背了G4.</li>
+  <li>自动搜索生成的网络结构（如NasNet）有很高的碎片，违背了G3.</li>
+</ul>
+
+<h2 id="shufflenet-v2-">ShuffleNet V2 架构</h2>
+
+<p>基于上面种种分析，作者着手改进ShuffleNet V1。</p>
+
+<p>首先ShuffleNetV1是在给定的计算预算（FLOP）下，为了增加准确率，选择采用了 逐点组卷积 和 类似瓶颈的结构，且还引入了 channel shuffle操作. 如下图的(a)、(b)所示。</p>
+
+<p>很明显，逐点组卷积 和 类似瓶颈的结构 增加了MAC（违背G1和G2），采用了太多组卷积违背了G3， ‘Add’ 操作违背了G4，因此关键问题在于如何保持大量同宽通道的同时，让网络非密集卷积也没太多组卷积。</p>
 
 <table>
   <thead>
     <tr>
-      <th>Squeeze-and-Excitation 模块</th>
+      <th style="text-align: center">shufflenet_V1</th>
+      <th style="text-align: center">shufflenet_V2</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_1.jpg" alt="" /></td>
-    </tr>
-    <tr>
-      <td>图中输入是X，有$c_1$特征通道。经过一系列卷积变换后，得$c_2$个大小为$w×h$的通道（map）</td>
-    </tr>
-    <tr>
-      <td><strong>Squeeze</strong>： 进行特征压缩，每个二维通道变为一个实数，如图得$1×1×c_2$.它们代表相应的特征通道的全局分布.</td>
-    </tr>
-    <tr>
-      <td><strong>Excitation</strong>: 学习特征通道间的相关性。根据输入，调节各通道的权重</td>
-    </tr>
-    <tr>
-      <td><strong>Reweight</strong>: 以对应的通道权重，乘回对应通道，完成对原始特征的重标定</td>
+      <td style="text-align: center">&lt;img src=”./pictures/shufflenet_v1.png”,width=”500”&gt;</td>
+      <td style="text-align: center">&lt;img src=”./pictures/shufflenet_v2.png”,width=”500”&gt;</td>
     </tr>
   </tbody>
 </table>
 
-<h2 id="section-6">部署示例</h2>
+<blockquote>
+  <p>DWConv：深度卷积 (depthwise convolution), GConv：组卷积 (group convolution)</p>
+</blockquote>
 
-<table>
-  <thead>
-    <tr>
-      <th>SE_Inception图示</th>
-      <th>SE_ResNet图示</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_4.png" alt="" /></td>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_5.png" alt="" /></td>
-    </tr>
-  </tbody>
-</table>
+<p>ShuffleNetV2 引入通道分割（channel split）操作, 将输入的feature maps分为两部分$c-c’$ 和 $c’$. 根据G3， 一个分支为shortcut流，另一个分支含三个卷积（且三个分支的通道数一样，满足G1）。 满足G2： 两个$1*1$卷积不采用组卷积操作，因为前面的通道分割已经做了分组，降低了组数。</p>
 
-<p>##　实验情况：增加小的计算消耗，获得大的性能提升</p>
+<p>之后分支合并采用拼接（concat），让前后的channel数一样(满足G1). 然后再进行Channel Shuffle（完成和ShuffleNetV1一样的功能）。</p>
 
-<table>
-  <thead>
-    <tr>
-      <th> </th>
-      <th> </th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_3.png" alt="" /></td>
-      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_6.jpg" alt="" /></td>
-    </tr>
-  </tbody>
-</table>
+<p>shuffle后，以往的ShuffleNetV1是再接一个ReLu（Element-wise）操作，此处将其移到卷积分支中。 另外三个连续的Element-wise操作：通道分割、concat、shuffle合并成一个Element-wise操作，这满足了G4. 具体看图(c).</p>
 
-<h2 id="section-7">特点：</h2>
-<ul>
-  <li>考虑特征通道间的关系，动态调整各通道的特征响应值</li>
-  <li>构造简单、容易被部署。增加很小的计算消耗，获得高的性能提升</li>
-  <li>或许可用于辅助网络修剪/压缩的工作</li>
-</ul>
+<p>ShuffleNetV2 的空间下采样模块经过些修改，去掉了通道分割，输出的通道数翻倍。详情看图(d).</p>
 
-<hr />
+<blockquote>
+  <p>这是合理的做法，因为下采样后，feature map的尺寸降低了，通道数翻倍是自然的。保证了前后两个模块的运算量相近（VGG提出的这思路，后来大家默认这么做了）。</p>
+</blockquote>
 
-<h1 id="section-8">参考</h1>
+<h2 id="section-2">讨论</h2>
+
+<p>ShuffleNet-V2 不仅高效，还高准确率。导致的原因有：</p>
 
 <ul>
-  <li>2012-ImageNet-Classification-with-Deep-Convolutional-Neural-Networks</li>
-  <li>2016-Xception: Deep Learning with Depthwise Separable Convolutions</li>
-  <li>2017-Interleaved Group Convolutions for Deep Neural Networks</li>
-  <li>2017-ShuffleNet: An Extremely Efficient Convolutional Neural Network for Mobile Devices</li>
-  <li>2017-Squeeze-and-Excitation Networks</li>
+  <li>每个构建块都很高效，从而能利用更多的feature maps 和 更大的网络容量</li>
+  <li>特征重用(feature reuse)
+    <ul>
+      <li>因为通道分割，从而有一半(论文设置为$c’=c/2$)的特征直接传到下一个模块中。</li>
+      <li>这和DenseNet 以及CondenseNet 思想相近。</li>
+      <li>DenseNet分析feature reuse模式发现，越相近的模块，它们的传来的shortcut特征的重要性越大。 CondenseNet也支持类似的观点。</li>
+      <li>ShuffleNet-V2也是符合这样的观点, 特征重用信息随着两个模块间的距离呈指数衰减。即$(i+j)$层的feature maps中，含有$i$ 层feature maps数为$r^j c$，其中$c$为$i$ 层的feature maps数，$r$ 为通道分割的参数，论文设为$r=0.5$.</li>
+    </ul>
+  </li>
 </ul>
 
-<hr />
+<p>此篇论文实属业界良心，从源头分析每一步会造成的开销，从理论分析，到控制变量法做足实验，总结出 4 条准则，指导大家设计更高效的网络。</p>
 
-<h3 id="section-9">小想法：</h3>
+<p>G1准则（相同通道宽度）从VGG、Resnet后大家几乎都默认遵循了， 而G2准则（组卷积问题）很多网络在违背着。主要是组卷积能够提高准确率，但很有意思的是，用了组卷积速度会慢很多，但直到shuffnetv2才开始分析原因（存疑，笔者没找到更早的关于组卷积会变慢的分析）。而组卷积为什么会变好？  “Alex认为group conv的方式能够增加filter之间的对角相关性，而且能够减少训练参数，不容易过拟合，这类似于正则的效果。” (参考自<a href="https://blog.csdn.net/Chaolei3/article/details/79374563">对深度可分离卷积、分组卷积、扩张卷积、转置卷积（反卷积）的理解</a>。</p>
 
-<p>在组通道网络中，采用SENet思想，对组通道进行加权（而非单通道）。让SENet为一个特例（组为单通道）。</p>
+<p>至于G3准则，文中主要还是对 自主搜索网络结构 方面的工作（如NasNet 进行批判）。这或许可以在自主搜索网络结构方面加上相应的损失函数，从而让搜索出的网络结构除了高准确率外，还具备高效的能力。</p>
 
-<hr />
+<p>违背G4准则是必不可免的。毕竟基于优秀网络上的改进，很多是增加一些Element-wise操作，从而获得准确率的提升。 但ShuffleNetV2告诉了我们，Element-wise操作可以简化（如relu的移位）。</p>
+
+<p>如果让网络变得精简的话，这可能会让网络获得意想不到的提升，比如WRN就是特别精简的网络，打败了众多妖魔鬼怪。</p>
+
+<p>论文还提到了特征重用(Feature reuse)的观点，这也是Densenet的关键。 感觉很多网络，用上了特征重用的方法（Densenet类型、Resnet类型、残差金字塔类型等等），效果就会变得不错。之后需要多了解这方面的论文和方法。</p>
+
 
 
                 <hr style="visibility: hidden;">
@@ -506,19 +442,12 @@
                 <ul class="pager">
                     
                     <li class="previous">
-                        <a href="/2018/03/01/CapsulesNet/" data-toggle="tooltip" data-placement="top" title="CapsulesNet的解析">
+                        <a href="/2018/08/01/%E4%BF%83%E4%BD%BF%E6%AE%8B%E5%B7%AE%E9%9B%B6%E5%93%8D%E5%BA%94%E5%B9%B6%E8%A3%81%E5%89%AAResnet%E7%9A%84block/" data-toggle="tooltip" data-placement="top" title="促使残差零响应，并裁剪Resnet的block">
                         Previous<br>
-                        <span>CapsulesNet的解析</span>
+                        <span>促使残差零响应，并裁剪Resnet的block</span>
                         </a>
                     </li>
                     
-                    
-                    <li class="next">
-                        <a href="/2018/07/01/Fusedmax%E4%B8%8EOscarmax%E7%A8%80%E7%96%8F%E5%8F%8A%E7%BB%93%E6%9E%84%E5%8C%96%E7%9A%84Attention%E6%AD%A3%E5%88%99%E5%8C%96%E6%A1%86%E6%9E%B6/" data-toggle="tooltip" data-placement="top" title="Fusedmax与Oscarmax">
-                        Next<br>
-                        <span>Fusedmax与Oscarmax</span>
-                        </a>
-                    </li>
                     
                 </ul>
 
@@ -624,10 +553,6 @@
                             
         				
                             
-                				<a href="/tags/#Attention" title="Attention" rel="3">
-                                    Attention
-                                </a>
-                            
         				
                             
                 				<a href="/tags/#正则化" title="正则化" rel="3">
@@ -641,20 +566,6 @@
                                 </a>
                             
         				
-                            
-        				
-                            
-        				
-                            
-        				
-                            
-        				
-                            
-        				
-                            
-                				<a href="/tags/#细粒度图像识别" title="细粒度图像识别" rel="2">
-                                    细粒度图像识别
-                                </a>
                             
         				
                             

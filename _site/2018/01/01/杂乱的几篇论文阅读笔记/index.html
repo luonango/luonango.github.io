@@ -222,7 +222,7 @@
 <h2 id="section-1">模型压缩加快</h2>
 
 <h3 id="deep-compression2016deep-compression-compression-deep-neural-networks-with-pruning-trained-quantization-and-huffman-coding">1. 模型压缩Deep Compression：2016《Deep Compression: Compression Deep Neural Networks With Pruning, Trained Quantization And Huffman Coding》</h3>
-<div class="highlighter-rouge"><pre class="highlight"><code>Han S, Mao H, Dally W J. Deep Compression: Compressing Deep Neural Networks with Pruning, Trained Quantization and Huffman Coding[J]. Fiber, 2015, 56(4):3--7.
+<div class="highlighter-rouge"><pre class="highlight"><code>Han S, Mao H, Dally W J.
 2016 ICLR最佳论文
 </code></pre>
 </div>
@@ -249,13 +249,13 @@
   </li>
   <li>Quantization（权值共享和量化）：
     <ul>
-      <li>K-mean方法吧所有参数聚成$2^n$个类，聚类初始化有： <br />
+      <li>K-mean方法吧所有参数聚成$2^n$个类，聚类初始化有：</li>
+      <li>同一聚类的参数相等，对网络调优。梯度下降时候，归于同一类的节点的梯度相加，施加到该类的聚类中心上（而不是每个节点参数上）</li>
+      <li>使用n比特编码的聚类中心替代原有参数 <br />
 &gt; * 随机初始化： 随机产生K个观察值做为聚类中心。<br />
 &gt; * 密度分布初始化： 现将累计概率密度CDF的y值分布线性划分，然后根据每个划分点的y值找到与CDF曲线的交点，再找到该交点对应的x轴坐标，将其作为初始聚类中心。 <br />
 &gt; * 线性初始化： 将原始数据的最小值到最大值之间的线性划分作为初始聚类中心<br />
 &gt; * 而 <strong>线性初始化方式</strong>则能更好地保留大权值中心，因此文中采用这一方式。</li>
-      <li>同一聚类的参数相等，对网络调优。梯度下降时候，归于同一类的节点的梯度相加，施加到该类的聚类中心上（而不是每个节点参数上）</li>
-      <li>使用n比特编码的聚类中心替代原有参数</li>
     </ul>
   </li>
   <li>Huffman Encoding（Huffman编码):
@@ -268,7 +268,7 @@
 </ul>
 
 <h3 id="squeezenet2016squeezenet--alexnet-level-accuracy-with-50x-fewer-parameters-and-05mb-model-size">2. 模型压缩SqueezeNet：2016《SqueezeNet- AlexNet-level accuracy with 50x fewer parameters and 0.5MB model size》</h3>
-<div class="highlighter-rouge"><pre class="highlight"><code>Iandola F N, Han S, Moskewicz M W, et al. SqueezeNet: AlexNet-level accuracy with 50x fewer parameters and &lt;0.5MB model size[J]. 2016.
+<div class="highlighter-rouge"><pre class="highlight"><code>Iandola F N, Han S, Moskewicz M W, et al.
 UC Berkeley和Stanford
 </code></pre>
 </div>
@@ -321,8 +321,7 @@ UC Berkeley和Stanford
 <hr />
 
 <h3 id="shufflenetshufflenet-an-extremely-efficient-convolutional-neural-network-for-mobile-devices-">4. 通道随机分组ShuffleNet：《ShuffleNet: An Extremely Efficient Convolutional Neural Network for Mobile Devices 》</h3>
-<div class="highlighter-rouge"><pre class="highlight"><code>Face++ 2017
-ShuffleNet_An_Extremely_Efficient_Convolutional_Neural_Network_for_Mobile_Devices_
+<div class="highlighter-rouge"><pre class="highlight"><code>Face++ 2017 
 </code></pre>
 </div>
 
@@ -388,40 +387,81 @@ CVPR，国内自动驾驶创业公司Momenta
 </code></pre>
 </div>
 
-<h5 id="section-2">特点：</h5>
+<h4 id="section-2">特点：</h4>
 <ul>
   <li>考虑特征通道间的关系，动态调整各通道的特征响应值</li>
   <li>构造简单、容易被部署。增加很小的计算消耗，获得高的性能提升</li>
   <li>可能用于辅助网络修剪/压缩的工作</li>
 </ul>
 
-<h5 id="section-3">模块构造</h5>
-<p>|Squeeze-and-Excitation 模块|<br />
-|-|<br />
-|<img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_1.jpg" alt="" />|<br />
-|图中输入是X，有$c_1$特征通道。经过一系列卷积变换后，得$c_2$个大小为$w×h$的通道（map）|<br />
-|<strong>Squeeze</strong>： 顺着空间维度进行特征压缩，每个二维特征通道变成一个实数，如图得到$1×1×c_2$.表征着特征通道相应的全局分布.全局平均池化来生成各通道的统计量|<br />
-|<strong>Excitation</strong>: 考察各通道的依赖程度,W被学习表示特征通道间的相关性。最后sigmoid的输出就是各通道的权重，根据输入数据调节各通道特征的权重，有助于增强特征的可分辨性|<br />
-|<strong>Reweight</strong>: 通过乘法逐通道加权到先前特征，完成对原始特征的重标定。|</p>
+<h4 id="section-3">模块构造</h4>
 
-<h5 id="section-4">示例：部署简单，如插件</h5>
-<p>|SE_Inception图示|SE_ResNet图示|<br />
-|-|-|<br />
-|<img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_4.png" alt="" />|<img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_5.png" alt="" />|</p>
+<table>
+  <thead>
+    <tr>
+      <th>Squeeze-and-Excitation 模块</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_1.jpg" alt="" /></td>
+    </tr>
+    <tr>
+      <td>图中输入是X，有$c_1$特征通道。经过一系列卷积变换后，得$c_2$个大小为$w×h$的通道（map）</td>
+    </tr>
+    <tr>
+      <td><strong>Squeeze</strong>： 顺着空间维度进行特征压缩，每个二维特征通道变成一个实数，如图得到$1×1×c_2$.表征着特征通道相应的全局分布.全局平均池化来生成各通道的统计量</td>
+    </tr>
+    <tr>
+      <td><strong>Excitation</strong>: 考察各通道的依赖程度,W被学习表示特征通道间的相关性。最后sigmoid的输出就是各通道的权重，根据输入数据调节各通道特征的权重，有助于增强特征的可分辨性</td>
+    </tr>
+    <tr>
+      <td><strong>Reweight</strong>: 通过乘法逐通道加权到先前特征，完成对原始特征的重标定。</td>
+    </tr>
+  </tbody>
+</table>
 
-<p>#####　实验情况：增加小的计算消耗，获得大的性能提升<br />
-||<br />
-|-|<br />
-|<img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_3.png" alt="" />|<br />
-|<img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_6.jpg" alt="" />|</p>
+<h4 id="section-4">示例：部署简单，如插件</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>SE_Inception图示</th>
+      <th>SE_ResNet图示</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_4.png" alt="" /></td>
+      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_5.png" alt="" /></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>####　实验情况：增加小的计算消耗，获得大的性能提升</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>.</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_3.png" alt="" /></td>
+    </tr>
+    <tr>
+      <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_6.jpg" alt="" /></td>
+    </tr>
+  </tbody>
+</table>
 
 <hr />
 <p>## 模型变换</p>
 
 <h3 id="deformable-convolutional-networks">1. 可变形卷积网络2017《Deformable Convolutional Networks》</h3>
 <div class="highlighter-rouge"><pre class="highlight"><code>微软亚洲研究院.可变卷积和可变ROI采样
-Dai J, Qi H, Xiong Y, et al. Deformable Convolutional Networks[J]. 2017.
-Deformable_Convolutional_Networks_
+Dai J, Qi H, Xiong Y, et al. 
 </code></pre>
 </div>
 
@@ -457,8 +497,8 @@ Deformable_Convolutional_Networks_
         <table>
           <thead>
             <tr>
-              <th> </th>
-              <th> </th>
+              <th>.</th>
+              <th>.</th>
             </tr>
           </thead>
           <tbody>
@@ -473,8 +513,8 @@ Deformable_Convolutional_Networks_
         <table>
           <thead>
             <tr>
-              <th> </th>
-              <th> </th>
+              <th>.</th>
+              <th>.</th>
             </tr>
           </thead>
           <tbody>
@@ -494,8 +534,8 @@ Deformable_Convolutional_Networks_
         <table>
           <thead>
             <tr>
-              <th> </th>
-              <th> </th>
+              <th>.</th>
+              <th>.</th>
             </tr>
           </thead>
           <tbody>
@@ -516,13 +556,14 @@ Deformable_Convolutional_Networks_
           <thead>
             <tr>
               <th>deformable PS RoI pooling</th>
-              <th> </th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>下面分支：通过一个卷积层，所有的 input 特征图先被转化。每个物体类别都生成$k^2$个分数图（如果物体类别是C，那么总共有C+1个,C类物体外加1个背景）<br /><br />上面分支：通过卷积层，生成完全的空间像素偏移域。<br /><br />对每个RoI（同时还指定了某个类别），PS RoI pooling会被应用在这些域上以获取归一化的偏移量$\Delta \hat{p}<em>{ij}$，然后通过上述deformable RoI pooling中一样的方法变成真正的偏移量$\Delta p</em>{ij}$。</td>
               <td><img src="https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Deformable_Convolutional_Networks_4.png" alt="" /></td>
+            </tr>
+            <tr>
+              <td>下面分支：通过一个卷积层，所有的 input 特征图先被转化。每个物体类别都生成$k^2$个分数图（如果物体类别是C，那么总共有C+1个,C类物体外加1个背景）<br /><br />上面分支：通过卷积层，生成完全的空间像素偏移域。<br /><br />对每个RoI（同时还指定了某个类别），PS RoI pooling会被应用在这些域上以获取归一化的偏移量$\Delta \hat{p}<em>{ij}$，然后通过上述deformable RoI pooling中一样的方法变成真正的偏移量$\Delta p</em>{ij}$。</td>
             </tr>
           </tbody>
         </table>
@@ -593,9 +634,12 @@ Facebook AI Research (FAIR)
 <ul>
   <li><strong>从数据而非模型来思考集成</strong>。</li>
   <li>不知道 <strong>数据转换是静态转换，还是可学习的转换（学习转换矩阵Ｗ)</strong>，文中似乎是前者，但后者或许更佳。</li>
-  <li>感觉是作者添加的<strong>专用逻辑结构起了很大作用</strong>。即<strong>添加了发现的规律</strong>，增加了额外有用信息（先验知识），从而督促了网络学习吧。<br />
-&gt;　发现如果“每个未标记图像的预测标注实例的平均数量”大致等于“每个真实标记图像的标注实例的平均数量”，则分数阈值运行良好.</li>
+  <li>感觉是作者添加的<strong>专用逻辑结构起了很大作用</strong>。即<strong>添加了发现的规律</strong>，增加了额外有用信息（先验知识），从而督促了网络学习吧。</li>
 </ul>
+
+<blockquote>
+  <p>　发现如果“每个未标记图像的预测标注实例的平均数量”大致等于“每个真实标记图像的标注实例的平均数量”，则分数阈值运行良好.</p>
+</blockquote>
 
 
 
@@ -710,9 +754,49 @@ Facebook AI Research (FAIR)
                             
         				
                             
+                				<a href="/tags/#模型压缩" title="模型压缩" rel="3">
+                                    模型压缩
+                                </a>
+                            
         				
                             
         				
+                            
+        				
+                            
+        				
+                            
+                				<a href="/tags/#Attention" title="Attention" rel="3">
+                                    Attention
+                                </a>
+                            
+        				
+                            
+                				<a href="/tags/#正则化" title="正则化" rel="3">
+                                    正则化
+                                </a>
+                            
+        				
+                            
+                				<a href="/tags/#稀疏" title="稀疏" rel="3">
+                                    稀疏
+                                </a>
+                            
+        				
+                            
+        				
+                            
+        				
+                            
+        				
+                            
+        				
+                            
+        				
+                            
+                				<a href="/tags/#细粒度图像识别" title="细粒度图像识别" rel="2">
+                                    细粒度图像识别
+                                </a>
                             
         				
                             

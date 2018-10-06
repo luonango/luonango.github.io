@@ -5,9 +5,838 @@
     <description>Every failure is leading towards success.</description>
     <link>http://luonango.github.io/</link>
     <atom:link href="http://luonango.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Sat, 06 Oct 2018 13:08:40 +0800</pubDate>
-    <lastBuildDate>Sat, 06 Oct 2018 13:08:40 +0800</lastBuildDate>
+    <pubDate>Sat, 06 Oct 2018 14:03:04 +0800</pubDate>
+    <lastBuildDate>Sat, 06 Oct 2018 14:03:04 +0800</lastBuildDate>
     <generator>Jekyll v3.0.1</generator>
+    
+      <item>
+        <title>RA-CNN 多尺度循环Attention</title>
+        <description>&lt;h1 id=&quot;ra-cnnattention&quot;&gt;RA-CNN_多尺度循环Attention_区域检测与特征提取协同合作_端到端训练弱监督细粒度图像识别&lt;/h1&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2017_CVPR,  Jianlong Fu &amp;amp; Heliang Zheng &amp;amp; Tao Mei
+微软亚洲研究院
+多尺度循环Attention网络，让区域检测与特征提取相互协作提升。
+提出APN注意力建议子网络（attention proposal sub-network)
+循环精调出Attention区域位置（可以并入反向传播，端到端训练）
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;论文:《&lt;a href=&quot;http://202.38.196.91/cache/9/03/openaccess.thecvf.com/c9a21b1be647ad791694df3a13879276/Fu_Look_Closer_to_CVPR_2017_paper.pdf&quot;&gt;Look Closer to See Better: Recurrent Attention Convolutional Neural Network for Fine-grained Image Recognition&lt;/a&gt;》&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h1 id=&quot;section&quot;&gt;前言&lt;/h1&gt;
+
+&lt;p&gt;细粒度物体识别的难点在于 &lt;strong&gt;判别区域定位(discriminative region localization) 和 基于区域的特征表达(fine-grained feature learning)&lt;/strong&gt; 。&lt;/p&gt;
+
+&lt;p&gt;一般part-based的做法分为两步走：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;1 通过无监督或强监督(指利用box/part标注信息)的方法，分析卷积层的响应，再定位出object区域。&lt;/li&gt;
+  &lt;li&gt;2 提取所有判别区域的特征进行encode，再拿去做识别。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;但是这样有些弊端：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;1 人类标注的box/part 信息 或无监督得到的part区域，未必就是最最最适合机器用于识别的信息（非最优解）。&lt;/li&gt;
+  &lt;li&gt;2 对于相似类别的一些区域，细微的视觉差异仍然难以学习并区分。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;并且作者发现区域检测和细粒度特征学习是相互关联的，因此它们可以相互加强。&lt;/p&gt;
+
+&lt;p&gt;为了解决上述难点及弊端，作者提出无需box/part 标注信息的RA-CNN（recurrent attention CNN)，递归地学习判别区域Attention和基于区域的特征表示，并让它们协同强化。&lt;/p&gt;
+
+&lt;p&gt;#　论文做法：&lt;/p&gt;
+
+&lt;h3 id=&quot;section-1&quot;&gt;网络设计：&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/RA-CNN_architecture_pig1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;多尺度网络：
+    &lt;ul&gt;
+      &lt;li&gt;共享相同的网络结构，但每个尺度的网络有各自的参数，从而适应不同分辨率（不同尺度）的图。&lt;/li&gt;
+      &lt;li&gt;如图有三个尺度的网络（scale1-3), b1-3表示卷积网络。&lt;/li&gt;
+      &lt;li&gt;文中采用VGG19或VGG16作为网络结构。均记载在Imagenet上预训练好的参数。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;分类子网络：
+    &lt;ul&gt;
+      &lt;li&gt;全连接层 + softmax层，c1-c3即为三个分类子网络。&lt;/li&gt;
+      &lt;li&gt;和平时的最后分类结构一样。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;APN（Attention proposal sub-network):
+    &lt;ul&gt;
+      &lt;li&gt;是FC结构，传入网络的输出，输出三个数值 $(t_x,t_y,t_l)$ . 其中$t_x,t_y$表示 区域框的中心点，$t_l$ 表示框边长的一半（为正方形框）。&lt;/li&gt;
+      &lt;li&gt;与其他的方法不同，此处是通过学习得到框的位置及大小。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Crop and Zoom in 操作：
+    &lt;ul&gt;
+      &lt;li&gt;结合APN的输出与前一尺度的图，得到区域框的图后再进行放大。&lt;/li&gt;
+      &lt;li&gt;目的为了提取更细粒度的特征&lt;/li&gt;
+      &lt;li&gt;放大到与scal1的尺度相同，这样网络的输入尺寸也就对应上了。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Loss 问题留在后面再讲。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;乍这么一看，似乎没什么问题，甚至会有“我们也能想到这方法阿”这样的冲动。实际上隐藏了个大boss：“得到APN的输出后，如何在裁剪放大图片的同时，还能保证反向传播顺利完成？”&lt;/p&gt;
+
+&lt;p&gt;(思考 ing….　&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;(好的，我放弃了，看作者怎么变魔术吧…&lt;/p&gt;
+
+&lt;p&gt;论文用Attention mask来近似裁剪操作。 一提到mask 就应该想到mask乘上原图能得到区域图。对的，论文就是定义一个连续的mask函数$M(\cdot)$ ，让反向传播顺利完成。 这个函数$M(\cdot)$ 是二维boxcar函数的变体。&lt;/p&gt;
+
+&lt;p&gt;那么裁剪后的图片结果就是($X$为前一尺度的图,$\odot$表示逐元素乘)：&lt;br /&gt;
+&lt;script type=&quot;math/tex&quot;&gt;x^{att}=X \odot M(t_x,t_y,t_l)&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;令图的左上角(top-right,tl)点为$t_l$ ,右下角(bottom-right,br)。那么APN输出框的左上角$(t_{x(tl)},t_{y(tl)})$和右下角$(t_{x(br)},t_{y(br)})$ 为：&lt;br /&gt;
+&lt;script type=&quot;math/tex&quot;&gt;t_{x(tl)}=t_x - t_l,\quad t_{y(tl)}=t_y - t_l \\
+t_{x(br)}=t_x + t_l,\quad t_{y(br)}=t_y + t_l&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;则连续的mask函数$M(\cdot)$ 为：&lt;br /&gt;
+&lt;script type=&quot;math/tex&quot;&gt;M(\cdot) = \big[h\big(x-t_{x(tl)}\big) - h\big(x-t_{x(br)}\big) \big]\cdot \big[h\big(y-t_{y(tl)}\big) - h\big(y-t_{y(br)}\big) \big]&lt;/script&gt;&lt;br /&gt;
+其中里面的$h(\dot)$是logistic 函数($k=1$时即为sigmoid函数):&lt;br /&gt;
+&lt;script type=&quot;math/tex&quot;&gt;h(x)=\frac{1}{1+ \exp^{-kx}}&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;当$k$足够大时，这个逻辑函数就可认为是step function(阶梯函数)。换句话说，如果点$(x,y)$ 在框内，则 M 对应的值近似为1，否则近似为0。 这样的性质跟二维boxcar函数一样，可以很好地近似裁剪操作。文中让$k=10$.&lt;/p&gt;
+
+&lt;p&gt;接下来是自适应缩放到大尺寸的做法了。论文采用双线性插值来计算目标图$X^{amp}$的点（利用$X^{att}$里对应的四个邻近点）。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;loss&quot;&gt;Loss函数&lt;/h3&gt;
+
+&lt;p&gt;作者为了交替产生准确的区域Attention，切学习出更精细的特征，定义了两种损失函数：$L_{cls}$（intra-scale classification loss，尺度内分类损失）和$L_{rank}$(inter-scale pairwise ranking loss​,尺度间排序损失):&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;L(X)=\sum^3_{s=1}\big\{L_{cls}\big(Y^{(s)},Y^*\big)\big\} + \sum^2_{s=1}\big\{L_{rank}\big(p^{(s)}_t, p^{(s+1)}_t\big)\big\}&lt;/script&gt;
+
+&lt;p&gt;其中$p^{(s)}&lt;em&gt;t$表示s尺度网络的softmax预测向量中对应正确标签$t$的概率值（上面的总架构图有标出）。且$L&lt;/em&gt;{rank}$定义为： &lt;br /&gt;
+&lt;script type=&quot;math/tex&quot;&gt;L_{rank}\big(p^{(s)}_t, p^{(s+1)}_t\big) = \max \big\{0,p^{(s)}_t-p^{(s+1)}_t + margin\big\}&lt;/script&gt;&lt;br /&gt;
+&amp;gt;强迫$p^{(s+1)}_t &amp;gt; p^{(s)}_t + margin$, 让细粒度尺寸的网络以粗尺度网络的预测作为参考，强制细尺度的网络逐步定位出最具判别力的区域，并产生更高的预测值。论文中让margin=0.05。&lt;/p&gt;
+
+&lt;p&gt;最后还有个多尺度特征融合，即让多个尺度网络的最终输出（softmax前一层）进行concat，再并入FC+softmax 得到最终预测值。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;section-2&quot;&gt;训练步骤(交替训练)：&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;1 用在Imagenet上预训练好的VGG网络参数来初始化分类子网络中的卷积层与全连接层的参数&lt;/li&gt;
+  &lt;li&gt;2 初始化APN参数，用分类子网络最后一层卷积层中具有高响应值的区域来初始化$(t_x,t_y,t_l)$&lt;/li&gt;
+  &lt;li&gt;3 固定APN的参数，训练分类子网络直到$L_{cls}$收敛&lt;/li&gt;
+  &lt;li&gt;4 固定分类子网络的参数，训练APN网络直到$L{rak}$收敛&lt;/li&gt;
+  &lt;li&gt;5 交替循环步骤3、4，直到两个网络损失都收敛。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;此外，论文还仔细分析了关于Attention Learning问题，即为什么Attention mask函数能正确更新 $(t_x,t_y,t_l)$的问题。并且论文中还通过导数图(derivative)分析了不同情况下 $(t_x,t_y,t_l)$它们各自的更新方向。&lt;br /&gt;
+&amp;gt;导数图:  计算导数范数的负平方(negative square of the norm of the derivatives), 获得与人类感知一致的优化方向. 参考自&lt;a href=&quot;https://arxiv.org/abs/1511.06789&quot;&gt;2015_ECCV_The Unreasonable Effectiveness of Noisy Data for Fine-Grained Recognition&lt;/a&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;section-3&quot;&gt;小小总结&lt;/h1&gt;
+
+&lt;p&gt;论文提出的RA-CNN，无需box/part 标注信息就能挺好地学习判别区域Attention和基于区域的特征表示，最后得出来的Attention 区域如APN1输出的裁剪框和人类标注的物体框特别接近，同时最终分类结果甚至优于其他基于强监督信息的方法。&lt;/p&gt;
+
+&lt;p&gt;让我惊艳的是论文采用Attention mask来近似裁剪操作，从而让反向传播顺利进行。并且$L_{rank}$(inter-scale pairwise ranking loss​,尺度间排序损失)的设计也很巧妙合理。这些解决问题思路方法都值得好好思考思考。&lt;/p&gt;
+
+&lt;p&gt;同时论文提到的导数图（导数范数的负平方与人类感知的优化方向一致），这个我还是第一次听说，有时间得好好理解学习下。&lt;/p&gt;
+</description>
+        <pubDate>Fri, 28 Sep 2018 00:00:00 +0800</pubDate>
+        <link>http://luonango.github.io/2018/09/28/RA-CNN_%E5%A4%9A%E5%B0%BA%E5%BA%A6%E5%BE%AA%E7%8E%AFAttention_%E5%8C%BA%E5%9F%9F%E6%A3%80%E6%B5%8B%E4%B8%8E%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%8D%8F%E5%90%8C%E5%90%88%E4%BD%9C_%E7%AB%AF%E5%88%B0%E7%AB%AF%E8%AE%AD%E7%BB%83%E5%BC%B1%E7%9B%91%E7%9D%A3%E7%BB%86%E7%B2%92%E5%BA%A6%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/</link>
+        <guid isPermaLink="true">http://luonango.github.io/2018/09/28/RA-CNN_%E5%A4%9A%E5%B0%BA%E5%BA%A6%E5%BE%AA%E7%8E%AFAttention_%E5%8C%BA%E5%9F%9F%E6%A3%80%E6%B5%8B%E4%B8%8E%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96%E5%8D%8F%E5%90%8C%E5%90%88%E4%BD%9C_%E7%AB%AF%E5%88%B0%E7%AB%AF%E8%AE%AD%E7%BB%83%E5%BC%B1%E7%9B%91%E7%9D%A3%E7%BB%86%E7%B2%92%E5%BA%A6%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/</guid>
+        
+        <category>细粒度图像识别</category>
+        
+        <category>Attention</category>
+        
+        <category>区域检测</category>
+        
+        <category>Attention mask</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>用SE结构的Multi-Attention Multi-Class约束</title>
+        <description>&lt;h1 id=&quot;semulti-attentionnpairloss&quot;&gt;用SE结构的Multi-Attention在同类或不同类上的进行约束_采用NpairLoss弱监督细粒度图像识别&lt;/h1&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2018_ECCV,  Ming Sun &amp;amp; Baidu
+用多个SE结构获得部位的Attention，再用N-pair Loss 对这些Attention进行约束。
+使得不同SE结构生成不同的部位Attention，完成弱监督细粒度图像识别。
+还提供了 Dogs-in-the-Wild 数据集。
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;论文:《&lt;a href=&quot;https://arxiv.org/pdf/1806.05372v1.pdf&quot;&gt;Multi-Attention Multi-Class Constraint for Fine-grained Image Recognition&lt;/a&gt;》&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h1 id=&quot;section&quot;&gt;引言&lt;/h1&gt;
+
+&lt;p&gt;现有的基于Attention的细粒度图像识别方法大多都没有考虑 Object part的相关性。而且以往大多方法都用multi-stage 或者 multi-scale机制，导致效率不高切难以end-to-end训练。&lt;/p&gt;
+
+&lt;p&gt;此论文提出能调节不同输入图像的不同部位(object-part)的关系:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;基于SE设计One-squeeze multi-excitation(OSME)方法去学习每张图的每个关注区域特征。&lt;/li&gt;
+  &lt;li&gt;再用Multi-attention multi-class constraint(MAMC)方法让同类别图像具有类似的Attention，而不同类别的图像具有不一样的Attention。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;此方法效率高且容易end-to-end训练。&lt;/p&gt;
+
+&lt;p&gt;此外，论文还提供Dogs-in-the-Wild的综合狗种数据集。它按类别覆盖范围，数据量和注释质量超过了类似的现有数据集。&lt;/p&gt;
+
+&lt;h1 id=&quot;section-1&quot;&gt;思路&lt;/h1&gt;
+
+&lt;p&gt;强监督信息的细粒度图像分类的方法依赖于object part 标注，但标注这些信息开销很大，故弱监督信息的方法得到重视。但目前基于弱监督信息的细粒度图像分类的方法或多或少有着下面几个缺点：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;额外步骤. 如增加额外的regions才能进行part localization 和 feature extraction，这导致计算量增大。&lt;/li&gt;
+  &lt;li&gt;训练步骤复杂. 因为构建的结构复杂，需要多次交替或级联训练。&lt;/li&gt;
+  &lt;li&gt;单独检测object part，而忽略它们的相关性 (这是最重要的)， 学习到的注意力模块可能只集中在相同的区域。假如好好利用“具有区分性的特征”，可能可以让注意力模块学习出多个不同的部位。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;文中提出细粒度图像分类的三个准则：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;检测的部位应该很好地散布在物体身上，并提取出多种不相关的features&lt;/li&gt;
+  &lt;li&gt;提取出的每个part feature都应该能够区分出一些不同的类别&lt;/li&gt;
+  &lt;li&gt;part extractors（部位检测器）应该能轻便使用。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;然后论文就提出了满足这些准则的弱监督信息分类方案：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Attention用什么？ 用SENet的方案，设计one-squeeze multi-excitation module (OSME)来定位不同的部分。和现有的方法不同，现有的方法大多是裁剪出部位，再用额外的网络结构来前馈该特征。SEnet的输出可以看做soft-mask的作用。&lt;/li&gt;
+  &lt;li&gt;如何让Attention学习出多个不同的部位？ 受到度量学习损失的启发（如TribleLoss），提出multi-attention multi-class constraint (MAMC) ，鼓励”same-calss和same-attention”的特征 和 “same-calss和different-attention”的特征 距离更接近。&lt;/li&gt;
+  &lt;li&gt;现有的大多方法需要多个前馈过程或者多个交替训练步骤，而论文的方法是端到端的训练。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;section-2&quot;&gt;相关工作&lt;/h1&gt;
+
+&lt;p&gt;在细粒度图像识别的任务中，由于类间差异是微妙的，需要特征的区分学习和对象部位定位。 一种直接的方法是手动在object parts上进行标注，并进行监督学习（强监督信息）。但是获得object part的标注开销巨大，基于弱监督信息的识别机制也就相应被提出。 如STN（空间变换网络）让人脸进行对齐（end2end方式）、如双线性模型( bilinear models)让特征提取和object part定位的两个模型协调合作。 但是论文方法不需要裁剪就可以直接提取object part的特征，切可以高效地拓展到多个object parts。&lt;/p&gt;
+
+&lt;p&gt;深度量度学习是学习测量样本对之间的相似性。经典度量学习可认为是学习pairs of points间的 Mahalanobis distance。：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Siamese网络制定的深度度量学习是：最小化正对之间的距离，同时保持负对分开。&lt;/li&gt;
+  &lt;li&gt;Triplet Loss 通过优化三个样本中的正对和一个负对的相对距离。虽然在细粒度产品搜索时很有效，但triplet loss 只考虑一个negative sample, 导致训练速度慢，并且易导致局部最小值。&lt;/li&gt;
+  &lt;li&gt;N-pair Loss 考虑训练中的多个负样本，使用N元组，缓解了Triple Loss问题。&lt;/li&gt;
+  &lt;li&gt;Angular Loss 增强了N-pair Loss。考虑角度关系作为相似性度量增加了三阶几何限制，捕获了triplet triangles的附加局部结构，收敛更好。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;section-3&quot;&gt;提出的方案&lt;/h1&gt;
+
+&lt;p&gt;如下图，每个SE结构用于提取不同object-part的soft-mask（即注意的区域），即OSME模块是对每张图片提取P个特征向量（P个object-part的特征）。&lt;/p&gt;
+
+&lt;p&gt;传入多张同类或不同类别的图片，最后得到的Attention传入MAMC中进行学习，让同类的Attention尽量相近，不同类的Attention尽量不一样。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/MAMC_overview_pig1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;如何将提取的Attention特征引导到正确的类标签？ 直接做法是softmax损失对这soft-mask（连续注意力）进行评估。但这方法无法调节Attention features 之间的相关性。 另一类方法是迭代地从粗略生成精细的Attention区域，但由于当前预测依赖于前一次预测，在训练过程中，初始误差会被迭代放大，需要强化学习或者仔细初始化才能较好解决这问题。&lt;/p&gt;
+
+&lt;p&gt;而论文提出 multi-attention multi-class constraint (MAMC) 来探索更丰富的object-parts的相关性。&lt;/p&gt;
+
+&lt;p&gt;假设现有训练图像${(x,y),…}$ 共 $K$ 张, 和N-pair Loss论文的做法一样，采样出 $N$ 对样本:$B={(x_i,x^+&lt;em&gt;i,y_i),…}$,其中$x_i$和$x^+_i$都属于$y_i$类，集合 $B$ 中共有 $N$ 类图片。 对于每对样本 $(x_i,x^+_i)$, 用OSME提取出的P个特征向量为: ${f^p_i,f^{p+}_i}^P&lt;/em&gt;{p=1}$&lt;/p&gt;
+
+&lt;p&gt;对于$y_i$类在第 $p$ 个Attention结构得到的特征向量$f^p_i$ 来说，其他的features可以分为四类：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;same-attention same-class features: $S_{sasc}(f^p_i)={f^{p+}_i}$&lt;/li&gt;
+  &lt;li&gt;same-attention different-class features: $S_{sadc}(f^p_i)={f^p_j, f^{p+}&lt;em&gt;j}&lt;/em&gt;{j \neq i}$&lt;/li&gt;
+  &lt;li&gt;different-attention same-class features: $S_{dasc}(f^p_i)={f^q_i, f^{q+}&lt;em&gt;i}&lt;/em&gt;{p \neq q}$&lt;/li&gt;
+  &lt;li&gt;different-attention different-class features: $S_{dadc}(f^p_i)={f^q_j, f^{q+}&lt;em&gt;j}&lt;/em&gt;{j\neq i , p \neq q}$&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;那么下面给出那些是需要和$f^p_i$相近的，那些是需要远离$f^p_i$的集合定义，即对于$f^p_i$来说，正负集合的定义：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Same-attention same-class:
+    &lt;ul&gt;
+      &lt;li&gt;$P_{sasc}=S_{sasc},\quad N_{sasc}=S_{sadc} \bigcup S_{dasc}\bigcup S_{dadc}$&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Same-attention different-class:
+    &lt;ul&gt;
+      &lt;li&gt;$P_{sadc}=S_{sadc},\quad N_{sadc}=S_{dadc}$&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Different-attention same-class:
+    &lt;ul&gt;
+      &lt;li&gt;$P_{dasc}=S_{dasc},\quad N_{dasc}=S_{dadc}$&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;所以对于任何正例集合$P\in {P_{sasc},P_{sadc},P_{dasc}}$ 和负例集合 $N\in {N_{sasc},N_{sadc},N_{dasc}}$ , 我们希望当前的部位特征 $f^p_i$ 和正例集合距离越近，而和负例集合距离越远. 令 $m &amp;gt; 0$ 为distance margin，则：&lt;br /&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\mid\mid f^p_i - f^+\mid\mid^2 + m \leq \mid\mid f^p_i - f^-\mid\mid,\quad \forall f^+ \in P,\quad f^- \in N&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;那就可以设计 hinge loss为:&lt;br /&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\begin{equation*}
+\big[\mid\mid f^p_i - f^+\mid\mid^2 -  \mid\mid f^p_i - f^-\mid\mid + m \big]_+
+\end{equation*}&lt;/script&gt;&lt;br /&gt;
+上述式子虽然广泛采用standard triplet sampling 来优化，但实际中会出现收敛慢、性能不稳定的问题。论文采用2016年出来的N-pair Loss 来优化上式：&lt;br /&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\begin{equation*}
+L^{np} = \frac{1}{N} \sum_{f^p_i \in B}\big\lbrace \sum_{f^+\in P} \log \big(1+\sum_{f^-\in N} exp(f^{pT}_i f^- - f^{pT}_if^+) \big)  \big\rbrace
+\end{equation*}&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;那么最终的loss定义为:&lt;br /&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\begin{equation*}
+L^{mamc}=L^{softmax} + \lambda \big(L^{np}_{sasc} + L^{np}_{sadc}+ L^{np}_{dasc} \big)
+\end{equation*}&lt;/script&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;section-4&quot;&gt;个人小总结&lt;/h1&gt;
+
+&lt;p&gt;该方法在 CUB-200-2011、Stanford Dogs、Stanford Cars 以及论文贡献的Dogs-in-the-Wild数据集。 文中介绍了这些数据集，并且列举了许多其他方法在这些数据集上的结果以及细节（如是否采用部件级标注信息、是否能一次性训练完），这些表格数据信息实在是感人。&lt;/p&gt;
+
+&lt;p&gt;文中从SENet得到启发，让SE的输出为部位的Attention，期望多个SE结构来分别学习不同部位的Attention。 为了达成这个想法，作者先对Attention出来的特征进行划分正负样例集合，利用了度量学习的N-pair Loss，引导不同的SE结构学习不同的部位。&lt;/p&gt;
+
+&lt;p&gt;文中方法是基于弱监督信息的图像识别，文章大体流程清晰明朗。虽未找到论文代码，但复现起来难度应该不会特别大（需要注意训练过程中的N-pair Loss，以及正负例的归属）。&lt;/p&gt;
+
+&lt;p&gt;关于N-pair Loss的解释及公式的理解，请移步至下面链接：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://www.nec-labs.com/uploads/images/Department-Images/MediaAnalytics/papers/nips16_npairmetriclearning.pdf&quot;&gt;N-pair Loss论文：2016_nips_Improved Deep Metric Learning with Multi-class N-pair Loss Objective&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/45014864&quot;&gt;理解公式的参考链接：从最优化的角度看待Softmax损失函数&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/LogSumExp&quot;&gt;理解公式的参看链接：LogSumExp&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Fri, 28 Sep 2018 00:00:00 +0800</pubDate>
+        <link>http://luonango.github.io/2018/09/28/Multi-Attention-Multi-Class-%E7%BA%A6%E6%9D%9F%E7%9A%84%E5%BC%B1%E7%9B%91%E7%9D%A3%E7%BB%86%E7%B2%92%E5%BA%A6%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/</link>
+        <guid isPermaLink="true">http://luonango.github.io/2018/09/28/Multi-Attention-Multi-Class-%E7%BA%A6%E6%9D%9F%E7%9A%84%E5%BC%B1%E7%9B%91%E7%9D%A3%E7%BB%86%E7%B2%92%E5%BA%A6%E5%9B%BE%E5%83%8F%E8%AF%86%E5%88%AB/</guid>
+        
+        <category>细粒度图像识别</category>
+        
+        <category>Attention</category>
+        
+        <category>SE结构</category>
+        
+        <category>弱监督信息</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>ShufflenetV2_高效网络的设计指南</title>
+        <description>&lt;h1 id=&quot;shufflenetv2&quot;&gt;ShufflenetV2_高效网络的设计指南&lt;/h1&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2018年 清华大学&amp;amp;Face++ Ningning Ma 
+提出指导高效CNN网络设计的4种方案，并改进了shufflenetv1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;section&quot;&gt;背景介绍&lt;/h2&gt;
+
+&lt;p&gt;在高效网络上（特别是移动端），网络必须在有限的计算能力中达到最优的精度。 目前很多论文研究着 &lt;strong&gt;轻量级架构设计和速度-精度的权衡&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;比如Xception、MobileNet、MobileNetv2、ShuffleNet、CondenseNet等等。在这些有效的网络结构中，&lt;strong&gt;Group Convolution(组卷积) 和 Depth-wise convolution（深度卷积）&lt;/strong&gt; 起到关键性作用。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;ul&gt;
+    &lt;li&gt;组卷积 Group Convolution：
+      &lt;ul&gt;
+        &lt;li&gt;将feature map拆分成几组，分别进行卷积，最后再将卷积结果的feature map 合并。&lt;/li&gt;
+        &lt;li&gt;最早在AlexNet中出现。因为当时GPU内存有限，逼迫将feature map拆分到两个GPU上分别卷积再融合。&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+    &lt;li&gt;深度卷积 Depth-wise convolution：
+      &lt;ul&gt;
+        &lt;li&gt;对每一个通道进行各自的卷积，输出相同的通道数，再用进行跨通道的标准$1*1$ 卷积来融合信息&lt;/li&gt;
+        &lt;li&gt;Xception 就是典型的代表&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+    &lt;li&gt;极大减少了参数，性能还有点提高（未知有无理论证明能完全替代普通卷积）。Alex认为组卷积实现类似正则的作用。&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;速度(Speed)是直接指标，但不同设备不好比较， 故以往常用 FLOPs（乘或加的次数）来度量复杂度。但FLOP是一种间接指标，它不能直接作为评判的标准（如Mobilev2和Nasnet相比，他们的Flops相似，但是前者快很多）。&lt;br /&gt;
+&amp;gt; 个人体会： &lt;br /&gt;
+&amp;gt; &lt;br /&gt;
+&amp;gt; - 在WRN和Resnet上，WRN的Flops和参数量远大于Resnet情况下，WRN比Resnet快很多。且ResNext比WRN慢很多。&lt;br /&gt;
+&amp;gt; - shufflenetv2论文中在两种硬件环境中测试四种不同速度和FLOPs的网络结构。观察知道FLOPs不能替代Speed这评判指标。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;间接指标(Flops)和直接指标（速度）之间存在差异有两种：
+    &lt;ul&gt;
+      &lt;li&gt;对速度影响较大的因素，但没有影响到FLOPs。
+        &lt;ul&gt;
+          &lt;li&gt;如&lt;strong&gt;内存访问成本(MAC, memory access cost)&lt;/strong&gt;,它在如组卷积中占大量运行时间，导致MAC是瓶颈。&lt;/li&gt;
+          &lt;li&gt;又如&lt;strong&gt;并行度(degree of parallelism)&lt;/strong&gt;，FLOPs相同情况下，高并行的模型可能会快很多。&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;运行平台不同。
+        &lt;ul&gt;
+          &lt;li&gt;相同的FLOPs的运算在不同的平台上运行也会导致速度差异。&lt;/li&gt;
+          &lt;li&gt;如以前会采用张量分解来加速矩阵乘法，但张量分解在GPU上运行会慢很多。作者调查发现最近的CUDNN库中有专门为$3*3$ 卷积进行了优化，也就是说张量分解后的运行速度有可能慢与优化库中的张量乘法。&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;于是作者认为高效网络架构的设计应该考虑两个基本原则：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;用直接指标（如速度）评估，而不是间接指标（如Flops)。&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;在同一环境平台上进行评估。&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;论文也是按照这两个原则，对多种网络（包括shufflenetv2)进行评估。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-1&quot;&gt;高效网络设计的实用准则&lt;/h2&gt;
+
+&lt;p&gt;作者发现 组卷积和深度卷积是目前较优网络的关键，且FLOPs数仅和卷积有关。虽然卷积操作耗费大量时间，但是其他内部过程如 I/O、data shuffle、element-wise操作(Add、ReLU等)都会耗费一定的时间。&lt;/p&gt;
+
+&lt;p&gt;作者提出设计高效网络的4条准则：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;G1 相同通道宽度可以最小化内存访问成本MAC。&lt;/li&gt;
+  &lt;li&gt;G2 过多的组卷积会增加内存访问成本MAC&lt;/li&gt;
+  &lt;li&gt;G3 网络内部碎片操作会降低并行度&lt;/li&gt;
+  &lt;li&gt;G4 Element-wise操作不容忽视&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;g1-mac&quot;&gt;G1 相同通道宽度可以最小化内存访问成本MAC&lt;/h4&gt;
+
+&lt;p&gt;考虑无bias的$1*1$卷积。如果输入的通道数为$c_1$, 卷积后输出通道数为$c_2$. 让 $h,w$ 分别表示feature map的高和宽。假设cache足够大。&lt;/p&gt;
+
+&lt;p&gt;那么普通卷积的Flops数为 $B=hw c_1 c_2$&lt;/p&gt;
+
+&lt;p&gt;则$MAC=hw(c_1+c_2)+ c_1 c_2$.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;tips: &lt;br /&gt;
+$hw(c_1+c_2)$ 为这两层各自的输出值(activate)，$c_1 c_2$ 为两层间卷积核的参数量。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;则得出：$MAC \geq 2\sqrt{hwB}+\frac{B}{hw}$&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;tips: &lt;br /&gt;
+$(c_1 + c_2)^2 \geq 4c_1 c_2 \Rightarrow c_1+c_2\geq 2\sqrt{c_1c_2} \Rightarrow hw(c_1+c_2) + c_1c_2 \geq 2hw\sqrt{c_1c_2} + \frac{B}{hw} \Rightarrow MAC \geq 2\sqrt{c_1c_2B}+\frac{B}{hw}$&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;上面不等式指出，同FLOPs情况下，如果相邻两层它们的通道数相等时，MAC将达到最小值。文中采用简单两层卷积网络，实验验证了这结果。&lt;/p&gt;
+
+&lt;p&gt;但是实际情况下G1的前提条件“cache足够大”不一定满足。设备缓存不够大时很多计算库会采用复杂的缓存机制，这会导致MAC值和理论值有偏差。&lt;/p&gt;
+
+&lt;h4 id=&quot;g2-mac&quot;&gt;G2 过多的组卷积会增加内存访问成本MAC&lt;/h4&gt;
+
+&lt;p&gt;组卷积能够大量减少FLOPs，也成功被应用于多种优秀网络。&lt;/p&gt;
+
+&lt;p&gt;延续G1中的符号定义及公式，此处的FLOPs为$B=hwc_1c_2 / g$,则&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{align}
+MAC =&amp; hw(c_1+c_2) + \frac{c_1c_2}{g}\\
+    =&amp; hwc_1 + \frac{Bg}{c_1} + \frac{B}{hw}
+\end{align} %]]&gt;&lt;/script&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;tips: $\frac{c_1c_2}{g}=\frac{c_1}{g} \cdot \frac{c_1}{g}$, $B=hw\frac{c_1}{g}\frac{c_2}{g} \cdot g$&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;从式子看出，若组卷积的组数 $g$ 增加，则 MAC 也会增大。故太多的组卷积会增加内存访问成本。&lt;/p&gt;
+
+&lt;p&gt;文中采用控制变量法实验验证了这准则。&lt;/p&gt;
+
+&lt;h4 id=&quot;g3-&quot;&gt;G3 网络内部碎片操作会降低并行度&lt;/h4&gt;
+
+&lt;p&gt;碎片(Fragmentation)是指多分支上，每条分支上的小卷积或pooling等（如外面的一次大的卷积操作，被拆分到每个分支上分别进行小的卷积操作）。&lt;/p&gt;
+
+&lt;p&gt;如在NasNet-A就包含了大量的碎片操作，每条分支都有约13个操作，而ResnetV1上就只有2或3个操作。虽然这些Fragmented sturcture能够增加准确率，但是在高并行情况下降低了效率，增加了许多额外开销（内核启动、同步等等）。&lt;/p&gt;
+
+&lt;p&gt;文中采用控制变量实验验证了这准则。&lt;/p&gt;
+
+&lt;h4 id=&quot;g4-element-wise&quot;&gt;G4 Element-wise操作不容忽视&lt;/h4&gt;
+
+&lt;p&gt;Element-wise操作指的是 ReLU、AddTensor、AddBias等等。虽然这些操作只增加了一点点FLOPs，但是会带来很高的MAC，尤其是Depthwise Convolution深度卷积。&lt;/p&gt;
+
+&lt;p&gt;文中采用‘bottleneck’单元，进行了一系列对比实验，验证了这准则。&lt;/p&gt;
+
+&lt;h4 id=&quot;g1-g4&quot;&gt;G1-G4的总结：&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;平衡相邻层的卷积核数&lt;/li&gt;
+  &lt;li&gt;留意组卷积带来的开销&lt;/li&gt;
+  &lt;li&gt;减少碎片化的程度&lt;/li&gt;
+  &lt;li&gt;减少Element-wise操作&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;讨论其他的网络：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;ShuffleNet-V1 严重依赖组卷积，违背了G2。&lt;/li&gt;
+  &lt;li&gt;Bottleneck结构违背了G1&lt;/li&gt;
+  &lt;li&gt;MobileNet-V2 采用了反转bottleneck（违背了G1），且用到了Depth-wise、以及在feature map上采用relu这些trick，违背了G4.&lt;/li&gt;
+  &lt;li&gt;自动搜索生成的网络结构（如NasNet）有很高的碎片，违背了G3.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;shufflenet-v2-&quot;&gt;ShuffleNet V2 架构&lt;/h2&gt;
+
+&lt;p&gt;基于上面种种分析，作者着手改进ShuffleNet V1。&lt;/p&gt;
+
+&lt;p&gt;首先ShuffleNetV1是在给定的计算预算（FLOP）下，为了增加准确率，选择采用了 逐点组卷积 和 类似瓶颈的结构，且还引入了 channel shuffle操作. 如下图的(a)、(b)所示。&lt;/p&gt;
+
+&lt;p&gt;很明显，逐点组卷积 和 类似瓶颈的结构 增加了MAC（违背G1和G2），采用了太多组卷积违背了G3， ‘Add’ 操作违背了G4，因此关键问题在于如何保持大量同宽通道的同时，让网络非密集卷积也没太多组卷积。&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;shufflenet_V1&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;shufflenet_V2&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;&amp;lt;img src=”./pictures/shufflenet_v1.png”,width=”500”&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;&amp;lt;img src=”./pictures/shufflenet_v2.png”,width=”500”&amp;gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;DWConv：深度卷积 (depthwise convolution), GConv：组卷积 (group convolution)&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;ShuffleNetV2 引入通道分割（channel split）操作, 将输入的feature maps分为两部分$c-c’$ 和 $c’$. 根据G3， 一个分支为shortcut流，另一个分支含三个卷积（且三个分支的通道数一样，满足G1）。 满足G2： 两个$1*1$卷积不采用组卷积操作，因为前面的通道分割已经做了分组，降低了组数。&lt;/p&gt;
+
+&lt;p&gt;之后分支合并采用拼接（concat），让前后的channel数一样(满足G1). 然后再进行Channel Shuffle（完成和ShuffleNetV1一样的功能）。&lt;/p&gt;
+
+&lt;p&gt;shuffle后，以往的ShuffleNetV1是再接一个ReLu（Element-wise）操作，此处将其移到卷积分支中。 另外三个连续的Element-wise操作：通道分割、concat、shuffle合并成一个Element-wise操作，这满足了G4. 具体看图(c).&lt;/p&gt;
+
+&lt;p&gt;ShuffleNetV2 的空间下采样模块经过些修改，去掉了通道分割，输出的通道数翻倍。详情看图(d).&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;这是合理的做法，因为下采样后，feature map的尺寸降低了，通道数翻倍是自然的。保证了前后两个模块的运算量相近（VGG提出的这思路，后来大家默认这么做了）。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;section-2&quot;&gt;讨论&lt;/h2&gt;
+
+&lt;p&gt;ShuffleNet-V2 不仅高效，还高准确率。导致的原因有：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;每个构建块都很高效，从而能利用更多的feature maps 和 更大的网络容量&lt;/li&gt;
+  &lt;li&gt;特征重用(feature reuse)
+    &lt;ul&gt;
+      &lt;li&gt;因为通道分割，从而有一半(论文设置为$c’=c/2$)的特征直接传到下一个模块中。&lt;/li&gt;
+      &lt;li&gt;这和DenseNet 以及CondenseNet 思想相近。&lt;/li&gt;
+      &lt;li&gt;DenseNet分析feature reuse模式发现，越相近的模块，它们的传来的shortcut特征的重要性越大。 CondenseNet也支持类似的观点。&lt;/li&gt;
+      &lt;li&gt;ShuffleNet-V2也是符合这样的观点, 特征重用信息随着两个模块间的距离呈指数衰减。即$(i+j)$层的feature maps中，含有$i$ 层feature maps数为$r^j c$，其中$c$为$i$ 层的feature maps数，$r$ 为通道分割的参数，论文设为$r=0.5$.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;此篇论文实属业界良心，从源头分析每一步会造成的开销，从理论分析，到控制变量法做足实验，总结出 4 条准则，指导大家设计更高效的网络。&lt;/p&gt;
+
+&lt;p&gt;G1准则（相同通道宽度）从VGG、Resnet后大家几乎都默认遵循了， 而G2准则（组卷积问题）很多网络在违背着。主要是组卷积能够提高准确率，但很有意思的是，用了组卷积速度会慢很多，但直到shuffnetv2才开始分析原因（存疑，笔者没找到更早的关于组卷积会变慢的分析）。而组卷积为什么会变好？  “Alex认为group conv的方式能够增加filter之间的对角相关性，而且能够减少训练参数，不容易过拟合，这类似于正则的效果。” (参考自&lt;a href=&quot;https://blog.csdn.net/Chaolei3/article/details/79374563&quot;&gt;对深度可分离卷积、分组卷积、扩张卷积、转置卷积（反卷积）的理解&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;至于G3准则，文中主要还是对 自主搜索网络结构 方面的工作（如NasNet 进行批判）。这或许可以在自主搜索网络结构方面加上相应的损失函数，从而让搜索出的网络结构除了高准确率外，还具备高效的能力。&lt;/p&gt;
+
+&lt;p&gt;违背G4准则是必不可免的。毕竟基于优秀网络上的改进，很多是增加一些Element-wise操作，从而获得准确率的提升。 但ShuffleNetV2告诉了我们，Element-wise操作可以简化（如relu的移位）。&lt;/p&gt;
+
+&lt;p&gt;如果让网络变得精简的话，这可能会让网络获得意想不到的提升，比如WRN就是特别精简的网络，打败了众多妖魔鬼怪。&lt;/p&gt;
+
+&lt;p&gt;论文还提到了特征重用(Feature reuse)的观点，这也是Densenet的关键。 感觉很多网络，用上了特征重用的方法（Densenet类型、Resnet类型、残差金字塔类型等等），效果就会变得不错。之后需要多了解这方面的论文和方法。&lt;/p&gt;
+
+</description>
+        <pubDate>Sat, 25 Aug 2018 00:00:00 +0800</pubDate>
+        <link>http://luonango.github.io/2018/08/25/ShufflenetV2_%E9%AB%98%E6%95%88%E7%BD%91%E7%BB%9C%E7%9A%84%E8%AE%BE%E8%AE%A1%E6%8C%87%E5%8D%97/</link>
+        <guid isPermaLink="true">http://luonango.github.io/2018/08/25/ShufflenetV2_%E9%AB%98%E6%95%88%E7%BD%91%E7%BB%9C%E7%9A%84%E8%AE%BE%E8%AE%A1%E6%8C%87%E5%8D%97/</guid>
+        
+        <category>shufflenetv2</category>
+        
+        <category>网络设计</category>
+        
+        <category>组卷积</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>促使残差零响应，并裁剪Resnet的block</title>
+        <description>&lt;h1 id=&quot;resnetblock&quot;&gt;促使残差零响应，并裁剪Resnet的block&lt;/h1&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2018年,  Xin Yu. Utah&amp;amp;NVIDIA
+让ResV2的残差倾向0响应，从而学习严格的IdentityMapping
+剪去冗余零响应残差，让预测网络参数量少且精度不变
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;论文:《&lt;a href=&quot;https://arxiv.org/abs/1804.01661v3&quot;&gt;Learning Strict Identity Mappings in Deep Residual Networks&lt;/a&gt;》&lt;/p&gt;
+
+&lt;p&gt;基于pre-act Resnet，文章中提出的 $\epsilon-ResNet$能自动丢弃产生的响应小于阈值的残差块， 让网络性能略有下降或没有损失。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h1 id=&quot;section&quot;&gt;引言&lt;/h1&gt;
+
+&lt;p&gt;Resnet论文中提到 &lt;em&gt;“我们推测，优化带残差的网络比以前的网络起来更容易。在极端情况下，如果身份映射是最优的，那么将残差被推到零，这比通过一堆非线性层去拟合身份映射更容易”&lt;/em&gt;。&lt;/p&gt;
+
+&lt;p&gt;然而实际情况中，深网络并不能完美地让一些残差块的输出接近0，该论文提出促进零残差的方法，即让网络学习严格意义上的身份映射关系。&lt;/p&gt;
+
+&lt;p&gt;为了测试深度对残差网络的影响，文中设计从100-300层的残差网络，测试它们在cifar10上的精度。  实验发现随着深度，精度会呈微弱上升的趋势，但波动很大。因此想： 对于训练N层的残差网络，能否找到一个层数远低于N的子网络，让其性能相当？&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h1 id=&quot;section-1&quot;&gt;本文方法&lt;/h1&gt;
+
+&lt;p&gt;对于Resnet中，映射函数$H(x)=x+F(x)$.  于是本文作者修改为$H(x)=x+S\big(F(x)\big)$. 其中若$F(x)$ 小于阈值$\boldsymbol{\epsilon}$, 则$S\big(F(x)\big)=\boldsymbol{0}$.如果$F(x)$的响应值都不小，那么$S\big(F(x)\big)=F(x)$ . $S(\cdot)$为sparsity-promoting function.&lt;/p&gt;
+
+&lt;p&gt;如果某残差块使用提出的变量产生0响应时，交叉熵项与L2组成的损失函数将把那么它的filter权值推到0。因此在预测时，就可以将这些残差块给删去。&lt;/p&gt;
+
+&lt;p&gt;看起来整体思想简单合理，我们拆分得三个子问题：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;1 如何让$F(x_i)$小于阈值$\boldsymbol{\epsilon_i}$时输出0响应值？&lt;/li&gt;
+  &lt;li&gt;2 如何让 对应的残差块参数更新推向0？&lt;/li&gt;
+  &lt;li&gt;3 预测时如何删去残差块？（这个其实不算问题了，手动删都可以实现了）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;fxiboldsymbolepsiloni0&quot;&gt;问题1：如何让$F(x_i)$小于阈值$\boldsymbol{\epsilon_i}$时输出0响应值&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/4_ReLU_to_zero_or_one.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
+文中采用4个ReLU结构，解决了这个问题（看图）。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;(a,b)表示: $a\cdot F(x_l) + b$ . 参考自论文《Highway Networks》提出的方法。&lt;/li&gt;
+  &lt;li&gt;对于$F(x_l)&amp;gt;\epsilon$ 或者 $F(x_l)&amp;lt; - \epsilon$ , $S(F(x_l))= F(x_l)$：&lt;/li&gt;
+  &lt;li&gt;对于$\mid F(x_l)\mid &amp;lt; \epsilon$ 则 $S(F(x_l))= 0$.&lt;/li&gt;
+  &lt;li&gt;$\epsilon$是阈值。$L$是个极大的正数。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;建议模拟下，这四个ReLU的设计还是挺有意思的.&lt;/p&gt;
+
+  &lt;p&gt;但笔者觉得还是有点问题，如果$F(x_l)&amp;gt;\epsilon, and \; F(x_l) \rightarrow \epsilon$时，在第三个ReLU中，如何保证$L\cdot\big(F(x_l)- \epsilon\big) + 1 &amp;lt;0 $ ? 这样到最后到第四个ReLU的输出，不能保证输出为1。&lt;/p&gt;
+
+  &lt;p&gt;当然这也是当$F(x_l)= \epsilon + \sigma$ 且$\sigma &amp;lt; \frac{1}{L}$ 时才会出现问题。&lt;br /&gt;
+不过这已经满足这个结构的需求。&lt;/p&gt;
+
+  &lt;p&gt;其实如果采用Mxnet.gluon框架，用代码:&lt;/p&gt;
+
+  &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;S = (F &amp;gt; epsilon) * F
+&lt;/code&gt;&lt;/pre&gt;
+  &lt;/div&gt;
+
+  &lt;p&gt;就可以实现这个结构功能。 但得到的$S$是ndarray格式，这不是符号流的代码。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;section-2&quot;&gt;问题2：如何让 对应的残差块参数更新推向0 ？&lt;/h3&gt;
+
+&lt;p&gt;当$F(x_l)$特别小时，稀疏促进函数$S$ 的输出为0. 所以这些参数从交叉熵损失函数获得的梯度为0。&lt;/p&gt;
+
+&lt;p&gt;但损失函数中还有正则项，正则项会为这些参数提供梯度，从而让这些参数越来越小（推向0）。&lt;/p&gt;
+
+&lt;p&gt;残差块中某层的权重直方图如下所示，当残差块被认定可裁剪时，它的参数被迅速收敛到0：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/weight_collapse.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;这样所有问题就解决了。&lt;/p&gt;
+
+&lt;p&gt;论文还添加了side-supervision，即在损失函数上，除了原先的交叉熵、L2正则项外，还增加了side-loss：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;假设还存在N个残差块，那么用N/2 个残差块输出来计算side-loss：
+    &lt;ul&gt;
+      &lt;li&gt;对侧面的输出后添加全连接层(最后一层输出维度是类别数)、Softmax、交叉熵。&lt;/li&gt;
+      &lt;li&gt;计算损失后BP回去更新前N/2层的参数&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;在训练期间，缩短前半层的反向传播路径。&lt;/li&gt;
+  &lt;li&gt;在总的损失函数中，side-loss的系数设置为0.1。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;感觉和GoogleNet的做法差不多，但是GoogleNet是为了更好优化网络(梯度消失/爆炸问题)，而此处是想让后N/2个残差块倾向恒等映射（这样就可以删减掉了）。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;
+
+&lt;h1 id=&quot;section-3&quot;&gt;总结&lt;/h1&gt;
+
+&lt;p&gt;$\epsilon-Resnet$ 是标准残差网络的一种变体，可以端到端地自动裁剪无效的冗余残差层。且$\epsilon-Resnet$ 让模型尺寸显著减少，同时在Cifar10/100、SVHN上保持良好精度。&lt;/p&gt;
+
+&lt;p&gt;这种简单有效的模型压缩方法还是挺吸引人的，相比其他的采用强化学习、L1正则等等方法，本文方法实现起来简单许多。&lt;/p&gt;
+
+&lt;p&gt;文中提到与其特别相似的论文:&lt;a href=&quot;https://arxiv.org/abs/1707.01213&quot;&gt;Data-driven sparse structure selection for deep neural networks&lt;/a&gt;. 类似的还有BlockDrop等.&lt;/p&gt;
+
+&lt;p&gt;且还有往其他层次思考：ChannelPruning，如2018_ICLR的《&lt;a href=&quot;https://arxiv.org/abs/1802.00124&quot;&gt;Rethinking the smaller-norm-less-informative assumption in channel pruning of convolution layers&lt;/a&gt;》&lt;/p&gt;
+</description>
+        <pubDate>Wed, 01 Aug 2018 00:00:00 +0800</pubDate>
+        <link>http://luonango.github.io/2018/08/01/%E4%BF%83%E4%BD%BF%E6%AE%8B%E5%B7%AE%E9%9B%B6%E5%93%8D%E5%BA%94%E5%B9%B6%E8%A3%81%E5%89%AAResnet%E7%9A%84block/</link>
+        <guid isPermaLink="true">http://luonango.github.io/2018/08/01/%E4%BF%83%E4%BD%BF%E6%AE%8B%E5%B7%AE%E9%9B%B6%E5%93%8D%E5%BA%94%E5%B9%B6%E8%A3%81%E5%89%AAResnet%E7%9A%84block/</guid>
+        
+        <category>模型压缩</category>
+        
+        <category>正则化</category>
+        
+        <category>稀疏</category>
+        
+        <category>修剪block</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>模型压缩：利用BN放缩因子来修剪Channel</title>
+        <description>&lt;h1 id=&quot;bnchannel&quot;&gt;模型压缩：利用BN放缩因子来修剪Channel&lt;/h1&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;2017_ICCV
+利用BN的放缩因子来修剪channel
+用L1将BN的放缩因子推向0.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这次介绍一篇模型压缩的论文： &lt;strong&gt;将预训练好的网络删减掉一些Channel（再fine-tuning），让模型参数减少的同时，还能让准确率维持不变（或精度损失很少）。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;论文为:《&lt;a href=&quot;https://arxiv.org/abs/1708.06519&quot;&gt;Learning Efficient Convolutional Networks through Network Slimming&lt;/a&gt;》&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;那问题来了：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;1）那它是以什么准则来删减Channel？&lt;/li&gt;
+  &lt;li&gt;2）总体训练步骤是什么？&lt;/li&gt;
+  &lt;li&gt;3）效果如何？优缺点是？&lt;/li&gt;
+  &lt;li&gt;4）类似相关工作有哪些？&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;论文方法从BN中得到启发。我们回顾下BN：&lt;br /&gt;
+&lt;script type=&quot;math/tex&quot;&gt;\hat{z} = \frac{z_{in} - \mu_B}{\sqrt{\sigma^2_B + \epsilon}} ;\quad z_{out} = \gamma \hat{z} + \beta&lt;/script&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;其中$\mu_B$表示mini-batch B中某feature map的均值。&lt;/p&gt;
+
+  &lt;p&gt;scale $\gamma$ 和 shift $\beta$ 都是通过反向传播训练更新。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;这么看来，可以直接用 $\gamma$ 来评估channel的重要程度。$\gamma$ 的数越小，说明该channel的信息越不重要，也就可以删减掉该Channel。&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;此处笔者有点疑问，为什么忽略 $\beta$ 作为评估因子？&lt;/p&gt;
+
+  &lt;p&gt;笔者猜想的答案为：&lt;/p&gt;
+
+  &lt;ul&gt;
+    &lt;li&gt;feature map的重要性是看其方差而非均值。方差越大则该feature map内的特征就越明显。而均值对feature map内部的特征表达无太大关系。&lt;/li&gt;
+    &lt;li&gt;由于 $z_{out} \sim N(\beta,\gamma^2)$，$\gamma$ 即方差越小，则该feature map也就可判定为重要性越小。&lt;/li&gt;
+    &lt;li&gt;下一层($l+1$层)的第 $j$ 张$map_{l+1,j}$的值，是其卷积核们对 $l$ 层的所有 $map_{l,:}$ 进行卷积求和。所以如果某 $map_{l,i}$ 的方差特别小（意味着 $map_{l,i}$ 里面的所有值都相近），那么这个 $map_{l,i}$ 对 $map_{l+1,j}$ 上所有单元的值的贡献都是一样的。&lt;/li&gt;
+    &lt;li&gt;这么看来，就算去掉了 $map_{l,i}$， $map_{l+1,j}$ 内的特征变化还是不大（即只是分布平移，而不是发生拉伸等变化，神经元之间的差异性变化不大）。&lt;/li&gt;
+  &lt;/ul&gt;
+
+&lt;/blockquote&gt;
+
+&lt;p&gt;虽然可以通过删减 $\gamma$值接近零的channel，但是一般情况下，$\gamma$值靠近0的channel还是属于少数。于是作者采用smooth-L1 惩罚 $\gamma$ ，来让$\gamma$值倾向于0。&lt;/p&gt;
+
+&lt;p&gt;那么网络的损失函数就可设计为:&lt;br /&gt;
+&lt;script type=&quot;math/tex&quot;&gt;L=\sum_{(x,y)} l\big(f(x,W),y\big) + \lambda \sum_{\gamma \in \Gamma} g(\gamma)&lt;/script&gt;&lt;br /&gt;
+其中$(x,y)$是训练的输入和目标， $W$是可训练的权重，$g(\cdot)$ 是引导稀疏的惩罚函数，$\lambda$作为这两项的调整。 文中选择$g(\cdot)=\mid s\mid$,当然也可以采用Smooth_L1方法在零点为光滑曲线.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Tips：&lt;/p&gt;
+
+  &lt;ul&gt;
+    &lt;li&gt;
+      &lt;p&gt;论文中提到Smooth-L1时,引用的是：&lt;a href=&quot;https://link.springer.com/chapter/10.1007/978-3-540-74958-5_28&quot;&gt;2007_Fast optimization methods for l1 regularization: A comparative study and two new approaches&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li&gt;而&lt;a href=&quot;https://arxiv.org/abs/1504.08083&quot;&gt;2015_Fast R-CNN&lt;/a&gt; 提出了 Smooth-L1 公式为:&lt;br /&gt;
+&lt;script type=&quot;math/tex&quot;&gt;% &lt;![CDATA[
+smooth_{L1} (x)=\left\{
+           \begin{array}{l}
+           0.5 x^2, &amp; if\; \mid x\mid &lt; 1 \\
+           \mid x\mid - 0.5 , &amp; o.w. 
+           \end{array}\right. %]]&gt;&lt;/script&gt;&lt;/li&gt;
+    &lt;li&gt;作者源码采用的不是Fast R-CNN提出的SmoothL1. 可以看下&lt;a href=&quot;https://github.com/liuzhuang13/slimming&quot;&gt;论文提供的源码&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/blockquote&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;接下来我们看看训练过程（非常简明的步骤）：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/NetworkSlimming_1.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;第一步：初始化网络；&lt;/li&gt;
+  &lt;li&gt;第二步：加入Channel稀疏惩罚项，训练网络；&lt;/li&gt;
+  &lt;li&gt;第三步：通过固定阈值来删减channel，如删减70%的channel；&lt;/li&gt;
+  &lt;li&gt;第四步：Fine-tune。由于删减channel后精度会下降，故再训练去微调网络；&lt;/li&gt;
+  &lt;li&gt;第五步：可以再跳到第二步，实现多次精简网络；&lt;/li&gt;
+  &lt;li&gt;第六步：得到精简后的网络。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;方法简单明了，实现起来也是很方便容易。&lt;/p&gt;
+
+&lt;p&gt;论文采用VGG、DenseNet、Resnet模型，在数据集CIFAR10、CIFAR100、SVHN以及ImageNet上进行实验。&lt;/p&gt;
+
+&lt;p&gt;结果表明此方法在参数量在保持相似精度情况下，参数瘦身最高可达到10倍，且计算量上也能大大减少。&lt;/p&gt;
+
+&lt;p&gt;更多的实验及优缺点分析请详细阅读&lt;a href=&quot;https://arxiv.org/abs/1708.06519&quot;&gt;原论文&lt;/a&gt;。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;说完了文章的思路及方法，我们再温习（预习）下论文的相关工作吧。&lt;/p&gt;
+
+&lt;p&gt;模型压缩的工作有（想知道下述方法的论文名，请查阅本论文的参考文献）：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Low-rank Decomposition 低秩分解：
+    &lt;ul&gt;
+      &lt;li&gt;使用SVD等技术来近似于权重矩阵（它具有低秩矩阵）。&lt;/li&gt;
+      &lt;li&gt;在全连接层上工作很好，但CNN的计算主要在卷积层。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Weight Quantization 量化权值：
+    &lt;ul&gt;
+      &lt;li&gt;如HashNet量化网络权值（采用共享权重和哈希索引大大节省存储空间）&lt;/li&gt;
+      &lt;li&gt;但不能节省运行时间（因为权重还需要恢复从而进行网络推理inference）&lt;/li&gt;
+      &lt;li&gt;二值化是个很好的方法（或用三值化{-1,0,1}），但它会有精度损失。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Weight Pruning/Sparsifying 权重修剪或稀疏：
+    &lt;ul&gt;
+      &lt;li&gt;有论文将训练好的网络里的小权值修剪掉（即设为0），这样也可以用稀疏格式储存权值。&lt;/li&gt;
+      &lt;li&gt;但是需要专用的稀疏矩阵运算库或特殊硬件来加速，且运行内存也没有减少。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Structured Pruning/Sparsifying 结构修剪或稀疏化：
+    &lt;ul&gt;
+      &lt;li&gt;有提出在训练好的网络中，修剪那些较小权值连接的Channel，再微调网络恢复精度方法的论文&lt;/li&gt;
+      &lt;li&gt;有提出在训练前随机停用channel从而引入稀疏，但这会带来精度损失。&lt;/li&gt;
+      &lt;li&gt;有提出neuron-level的稀疏方法从而修剪神经元获得紧凑玩了个，也有提出结构化稀疏学习（SSL）的方法，去稀疏CNN不同层级的结构（filters、channels、layers）。但是这些方法在训练期间均采用群组稀疏正则(Group sparsity Regualarization)方法来获得结构正则，而本文采用简单的L1稀疏，优化目标要简单很多。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Neural Architecture Learning 神经结构学习：
+    &lt;ul&gt;
+      &lt;li&gt;有关于自动学习网络结构的方法，如谷歌的几篇通过强化学习来搜寻最佳网络结构，或者其他的给定巨大网络结构，从中学习出最佳子图网络。&lt;/li&gt;
+      &lt;li&gt;但是资源消耗太大，时间太长。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+</description>
+        <pubDate>Wed, 01 Aug 2018 00:00:00 +0800</pubDate>
+        <link>http://luonango.github.io/2018/08/01/%E6%A8%A1%E5%9E%8B%E5%8E%8B%E7%BC%A9_%E5%88%A9%E7%94%A8BN%E6%94%BE%E7%BC%A9%E5%9B%A0%E5%AD%90%E6%9D%A5%E4%BF%AE%E5%89%AAChannel/</link>
+        <guid isPermaLink="true">http://luonango.github.io/2018/08/01/%E6%A8%A1%E5%9E%8B%E5%8E%8B%E7%BC%A9_%E5%88%A9%E7%94%A8BN%E6%94%BE%E7%BC%A9%E5%9B%A0%E5%AD%90%E6%9D%A5%E4%BF%AE%E5%89%AAChannel/</guid>
+        
+        <category>模型压缩</category>
+        
+        <category>正则化</category>
+        
+        <category>稀疏</category>
+        
+        <category>修剪channels</category>
+        
+        
+      </item>
     
       <item>
         <title>Fusedmax与Oscarmax</title>
@@ -390,24 +1219,43 @@ supervised clustering of predictors with OSCAR&lt;/a&gt;中的OSCAR惩罚函数�
     
       <item>
         <title>卷积网络的特征通道</title>
-        <description>&lt;hr /&gt;
+        <description>&lt;h1 id=&quot;section&quot;&gt;卷积网络的特征通道&lt;/h1&gt;
+&lt;hr /&gt;
 &lt;p&gt;从实际的角度出发，由于深度神经网络受到大量矩阵运算的限制，往往需要海量存储及计算资源。削减神经网络中卷积单元的冗余是解决这个问题的重要研究之一，它可并分为空间（spatial）及通道（channel）两个方向。&lt;/p&gt;
 
 &lt;p&gt;先谈谈通道上的解决方法。&lt;/p&gt;
 
 &lt;hr /&gt;
 
-&lt;h3 id=&quot;alexnet&quot;&gt;从Alexnet说起：&lt;/h3&gt;
-&lt;p&gt;||&lt;br /&gt;
-|-|&lt;br /&gt;
-|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/AlexNet_1.png&quot; alt=&quot;&quot; /&gt;|&lt;br /&gt;
-|单个GTX 580 GPU只有3GB内存,不能满足当时的参数规模|&lt;br /&gt;
-|将网络分布在两个GPU上，每个GPU中放置一半核（或神经元），GPU间的通讯只在某些层进行|&lt;br /&gt;
-|如第3层的核需要从第2层中所有核映射输入。然而，第4层的核只需要从第3层中位于同一GPU的那些核映射输入|&lt;br /&gt;
-|即为双通道网络结构，减少了大量的连接参数消耗|&lt;/p&gt;
+&lt;h1 id=&quot;alexnet&quot;&gt;从Alexnet说起：&lt;/h1&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Alexnet&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/AlexNet_1.png&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;单个GTX 580 GPU只有3GB内存,不能满足当时的参数规模&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;将网络分布在两个GPU上，每个GPU中放置一半核（或神经元），GPU间的通讯只在某些层进行&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;如第3层的核需要从第2层中所有核映射输入。然而，第4层的核只需要从第3层中位于同一GPU的那些核映射输入&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;即为双通道网络结构，减少了大量的连接参数消耗&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
 
 &lt;hr /&gt;
-&lt;p&gt;### Inception系列也是多通道&lt;/p&gt;
+&lt;p&gt;# Inception系列也是多通道&lt;/p&gt;
 
 &lt;table&gt;
   &lt;thead&gt;
@@ -435,7 +1283,7 @@ supervised clustering of predictors with OSCAR&lt;/a&gt;中的OSCAR惩罚函数�
   &lt;li&gt;用B个3*3卷积核，一对一卷积B个特征图。不求和，直接拼生成B个特征图；&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;#####　mobileNets与Xception使用depthwise的区别：&lt;/p&gt;
+&lt;p&gt;##　mobileNets与Xception使用depthwise的区别：&lt;/p&gt;
 
 &lt;ul&gt;
   &lt;li&gt;mobileNets中与Xception中的执行顺序刚好相反。&lt;/li&gt;
@@ -445,21 +1293,36 @@ supervised clustering of predictors with OSCAR&lt;/a&gt;中的OSCAR惩罚函数�
 
 &lt;hr /&gt;
 
-&lt;h3 id=&quot;iccvigcinterleaved-group-convolution&quot;&gt;2017_ICCV_微软的交错组卷积（IGC，Interleaved Group Convolution）&lt;/h3&gt;
-&lt;p&gt;##### ICG模块&lt;br /&gt;
-|交错组卷积模块：含两个组卷积过程|&lt;br /&gt;
-|-|&lt;br /&gt;
-|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Interleaved_Group_Convolutions_for_Deep_Neural_Networks_1.png&quot; alt=&quot;&quot; /&gt;|&lt;br /&gt;
-|第一次组卷积：不同组的卷积不存在交互，不同组的输出通道并不相关。|&lt;br /&gt;
-|第二次组卷积：让不同组的通道相关联。每组的输入通道均来自第一组输出的不同的组的通道（交错组成）|&lt;/p&gt;
+&lt;h1 id=&quot;iccvigcinterleaved-group-convolution&quot;&gt;2017_ICCV_微软的交错组卷积（IGC，Interleaved Group Convolution）&lt;/h1&gt;
 
-&lt;h5 id=&quot;section&quot;&gt;特点：&lt;/h5&gt;
+&lt;h2 id=&quot;icg&quot;&gt;ICG模块&lt;/h2&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;交错组卷积模块：含两个组卷积过程&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Interleaved_Group_Convolutions_for_Deep_Neural_Networks_1.png&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;第一次组卷积：不同组的卷积不存在交互，不同组的输出通道并不相关。&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;第二次组卷积：让不同组的通道相关联。每组的输入通道均来自第一组输出的不同的组的通道（交错组成）&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2 id=&quot;section-1&quot;&gt;特点：&lt;/h2&gt;
 &lt;ul&gt;
   &lt;li&gt;从通道角度出发，解决了神经网络基本卷积单元中的冗余问题。&lt;/li&gt;
   &lt;li&gt;可以在无损性能的前提下，缩减模型、提升计算速度，有助于深度网络在&lt;strong&gt;移动端&lt;/strong&gt;的部署.&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h5 id=&quot;section-1&quot;&gt;极端和最优分配下的分析&lt;/h5&gt;
+&lt;h2 id=&quot;section-2&quot;&gt;极端和最优分配下的分析&lt;/h2&gt;
 
 &lt;ul&gt;
   &lt;li&gt;Xception 是特例：
@@ -481,16 +1344,34 @@ supervised clustering of predictors with OSCAR&lt;/a&gt;中的OSCAR惩罚函数�
 &lt;/ul&gt;
 
 &lt;hr /&gt;
-&lt;p&gt;###  2017_Face++的通道随机分组ShuffleNet&lt;/p&gt;
+&lt;p&gt;# 2017_Face++的通道随机分组ShuffleNet&lt;/p&gt;
 
-&lt;h5 id=&quot;section-2&quot;&gt;模块构造&lt;/h5&gt;
-&lt;p&gt;|&lt;strong&gt;Pointwise组卷积、Channel-Shuffle 和 Depthwise&lt;/strong&gt; 组成的模块|&lt;br /&gt;
-|-|&lt;br /&gt;
-|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/ShuffleNet_An_Extremely_Efficient_Convolutional_Neural_Network_for_Mobile_Devices_1.png&quot; alt=&quot;&quot; /&gt;|&lt;br /&gt;
-|GConv 指组卷积。 group convolution|&lt;br /&gt;
-|Pointwise：卷积核为1*1的组卷积(不采用组卷积则计算量太大）。 pointwise group convolution|&lt;br /&gt;
-|Depthwise：前面提过，先分别组卷积，再1×1卷积核一起卷积。 depthwise separable convolution|&lt;br /&gt;
-|Channel Shuffle: 将通道洗牌，交错合并组的分块|&lt;/p&gt;
+&lt;h2 id=&quot;section-3&quot;&gt;模块构造&lt;/h2&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;&lt;strong&gt;Pointwise组卷积、Channel-Shuffle 和 Depthwise&lt;/strong&gt; 组成的模块&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/ShuffleNet_An_Extremely_Efficient_Convolutional_Neural_Network_for_Mobile_Devices_1.png&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;GConv 指组卷积。 group convolution&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Pointwise：卷积核为1*1的组卷积(不采用组卷积则计算量太大）。 pointwise group convolution&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Depthwise：前面提过，先分别组卷积，再1×1卷积核一起卷积。 depthwise separable convolution&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Channel Shuffle: 将通道洗牌，交错合并组的分块&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
 
 &lt;table&gt;
   &lt;thead&gt;
@@ -514,7 +1395,7 @@ supervised clustering of predictors with OSCAR&lt;/a&gt;中的OSCAR惩罚函数�
   &lt;/tbody&gt;
 &lt;/table&gt;
 
-&lt;h5 id=&quot;section-3&quot;&gt;特点：&lt;/h5&gt;
+&lt;h2 id=&quot;section-4&quot;&gt;特点：&lt;/h2&gt;
 
 &lt;ul&gt;
   &lt;li&gt;采用 &lt;strong&gt;Channel-Shuffle、Pointwise组卷积 和 Depthwise&lt;/strong&gt; 来修改原来的ResNet单元&lt;/li&gt;
@@ -533,28 +1414,70 @@ supervised clustering of predictors with OSCAR&lt;/a&gt;中的OSCAR惩罚函数�
 
 &lt;hr /&gt;
 
-&lt;h3 id=&quot;senet-2017imagenet&quot;&gt;考虑通道的不平等关系SENet (2017_ImageNet冠军)&lt;/h3&gt;
+&lt;h1 id=&quot;senet-2017imagenet&quot;&gt;考虑通道的不平等关系SENet (2017_ImageNet冠军)&lt;/h1&gt;
 
-&lt;h5 id=&quot;section-4&quot;&gt;模块构造&lt;/h5&gt;
-&lt;p&gt;|Squeeze-and-Excitation 模块|&lt;br /&gt;
-|-|&lt;br /&gt;
-|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_1.jpg&quot; alt=&quot;&quot; /&gt;|&lt;br /&gt;
-|图中输入是X，有$c_1$特征通道。经过一系列卷积变换后，得$c_2$个大小为$w×h$的通道（map）|&lt;br /&gt;
-|&lt;strong&gt;Squeeze&lt;/strong&gt;： 进行特征压缩，每个二维通道变为一个实数，如图得$1×1×c_2$.它们代表相应的特征通道的全局分布.|&lt;br /&gt;
-|&lt;strong&gt;Excitation&lt;/strong&gt;: 学习特征通道间的相关性。根据输入，调节各通道的权重|&lt;br /&gt;
-|&lt;strong&gt;Reweight&lt;/strong&gt;: 以对应的通道权重，乘回对应通道，完成对原始特征的重标定|&lt;/p&gt;
+&lt;h2 id=&quot;section-5&quot;&gt;模块构造&lt;/h2&gt;
 
-&lt;h5 id=&quot;section-5&quot;&gt;部署示例&lt;/h5&gt;
-&lt;p&gt;|SE_Inception图示|SE_ResNet图示|&lt;br /&gt;
-|-|-|&lt;br /&gt;
-|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_4.png&quot; alt=&quot;&quot; /&gt;|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_5.png&quot; alt=&quot;&quot; /&gt;|&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Squeeze-and-Excitation 模块&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_1.jpg&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;图中输入是X，有$c_1$特征通道。经过一系列卷积变换后，得$c_2$个大小为$w×h$的通道（map）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;Squeeze&lt;/strong&gt;： 进行特征压缩，每个二维通道变为一个实数，如图得$1×1×c_2$.它们代表相应的特征通道的全局分布.&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;Excitation&lt;/strong&gt;: 学习特征通道间的相关性。根据输入，调节各通道的权重&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;Reweight&lt;/strong&gt;: 以对应的通道权重，乘回对应通道，完成对原始特征的重标定&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
 
-&lt;p&gt;#####　实验情况：增加小的计算消耗，获得大的性能提升&lt;br /&gt;
-|||&lt;br /&gt;
-|-|-|&lt;br /&gt;
-|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_3.png&quot; alt=&quot;&quot; /&gt;|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_6.jpg&quot; alt=&quot;&quot; /&gt;|&lt;/p&gt;
+&lt;h2 id=&quot;section-6&quot;&gt;部署示例&lt;/h2&gt;
 
-&lt;h5 id=&quot;section-6&quot;&gt;特点：&lt;/h5&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;SE_Inception图示&lt;/th&gt;
+      &lt;th&gt;SE_ResNet图示&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_4.png&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_5.png&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;##　实验情况：增加小的计算消耗，获得大的性能提升&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt; &lt;/th&gt;
+      &lt;th&gt; &lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_3.png&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_6.jpg&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2 id=&quot;section-7&quot;&gt;特点：&lt;/h2&gt;
 &lt;ul&gt;
   &lt;li&gt;考虑特征通道间的关系，动态调整各通道的特征响应值&lt;/li&gt;
   &lt;li&gt;构造简单、容易被部署。增加很小的计算消耗，获得高的性能提升&lt;/li&gt;
@@ -563,7 +1486,7 @@ supervised clustering of predictors with OSCAR&lt;/a&gt;中的OSCAR惩罚函数�
 
 &lt;hr /&gt;
 
-&lt;h3 id=&quot;section-7&quot;&gt;参考&lt;/h3&gt;
+&lt;h1 id=&quot;section-8&quot;&gt;参考&lt;/h1&gt;
 
 &lt;ul&gt;
   &lt;li&gt;2012-ImageNet-Classification-with-Deep-Convolutional-Neural-Networks&lt;/li&gt;
@@ -575,7 +1498,7 @@ supervised clustering of predictors with OSCAR&lt;/a&gt;中的OSCAR惩罚函数�
 
 &lt;hr /&gt;
 
-&lt;h3 id=&quot;section-8&quot;&gt;小想法：&lt;/h3&gt;
+&lt;h3 id=&quot;section-9&quot;&gt;小想法：&lt;/h3&gt;
 
 &lt;p&gt;在组通道网络中，采用SENet思想，对组通道进行加权（而非单通道）。让SENet为一个特例（组为单通道）。&lt;/p&gt;
 
@@ -1080,7 +2003,7 @@ $b_{ij}$可理解为当前$j$层的输出向量$v_j$与前一层所有$capsule_i
 &lt;h2 id=&quot;section-1&quot;&gt;模型压缩加快&lt;/h2&gt;
 
 &lt;h3 id=&quot;deep-compression2016deep-compression-compression-deep-neural-networks-with-pruning-trained-quantization-and-huffman-coding&quot;&gt;1. 模型压缩Deep Compression：2016《Deep Compression: Compression Deep Neural Networks With Pruning, Trained Quantization And Huffman Coding》&lt;/h3&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Han S, Mao H, Dally W J. Deep Compression: Compressing Deep Neural Networks with Pruning, Trained Quantization and Huffman Coding[J]. Fiber, 2015, 56(4):3--7.
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Han S, Mao H, Dally W J.
 2016 ICLR最佳论文
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
@@ -1107,13 +2030,13 @@ $b_{ij}$可理解为当前$j$层的输出向量$v_j$与前一层所有$capsule_i
   &lt;/li&gt;
   &lt;li&gt;Quantization（权值共享和量化）：
     &lt;ul&gt;
-      &lt;li&gt;K-mean方法吧所有参数聚成$2^n$个类，聚类初始化有： &lt;br /&gt;
+      &lt;li&gt;K-mean方法吧所有参数聚成$2^n$个类，聚类初始化有：&lt;/li&gt;
+      &lt;li&gt;同一聚类的参数相等，对网络调优。梯度下降时候，归于同一类的节点的梯度相加，施加到该类的聚类中心上（而不是每个节点参数上）&lt;/li&gt;
+      &lt;li&gt;使用n比特编码的聚类中心替代原有参数 &lt;br /&gt;
 &amp;gt; * 随机初始化： 随机产生K个观察值做为聚类中心。&lt;br /&gt;
 &amp;gt; * 密度分布初始化： 现将累计概率密度CDF的y值分布线性划分，然后根据每个划分点的y值找到与CDF曲线的交点，再找到该交点对应的x轴坐标，将其作为初始聚类中心。 &lt;br /&gt;
 &amp;gt; * 线性初始化： 将原始数据的最小值到最大值之间的线性划分作为初始聚类中心&lt;br /&gt;
 &amp;gt; * 而 &lt;strong&gt;线性初始化方式&lt;/strong&gt;则能更好地保留大权值中心，因此文中采用这一方式。&lt;/li&gt;
-      &lt;li&gt;同一聚类的参数相等，对网络调优。梯度下降时候，归于同一类的节点的梯度相加，施加到该类的聚类中心上（而不是每个节点参数上）&lt;/li&gt;
-      &lt;li&gt;使用n比特编码的聚类中心替代原有参数&lt;/li&gt;
     &lt;/ul&gt;
   &lt;/li&gt;
   &lt;li&gt;Huffman Encoding（Huffman编码):
@@ -1126,7 +2049,7 @@ $b_{ij}$可理解为当前$j$层的输出向量$v_j$与前一层所有$capsule_i
 &lt;/ul&gt;
 
 &lt;h3 id=&quot;squeezenet2016squeezenet--alexnet-level-accuracy-with-50x-fewer-parameters-and-05mb-model-size&quot;&gt;2. 模型压缩SqueezeNet：2016《SqueezeNet- AlexNet-level accuracy with 50x fewer parameters and 0.5MB model size》&lt;/h3&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Iandola F N, Han S, Moskewicz M W, et al. SqueezeNet: AlexNet-level accuracy with 50x fewer parameters and &amp;lt;0.5MB model size[J]. 2016.
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Iandola F N, Han S, Moskewicz M W, et al.
 UC Berkeley和Stanford
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
@@ -1179,8 +2102,7 @@ UC Berkeley和Stanford
 &lt;hr /&gt;
 
 &lt;h3 id=&quot;shufflenetshufflenet-an-extremely-efficient-convolutional-neural-network-for-mobile-devices-&quot;&gt;4. 通道随机分组ShuffleNet：《ShuffleNet: An Extremely Efficient Convolutional Neural Network for Mobile Devices 》&lt;/h3&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Face++ 2017
-ShuffleNet_An_Extremely_Efficient_Convolutional_Neural_Network_for_Mobile_Devices_
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Face++ 2017 
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
@@ -1246,40 +2168,81 @@ CVPR，国内自动驾驶创业公司Momenta
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;h5 id=&quot;section-2&quot;&gt;特点：&lt;/h5&gt;
+&lt;h4 id=&quot;section-2&quot;&gt;特点：&lt;/h4&gt;
 &lt;ul&gt;
   &lt;li&gt;考虑特征通道间的关系，动态调整各通道的特征响应值&lt;/li&gt;
   &lt;li&gt;构造简单、容易被部署。增加很小的计算消耗，获得高的性能提升&lt;/li&gt;
   &lt;li&gt;可能用于辅助网络修剪/压缩的工作&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;h5 id=&quot;section-3&quot;&gt;模块构造&lt;/h5&gt;
-&lt;p&gt;|Squeeze-and-Excitation 模块|&lt;br /&gt;
-|-|&lt;br /&gt;
-|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_1.jpg&quot; alt=&quot;&quot; /&gt;|&lt;br /&gt;
-|图中输入是X，有$c_1$特征通道。经过一系列卷积变换后，得$c_2$个大小为$w×h$的通道（map）|&lt;br /&gt;
-|&lt;strong&gt;Squeeze&lt;/strong&gt;： 顺着空间维度进行特征压缩，每个二维特征通道变成一个实数，如图得到$1×1×c_2$.表征着特征通道相应的全局分布.全局平均池化来生成各通道的统计量|&lt;br /&gt;
-|&lt;strong&gt;Excitation&lt;/strong&gt;: 考察各通道的依赖程度,W被学习表示特征通道间的相关性。最后sigmoid的输出就是各通道的权重，根据输入数据调节各通道特征的权重，有助于增强特征的可分辨性|&lt;br /&gt;
-|&lt;strong&gt;Reweight&lt;/strong&gt;: 通过乘法逐通道加权到先前特征，完成对原始特征的重标定。|&lt;/p&gt;
+&lt;h4 id=&quot;section-3&quot;&gt;模块构造&lt;/h4&gt;
 
-&lt;h5 id=&quot;section-4&quot;&gt;示例：部署简单，如插件&lt;/h5&gt;
-&lt;p&gt;|SE_Inception图示|SE_ResNet图示|&lt;br /&gt;
-|-|-|&lt;br /&gt;
-|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_4.png&quot; alt=&quot;&quot; /&gt;|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_5.png&quot; alt=&quot;&quot; /&gt;|&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Squeeze-and-Excitation 模块&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_1.jpg&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;图中输入是X，有$c_1$特征通道。经过一系列卷积变换后，得$c_2$个大小为$w×h$的通道（map）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;Squeeze&lt;/strong&gt;： 顺着空间维度进行特征压缩，每个二维特征通道变成一个实数，如图得到$1×1×c_2$.表征着特征通道相应的全局分布.全局平均池化来生成各通道的统计量&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;Excitation&lt;/strong&gt;: 考察各通道的依赖程度,W被学习表示特征通道间的相关性。最后sigmoid的输出就是各通道的权重，根据输入数据调节各通道特征的权重，有助于增强特征的可分辨性&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;Reweight&lt;/strong&gt;: 通过乘法逐通道加权到先前特征，完成对原始特征的重标定。&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
 
-&lt;p&gt;#####　实验情况：增加小的计算消耗，获得大的性能提升&lt;br /&gt;
-||&lt;br /&gt;
-|-|&lt;br /&gt;
-|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_3.png&quot; alt=&quot;&quot; /&gt;|&lt;br /&gt;
-|&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_6.jpg&quot; alt=&quot;&quot; /&gt;|&lt;/p&gt;
+&lt;h4 id=&quot;section-4&quot;&gt;示例：部署简单，如插件&lt;/h4&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;SE_Inception图示&lt;/th&gt;
+      &lt;th&gt;SE_ResNet图示&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_4.png&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_5.png&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;####　实验情况：增加小的计算消耗，获得大的性能提升&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;.&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_3.png&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Squeeze-and-Excitation_Networks_6.jpg&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
 
 &lt;hr /&gt;
 &lt;p&gt;## 模型变换&lt;/p&gt;
 
 &lt;h3 id=&quot;deformable-convolutional-networks&quot;&gt;1. 可变形卷积网络2017《Deformable Convolutional Networks》&lt;/h3&gt;
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;微软亚洲研究院.可变卷积和可变ROI采样
-Dai J, Qi H, Xiong Y, et al. Deformable Convolutional Networks[J]. 2017.
-Deformable_Convolutional_Networks_
+Dai J, Qi H, Xiong Y, et al. 
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
@@ -1315,8 +2278,8 @@ Deformable_Convolutional_Networks_
         &lt;table&gt;
           &lt;thead&gt;
             &lt;tr&gt;
-              &lt;th&gt; &lt;/th&gt;
-              &lt;th&gt; &lt;/th&gt;
+              &lt;th&gt;.&lt;/th&gt;
+              &lt;th&gt;.&lt;/th&gt;
             &lt;/tr&gt;
           &lt;/thead&gt;
           &lt;tbody&gt;
@@ -1331,8 +2294,8 @@ Deformable_Convolutional_Networks_
         &lt;table&gt;
           &lt;thead&gt;
             &lt;tr&gt;
-              &lt;th&gt; &lt;/th&gt;
-              &lt;th&gt; &lt;/th&gt;
+              &lt;th&gt;.&lt;/th&gt;
+              &lt;th&gt;.&lt;/th&gt;
             &lt;/tr&gt;
           &lt;/thead&gt;
           &lt;tbody&gt;
@@ -1352,8 +2315,8 @@ Deformable_Convolutional_Networks_
         &lt;table&gt;
           &lt;thead&gt;
             &lt;tr&gt;
-              &lt;th&gt; &lt;/th&gt;
-              &lt;th&gt; &lt;/th&gt;
+              &lt;th&gt;.&lt;/th&gt;
+              &lt;th&gt;.&lt;/th&gt;
             &lt;/tr&gt;
           &lt;/thead&gt;
           &lt;tbody&gt;
@@ -1374,13 +2337,14 @@ Deformable_Convolutional_Networks_
           &lt;thead&gt;
             &lt;tr&gt;
               &lt;th&gt;deformable PS RoI pooling&lt;/th&gt;
-              &lt;th&gt; &lt;/th&gt;
             &lt;/tr&gt;
           &lt;/thead&gt;
           &lt;tbody&gt;
             &lt;tr&gt;
-              &lt;td&gt;下面分支：通过一个卷积层，所有的 input 特征图先被转化。每个物体类别都生成$k^2$个分数图（如果物体类别是C，那么总共有C+1个,C类物体外加1个背景）&lt;br /&gt;&lt;br /&gt;上面分支：通过卷积层，生成完全的空间像素偏移域。&lt;br /&gt;&lt;br /&gt;对每个RoI（同时还指定了某个类别），PS RoI pooling会被应用在这些域上以获取归一化的偏移量$\Delta \hat{p}&lt;em&gt;{ij}$，然后通过上述deformable RoI pooling中一样的方法变成真正的偏移量$\Delta p&lt;/em&gt;{ij}$。&lt;/td&gt;
               &lt;td&gt;&lt;img src=&quot;https://github.com/luonango/luonango.github.io/raw/master/img/pictures/Deformable_Convolutional_Networks_4.png&quot; alt=&quot;&quot; /&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+            &lt;tr&gt;
+              &lt;td&gt;下面分支：通过一个卷积层，所有的 input 特征图先被转化。每个物体类别都生成$k^2$个分数图（如果物体类别是C，那么总共有C+1个,C类物体外加1个背景）&lt;br /&gt;&lt;br /&gt;上面分支：通过卷积层，生成完全的空间像素偏移域。&lt;br /&gt;&lt;br /&gt;对每个RoI（同时还指定了某个类别），PS RoI pooling会被应用在这些域上以获取归一化的偏移量$\Delta \hat{p}&lt;em&gt;{ij}$，然后通过上述deformable RoI pooling中一样的方法变成真正的偏移量$\Delta p&lt;/em&gt;{ij}$。&lt;/td&gt;
             &lt;/tr&gt;
           &lt;/tbody&gt;
         &lt;/table&gt;
@@ -1451,9 +2415,12 @@ Facebook AI Research (FAIR)
 &lt;ul&gt;
   &lt;li&gt;&lt;strong&gt;从数据而非模型来思考集成&lt;/strong&gt;。&lt;/li&gt;
   &lt;li&gt;不知道 &lt;strong&gt;数据转换是静态转换，还是可学习的转换（学习转换矩阵Ｗ)&lt;/strong&gt;，文中似乎是前者，但后者或许更佳。&lt;/li&gt;
-  &lt;li&gt;感觉是作者添加的&lt;strong&gt;专用逻辑结构起了很大作用&lt;/strong&gt;。即&lt;strong&gt;添加了发现的规律&lt;/strong&gt;，增加了额外有用信息（先验知识），从而督促了网络学习吧。&lt;br /&gt;
-&amp;gt;　发现如果“每个未标记图像的预测标注实例的平均数量”大致等于“每个真实标记图像的标注实例的平均数量”，则分数阈值运行良好.&lt;/li&gt;
+  &lt;li&gt;感觉是作者添加的&lt;strong&gt;专用逻辑结构起了很大作用&lt;/strong&gt;。即&lt;strong&gt;添加了发现的规律&lt;/strong&gt;，增加了额外有用信息（先验知识），从而督促了网络学习吧。&lt;/li&gt;
 &lt;/ul&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;　发现如果“每个未标记图像的预测标注实例的平均数量”大致等于“每个真实标记图像的标注实例的平均数量”，则分数阈值运行良好.&lt;/p&gt;
+&lt;/blockquote&gt;
 
 </description>
         <pubDate>Mon, 01 Jan 2018 00:00:00 +0800</pubDate>
@@ -2040,678 +3007,6 @@ EmotiW 2015的冠军，和《2015-Image based Static Facial Expression Recogniti
         <category>人脸识别</category>
         
         <category>图像分类</category>
-        
-        
-      </item>
-    
-      <item>
-        <title>图片分割的传统方法</title>
-        <description>&lt;h1 id=&quot;section&quot;&gt;图片分割的传统方法&lt;/h1&gt;
-
-&lt;hr /&gt;
-
-&lt;h1 id=&quot;section-1&quot;&gt;&lt;strong&gt;图像分割概述&lt;/strong&gt;&lt;/h1&gt;
-
-&lt;p&gt;根据灰度、颜色、纹理、和形状等特征将图像进行划分区域，让区域间显差异性，区域内呈相似性。主要分割方法有：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;基于阈值的分割&lt;/strong&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;基于边缘的分割&lt;/strong&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;基于区域的分割&lt;/strong&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;基于图论的分割&lt;/strong&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;基于能量泛函的分割&lt;/strong&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;hr /&gt;
-
-&lt;h2 id=&quot;section-2&quot;&gt;&lt;strong&gt;基于阈值的分割方法&lt;/strong&gt;&lt;/h2&gt;
-&lt;ul&gt;
-  &lt;li&gt;参考： &lt;a href=&quot;http://www.cnblogs.com/wangduo/p/5556903.html&quot;&gt;基于阈值的图像分割方法&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;阈值法的基本思想是基于图像的灰度特征来计算一个或多个灰度阈值，并将图像中每个像素的灰度值与阈值相比较，最后将像素根据比较结果分到合适的类别中。因此，该类方法最为关键的一步就是按照某个准则函数来求解最佳灰度阈值。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;固定阈值分割&lt;/strong&gt;:
-    &lt;ul&gt;
-      &lt;li&gt;固定某像素值为分割点。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;直方图双峰法&lt;/strong&gt;：
-    &lt;ul&gt;
-      &lt;li&gt;Prewitt 等人于六十年代中期提出的直方图双峰法(也称 mode 法) 是典型的全局单阈值分割方法。该方法的基本思想是：假设图像中有明显的目标和背景，则其灰度直方图呈双峰分布，当灰度级直方图具有双峰特性时，选取两峰之间的谷对应的灰度级作为阈值。如果背景的灰度值在整个图像中可以合理地看作为恒定，而且所有物体与背景都具有几乎相同的对比度，那么，选择一个正确的、固定的全局阈值会有较好的效果.算法实现：找到第一个峰值和第二个峰值,再找到第一和第二个峰值之间的谷值，谷值就是那个阀值了。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;迭代阈值图像分割&lt;/strong&gt;:
-    &lt;ul&gt;
-      &lt;li&gt;1．统计图像灰度直方图,求出图象的最大灰度值和最小灰度值，分别记为ZMAX和ZMIN，令初始阈值T0=(ZMAX+ZMIN)/2；&lt;/li&gt;
-      &lt;li&gt;2． 根据阈值TK将图象分割为前景和背景，计算小于TO所有灰度的均值ZO，和大于TO的所有灰度的均值ZB。&lt;/li&gt;
-      &lt;li&gt;3． 求出新阈值TK+1=(ZO+ZB)/2；&lt;/li&gt;
-      &lt;li&gt;4． 若TK==TK+1，则所得即为阈值；否则转2，迭代计算。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;自适应阈值图像分割&lt;/strong&gt;:&lt;br /&gt;
-    有时候物体和背景的对比度在图像中不是处处一样的，普通阈值分割难以起作用。这时候可以根据图像的局部特征分别采用不同的阈值进行分割。只要我们将图像分为几个区域，分别选择阈值，或动态地根据一定邻域范围选择每点处的阈值，从而进行图像分割。
-    &lt;ul&gt;
-      &lt;li&gt;&lt;strong&gt;大津法 OTSU （最大类间方差法）&lt;/strong&gt;：
-        &lt;ul&gt;
-          &lt;li&gt;日本学者大津在1979年提出的自适应阈值确定方法。 按照图像的灰度特性，将图像分为背景和目标两部分。背景和目标之间的类间方差越大,说明构成图像的2部分的差别越大,当部分目标错分为背景或部分背景错分为目标都会导致2部分差别变小。因此,使类间方差最大的分割意味着错分概率最小。&lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/li&gt;
-      &lt;li&gt;&lt;strong&gt;均值法&lt;/strong&gt;:
-        &lt;ul&gt;
-          &lt;li&gt;把图像分成m*n块子图，求取每一块子图的灰度均值就是所有像素灰度值之和除以像素点的数量，这个均值就是阈值了。这种方法明显不比大津法好，因为均值法和大津法都是从图像整体来考虑阈值的，但是大津法找了一个类间方差最大值来求出最佳阈值的；这两种方法子图越多应该分割效果会好一点，但效率可能会变慢&lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;最佳阈值&lt;/strong&gt;:
-    &lt;ul&gt;
-      &lt;li&gt;阈值选择需要根据具体问题来确定，一般通过实验来确定。如对某类图片，可以分析其直方图等。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;hr /&gt;
-
-&lt;h2 id=&quot;section-3&quot;&gt;&lt;strong&gt;基于边缘的分割方法&lt;/strong&gt;&lt;/h2&gt;
-&lt;ul&gt;
-  &lt;li&gt;参考： &lt;a href=&quot;http://blog.csdn.net/zouxy09/article/details/8532106&quot;&gt;图像分割之（一）概述&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;图像中两个不同区域的边界线上连续的像素点的集合，是图像局部特征不连续性的反映，体现了灰度、颜色、纹理等图像特性的突变。通常情况下，基于边缘的分割方法指的是基于灰度值的边缘检测，它是建立在边缘灰度值会呈现出阶跃型或屋顶型变化这一观测基础上的方法。阶跃型边缘两边像素点的灰度值存在着明显的差异，而屋顶型边缘则位于灰度值上升或下降的转折处。正是基于这一特性，可以使用微分算子进行边缘检测，即使用一阶导数的极值与二阶导数的过零点来确定边缘，具体实现时可以使用图像与模板进行卷积来完成。&lt;/li&gt;
-  &lt;li&gt;边缘角点和兴趣点的检测器有：
-    &lt;ul&gt;
-      &lt;li&gt;&lt;strong&gt;Canny边缘检测器&lt;/strong&gt;：
-        &lt;ul&gt;
-          &lt;li&gt;将图像P模糊化，然后与一堆正交微分滤波器（如Prewitt滤波器）做卷积生成分别包括水平和垂直方向上的导数的图像H和V，对像素(i,j)计算其梯度方向和幅度。若幅度超过临界值就分配一条边缘（此处称为阈值法，但效果不佳）。canny使用非极大抑制的方法对那些不需要响应的进行删除。&lt;a href=&quot;&quot;&gt;《计算机视觉：模型、学习和推理》第13章&lt;/a&gt;&lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/li&gt;
-      &lt;li&gt;&lt;strong&gt;Harris角点检测器&lt;/strong&gt;：
-        &lt;ul&gt;
-          &lt;li&gt;对每个点周围的水平方向垂直方向的据ubu梯度进行考虑。目的在于找到图像中亮度在两个方向上均发生变化的点，而非一个方向（一条边缘）或者零个方向（平坦区域）。Harris角点检测器是基于对图像结构张量的决策。&lt;a href=&quot;&quot;&gt;《计算机视觉：模型、学习和推理》第13章&lt;/a&gt;&lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/li&gt;
-      &lt;li&gt;&lt;strong&gt;SIFT检测器&lt;/strong&gt;:
-        &lt;ul&gt;
-          &lt;li&gt;尺度不变特征转换，检测是用来识别兴趣点的第二中方法。不同与Harris角点检测器，SIFT将尺度和方向与结果中的兴趣点相关联。为了找到兴趣点，，交替使用多种算子。&lt;a href=&quot;&quot;&gt;《计算机视觉：模型、学习和推理》第13章&lt;/a&gt;&lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/li&gt;
-      &lt;li&gt;&lt;strong&gt;SURF检测器&lt;/strong&gt; *
-        &lt;ul&gt;
-          &lt;li&gt;SIFT的改进版。&lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;hr /&gt;
-
-&lt;h2 id=&quot;section-4&quot;&gt;&lt;strong&gt;基于区域的分割方法&lt;/strong&gt;&lt;/h2&gt;
-&lt;ul&gt;
-  &lt;li&gt;参考：&lt;a href=&quot;http://blog.csdn.net/zouxy09/article/details/8532106&quot;&gt;图像分割之（一）概述&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;按照图像的相似性准则划分为不同区域块。主要有种子区域生长法、区域分裂合并法、分水岭法等。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;种子区域生长法&lt;/strong&gt;
-    &lt;ul&gt;
-      &lt;li&gt;根据统一物体区域的像素相似性来聚集像素点达到区域生长的方法。其中由一组表示不同区域的种子像素开始，逐步合并种子周围相似的像素从而扩大区域。直到无法合并像素点或小领域为止。其中区域内的相似性的度量可用平均灰度值、纹理、颜色等等信息。关键在于选择初始种子像素及生长准则。最早的区域生长图像分割方法是由Levine等人提出。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;区域分裂合并法&lt;/strong&gt;
-    &lt;ul&gt;
-      &lt;li&gt;区域分裂合并法（Gonzalez，2002），确定分裂合并的准则，然后将图像任意分成若干互不相交的区域，按准则对这些区域进行分裂合并。它可用于灰度图像分割及纹理图像分割。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;分水岭法&lt;/strong&gt;
-    &lt;ul&gt;
-      &lt;li&gt;分水岭法（Meyer，1990）是一种基于拓扑理论的数学形态学的分割方法，其基本思想是把图像看作是测地学上的拓扑地貌，图像中每一点像素的灰度值表示该点的海拔高度，每一个局部极小值及其影响区域称为集水盆，而集水盆的边界则形成分水岭。该算法的实现可以模拟成洪水淹没的过程，图像的最低点首先被淹没，然后水逐渐淹没整个山谷。当水位到达一定高度的时候将会溢出，这时在水溢出的地方修建堤坝，重复这个过程直到整个图像上的点全部被淹没，这时所建立的一系列堤坝就成为分开各个盆地的分水岭。分水岭算法对微弱的边缘有着良好的响应，但图像中的噪声会使分水岭算法产生过分割的现象&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;hr /&gt;
-
-&lt;h2 id=&quot;section-5&quot;&gt;&lt;strong&gt;基于图论的分割方法&lt;/strong&gt;&lt;/h2&gt;
-&lt;ul&gt;
-  &lt;li&gt;参考：&lt;a href=&quot;http://blog.csdn.net/zouxy09/article/details/8532106&quot;&gt;图像分割之（一）概述&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;此类方法把图像分割问题与图的最小割（min cut）问题相关联。首先将图像映射为带权无向图G=&amp;lt;V，E&amp;gt;，图中每个节点N∈V对应于图像中的每个像素，每条边∈E连接着一对相邻的像素，边的权值表示了相邻像素之间在灰度、颜色或纹理方面的非负相似度。而对图像的一个分割s就是对图的一个剪切，被分割的每个区域C∈S对应着图中的一个子图。而分割的最优原则就是使划分后的子图在内部保持相似度最大，而子图之间的相似度保持最小。基于图论的分割方法的本质就是移除特定的边，将图划分为若干子图从而实现分割。目前所了解到的基于图论的方法有GraphCut，GrabCut和Random Walk等。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;http://blog.csdn.net/zouxy09/article/details/8532111&quot;&gt;&lt;strong&gt;GraphCut 图割&lt;/strong&gt;&lt;/a&gt;
-    &lt;ul&gt;
-      &lt;li&gt;参考：
-        &lt;ul&gt;
-          &lt;li&gt;Boykov Y Y, Jolly M P. Interactive graph cuts for optimal boundary &amp;amp; region segmentation of objects in N-D images[C]// IEEE International Conference on Computer Vision. IEEE Computer Society, 2001:105.&lt;/li&gt;
-          &lt;li&gt;&lt;a href=&quot;http://blog.csdn.net/zouxy09/article/details/8532111&quot;&gt;图像分割之（二）Graph Cut（图割）&lt;/a&gt;&lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/li&gt;
-      &lt;li&gt;非常有用和流行的能量优化算法，在计算机视觉领域普遍应用于前背景分割（Image segmentation）、立体视觉（stereo vision）、抠图（Image matting）等。&lt;/li&gt;
-      &lt;li&gt;将一幅图像分为目标和背景两个不相交的部分，那就相当于完成了图像分割。&lt;/li&gt;
-      &lt;li&gt;此类方法把图像分割问题与图的最小割（min cut）问题相关联。最小割把图的顶点划分为两个不相交的子集S和T。这两个子集就对应于图像的前景像素集和背景像素集。可以通过最小化图割来最小化能量函数得到。能量函数由区域项（regional term）和边界项（boundary term）构成。&lt;/li&gt;
-      &lt;li&gt;整个流程的限制是：
-        &lt;ul&gt;
-          &lt;li&gt;算法基于灰度图；&lt;/li&gt;
-          &lt;li&gt;需要人工标注至少一个前景点和一个背景点；&lt;/li&gt;
-          &lt;li&gt;结果为硬分割结果，未考虑边缘介于0~1之间的透明度。&lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/20255114&quot;&gt;&lt;strong&gt;GrabCut 分割和抠图&lt;/strong&gt;&lt;/a&gt;
-    &lt;ul&gt;
-      &lt;li&gt;参考：
-        &lt;ul&gt;
-          &lt;li&gt;Rother C, Kolmogorov V, Blake A. “GrabCut”: interactive foreground extraction using iterated graph cuts[J]. Acm Transactions on Graphics, 2004, 23(3):309-314.&lt;/li&gt;
-          &lt;li&gt;&lt;a href=&quot;https://zhuanlan.zhihu.com/p/20255114&quot;&gt;读《”GrabCut” – Interactive Foreground Extraction using Iterated Graph Cuts》&lt;/a&gt;&lt;/li&gt;
-          &lt;li&gt;&lt;a href=&quot;http://blog.csdn.net/zouxy09/article/details/8534954&quot;&gt;图像分割之（三）从Graph Cut到Grab Cut&lt;/a&gt;&lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/li&gt;
-      &lt;li&gt;是Graphcut图隔的改进版，是迭代的GraphCut。改进包括：
-        &lt;ul&gt;
-          &lt;li&gt;将基于灰度分布的模型替换为高斯混合模型（Gaussian Mixture Model，GMM）以支持彩色图片;&lt;/li&gt;
-          &lt;li&gt;将能一次性得到结果的算法改成了『强大的』迭代流程；将用户的交互简化到只需要框选前景物体即可。&lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/li&gt;
-      &lt;li&gt;与Graph Cut不同处：
-        &lt;ul&gt;
-          &lt;li&gt;Graph Cut的目标和背景的模型是灰度直方图，Grab Cut取代为RGB三通道的混合高斯模型GMM;&lt;/li&gt;
-          &lt;li&gt;Graph Cut的能量最小化（分割）是一次达到的，而Grab Cut取代为一个不断进行分割估计和模型参数学习的交互迭代过程;&lt;/li&gt;
-          &lt;li&gt;Graph Cut需要用户指定目标和背景的一些种子点，但是Grab Cut只需要提供背景区域的像素集就可以了。也就是说你只需要框选目标，那么在方框外的像素全部当成背景，这时候就可以对GMM进行建模和完成良好的分割了。即Grab Cut允许不完全的标注（incomplete labelling）。&lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/li&gt;
-      &lt;li&gt;彩色像素值的稀疏问题比灰度图要严重得多（256 vs 17M），所以，继续使用histogram是不现实的，需要信息压缩得更好一点的模型，作者在这里参考前人，对前景和背景各建了K=5的高斯混合模型。&lt;/li&gt;
-      &lt;li&gt;GrabCut是按颜色分布和边缘对比度来分割图片的，对一些常见的与此原则相悖的图片，效果确实不好。比如前景人物的帽子、鞋、墨镜，通常颜色跟前景主体有较大区别；再如前景中的孔，有可能由于颜色区分和边缘的对比度不足，导致边缘的惩罚占上风，而没有扣出来背景。所以，GrabCut还是保留了人工修正的操作，定义了两种标记：绝对是背景和可能是前景。对分割错误人工修正后，分割还是可以比较准确的。对自然场景图片的分割，比Bayes matte等方法得到的边缘明显看起来舒服得多。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;hr /&gt;
-
-&lt;h2 id=&quot;section-6&quot;&gt;&lt;strong&gt;基于能量泛函的分割方法&lt;/strong&gt;&lt;/h2&gt;
-&lt;ul&gt;
-  &lt;li&gt;参考：
-    &lt;ul&gt;
-      &lt;li&gt;&lt;a href=&quot;http://blog.csdn.net/zouxy09/article/details/8532106&quot;&gt;图像分割之（一）概述&lt;/a&gt;&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;该类方法主要指的是活动轮廓模型（active contour model）以及在其基础上发展出来的算法，其基本思想是使用连续曲线来表达目标边缘，并定义一个能量泛函使得其自变量包括边缘曲线，因此分割过程就转变为求解能量泛函的最小值的过程，一般可通过求解函数对应的欧拉(Euler．Lagrange)方程来实现，能量达到最小时的曲线位置就是目标的轮廓所在。&lt;/p&gt;
-
-&lt;p&gt;活动轮廓模型逐渐形成了不同的分类方式，较常见的是根据曲线演化方式的不同，将活动轮廓模型分为基于边界、基于区域和混合型活动轮廓模型。按照模型中曲线表达形式的不同，活动轮廓模型可以分为两大类：参数活动轮廓模型（parametric active contour model）和几何活动轮廓模型（geometric active contour model）。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;参数活动轮廓模型（parametric active contour model）&lt;/strong&gt;:
-    &lt;ul&gt;
-      &lt;li&gt;参数活动轮廓模型基于Lagrange框架，直接以曲线的参数化形式来表达曲线，最具代表性的是由Kasset a1(1987)所提出的Snake模型。该类模型在早期的生物图像分割领域得到了成功的应用，但其存在着分割结果受初始轮廓的设置影响较大以及难以处理曲线拓扑结构变化等缺点，此外其能量泛函只依赖于曲线参数的选择，与物体的几何形状无关，这也限制了其进一步的应用。&lt;/li&gt;
-      &lt;li&gt;&lt;strong&gt;Snake模型&lt;/strong&gt;：
-        &lt;ul&gt;
-          &lt;li&gt;参考：
-            &lt;ul&gt;
-              &lt;li&gt;Michael Kass et al. Snakes: Active contour models. International Journal of Computer Vision, pages 321-331, 1987.&lt;/li&gt;
-              &lt;li&gt;&lt;a href=&quot;http://blog.csdn.net/zouxy09/article/details/8712287&quot;&gt;图像分割之（五）活动轮廓模型之Snake模型简介&lt;/a&gt;&lt;/li&gt;
-              &lt;li&gt;&lt;a href=&quot;http://blog.csdn.net/VictoriaW/article/details/59110318&quot;&gt;计算机视觉之图像分割——Snake模型(1译文)&lt;/a&gt;&lt;/li&gt;
-            &lt;/ul&gt;
-          &lt;/li&gt;
-          &lt;li&gt;在处理如边缘检测、角点识别、动态跟踪以及立体匹配等任务上非常成功。&lt;/li&gt;
-          &lt;li&gt;SNAKE模型就是一条可变形的参数曲线及相应的能量函数，以最小化能量目标函数为目标，控制参数曲线变形，具有最小能量的闭合曲线就是目标轮廓。模型的形变受到同时作用在模型上的许多不同的力所控制，每一种力所产生一部分能量，这部分能量表示为活动轮廓模型的能量函数的一个独立的能量项。&lt;/li&gt;
-          &lt;li&gt;基本Snakes模型的能量函数由三项组成，弹性能量和弯曲能量合称内部能量（内部力），用于控制轮廓线的弹性形变，起到保持轮廓连续性和平滑性的作用。而第三项代表外部能量，也被称为图像能量，表示变形曲线与图像局部特征吻合的情况。内部能量仅仅跟snake的形状有关，而跟图像数据无关。而外部能量仅仅跟图像数据有关。在某一点的α和β的值决定曲线可以在这一点伸展和弯曲的程度。最终对图像的分割转化为求解能量函数Etotal(v)极小化（最小化轮廓的能量）。在能量函数极小化过程中，弹性能量迅速把轮廓线压缩成一个光滑的圆，弯曲能量驱使轮廓线成为光滑曲线或直线，而图像力则使轮廓线向图像的高梯度位置靠拢。基本Snakes模型就是在这3个力的联合作用下工作的。&lt;/li&gt;
-          &lt;li&gt;snake相对于经典的特征提取方法有以下优点：
-            &lt;ul&gt;
-              &lt;li&gt;通过正确设置和项前系数，可交互方式控制snake;&lt;/li&gt;
-              &lt;li&gt;容易操控，因为图像力是以直观的方式表现;&lt;/li&gt;
-              &lt;li&gt;在寻找最小能量状态的时候它们是自主的和自适应的;&lt;/li&gt;
-              &lt;li&gt;可以通过在图像能量函数中加入高斯平滑而对图像尺度敏感;&lt;/li&gt;
-              &lt;li&gt;可以用于跟踪时间或者空间维度上的动态目标。&lt;/li&gt;
-            &lt;/ul&gt;
-          &lt;/li&gt;
-          &lt;li&gt;snake的缺点：
-            &lt;ul&gt;
-              &lt;li&gt;初始位置不同使得结果不同;&lt;/li&gt;
-              &lt;li&gt;经常陷入局部最小状态，这也许可以通过使用模拟退火技术来克服，代价就是计算时间增加;&lt;/li&gt;
-              &lt;li&gt;在最小化整个轮廓路径上的能量过程中经常忽略微小特征;&lt;/li&gt;
-              &lt;li&gt;精度由能量最小化技术中使用的收敛标准控制；更高的精度要求更严格的收敛标准，因此需要更长的计算时间。&lt;/li&gt;
-            &lt;/ul&gt;
-          &lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/li&gt;
-      &lt;li&gt;&lt;strong&gt;ASM(Active Shape Model)&lt;/strong&gt;
-        &lt;ul&gt;
-          &lt;li&gt;参考：
-            &lt;ul&gt;
-              &lt;li&gt;Cootes T F, Taylor C J. Active Shape Models — ‘Smart Snakes’[M]// BMVC92. Springer London, 1992:266–275.&lt;/li&gt;
-              &lt;li&gt;&lt;a href=&quot;http://blog.csdn.net/watkinsong/article/details/8891071&quot;&gt;ASM(Active Shape Model) 主动形状模型总结&lt;/a&gt;&lt;/li&gt;
-            &lt;/ul&gt;
-          &lt;/li&gt;
-          &lt;li&gt;ASM（主动形状模型）是建立在PDM（点分布模型）的基础上，通过训练图像样本获取训练图像样本的特征点分布的统计信息，并且获取特征点允许存在的变化方向，实现在目标图像上寻找对应的特征点的位置。训练样本需要手动的标记所有的特征点的位置，记录特征点的坐标，并且计算每一个特征点对应的局部灰度模型作为局部特征点调整用的特征向量。在将训练好的模型放在目标图像上，寻找每一个特征点的下一个位置的时候，采用局部灰度模型寻找在当前特征点指定方向上局部灰度模型马氏距离最小的特征点作为当前特征点即将移动到的位置，称为suggested point, 找到所有的suggested points就可以获得一个搜索的suggested shape, 然后将当前的模型通过调整参数使得当前的模型最可能相似的调整到suggest shape，重复迭代直到实现收敛。&lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/li&gt;
-      &lt;li&gt;&lt;strong&gt;AAM(Active Appearance Models)&lt;/strong&gt;
-        &lt;ul&gt;
-          &lt;li&gt;参考：
-            &lt;ul&gt;
-              &lt;li&gt;Cootes T F, Edwards G J, Taylor C J. Active Appearance Models[C]// European Conference on Computer Vision. Springer Berlin Heidelberg, 1998:484-498.&lt;/li&gt;
-              &lt;li&gt;&lt;a href=&quot;http://blog.csdn.net/carson2005/article/details/8196996&quot;&gt;AAM（Active Appearance Model）算法介绍&lt;/a&gt;&lt;/li&gt;
-            &lt;/ul&gt;
-          &lt;/li&gt;
-          &lt;li&gt;ASM是基于统计形状模型的基础上进行的，而AAM则是在ASM的基础上，进一步对纹理（将人脸图像变形到平均形状而得到的形状无关图像）进行统计建模，并将形状和纹理两个统计模型进一步融合为表观模型。&lt;/li&gt;
-          &lt;li&gt;AAM模型相对于ASM模型的改进为：
-            &lt;ul&gt;
-              &lt;li&gt;使用两个统计模型融合 取代 ASM的灰度模型。&lt;/li&gt;
-              &lt;li&gt;主要对特征点的特征描述子进行了改进，增加了描述子的复杂度和鲁棒性&lt;/li&gt;
-            &lt;/ul&gt;
-          &lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/li&gt;
-      &lt;li&gt;&lt;strong&gt;CLM(Constrained local model)有约束的局部模型&lt;/strong&gt;
-        &lt;ul&gt;
-          &lt;li&gt;参考：
-            &lt;ul&gt;
-              &lt;li&gt;&lt;a href=&quot;http://blog.csdn.net/marvin521/article/details/11489453&quot;&gt;机器学习理论与实战（十六）概率图模型04&lt;/a&gt;&lt;/li&gt;
-            &lt;/ul&gt;
-          &lt;/li&gt;
-          &lt;li&gt;CLM是有约束的局部模型，ASM也属于CLM的一种。CLM通过初始化平均脸的位置，然后让每个平均脸上的特征点在其邻域位置上进行搜索匹配来完成人脸点检测。整个过程分两个阶段：模型构建阶段和点拟合阶段。模型构建阶段又可以细分两个不同模型的构建：
-            &lt;ul&gt;
-              &lt;li&gt;形状模型构建: 对人脸模型形状进行建模，说白了就是一个ASM的点分布函数（PDM），它描述了形状变化遵循的准则.&lt;/li&gt;
-              &lt;li&gt;Patch模型构建: 对每个特征点周围邻域进行建模，也就说建立一个特征点匹配准则，怎么判断特征点是最佳匹配.&lt;/li&gt;
-            &lt;/ul&gt;
-          &lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;几何活动轮廓模型（geometric active contour model）&lt;/strong&gt;:
-    &lt;ul&gt;
-      &lt;li&gt;参考：
-        &lt;ul&gt;
-          &lt;li&gt;·S.Osher,J.A.Sethian,Fronts propagating with curvature dependent speed:algorithms basedon Hamilton-Jacobi formulations.Journal of Computational Physics,1988,79:12—49&lt;/li&gt;
-          &lt;li&gt;&lt;a href=&quot;http://blog.csdn.net/vast_sea/article/details/8196507&quot;&gt;图像分割___图像分割方法综述&lt;/a&gt;&lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/li&gt;
-      &lt;li&gt;几何活动轮廓模型的曲线运动过程是基于曲线的几何度量参数而非曲线的表达参数，因此可以较好地处理拓扑结构的变化，并可以解决参数活动轮廓模型难以解决的问题。而水平集（Level Set）方法（Osher，1988）的引入，则极大地推动了几何活动轮廓模型的发展，因此几何活动轮廓模型一般也可被称为水平集方法。&lt;/li&gt;
-      &lt;li&gt;几何活动轮廓模型(Geometric Active Contours Model)是以曲线演化理论和水平集方法为理论基础,继参数活动轮廓模型后形变模型的又一发展,是图像分割和边界提取的重要工具之一。相对于参数活动轮廓模型,几何活动轮廓模型具有很多优点,如可以处理曲线的拓扑变化、对初始位置不敏感、具有稳定的数值解等.&lt;/li&gt;
-      &lt;li&gt;几何活动轮廓模型又可分为基于边界的活动轮廓模型、基于区域的活动轮廓模型。基于边界的活动轮廓模型主要依赖图像的边缘信息控制曲线的运动速度。在图像边缘强度较弱或是远离边缘的地方，轮廓曲线运动速度较大，而在图像边缘强度较强的地方，轮廓曲线运动速度较小甚至停止，使得最终的轮廓曲线运动到边缘位置.&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;传统方法的收集大致结束。&lt;/p&gt;
-
-&lt;p&gt;End …&lt;/p&gt;
-
-&lt;hr /&gt;
-</description>
-        <pubDate>Wed, 01 Nov 2017 00:00:00 +0800</pubDate>
-        <link>http://luonango.github.io/2017/11/01/%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2%E7%9A%84%E4%BC%A0%E7%BB%9F%E6%96%B9%E6%B3%95/</link>
-        <guid isPermaLink="true">http://luonango.github.io/2017/11/01/%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2%E7%9A%84%E4%BC%A0%E7%BB%9F%E6%96%B9%E6%B3%95/</guid>
-        
-        <category>图像分割</category>
-        
-        <category>传统方法</category>
-        
-        
-      </item>
-    
-      <item>
-        <title>部分GAN论文的阅读整理</title>
-        <description>&lt;h3 id=&quot;good-semi-supervised-learning-that-requires-a-bad-gan&quot;&gt;Good Semi-supervised Learning That Requires a Bad GAN&lt;/h3&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Zihang Dai∗, Zhilin Yang∗, Fan Yang, William W. Cohen, Ruslan Salakhutdinov
-School of Computer Science
-Carnegie Melon University
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;hr /&gt;
-
-&lt;h3 id=&quot;f-gan-2016-training-generative-neural-samplers-using-variational-divergence-minimization&quot;&gt;f-GAN: 2016-Training Generative Neural Samplers using Variational Divergence Minimization&lt;/h3&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Nowozin S, Cseke B, Tomioka R. Minimization[J]. 2016. NIPS
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;本文贡献：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;推导f-散度的GAN训练目标，并提供了KL散度、Pearson散度的例子&lt;/li&gt;
-  &lt;li&gt;简化Goodfellow等人提出的鞍点优化程序&lt;/li&gt;
-  &lt;li&gt;实验测试哪个散度更适合作为自然图像的生成性神经采样器&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;使用变分散度最小化训练生成神经采样器&lt;/p&gt;
-
-&lt;p&gt;里面有关于f-散度的推导，以及其他散度分析。有很多公式。需要就去看吧。&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h3 id=&quot;explaining-and-harnessing-adversarial-examples&quot;&gt;解释及运用对抗样本：2015-Explaining and Harnessing Adversarial Examples&lt;/h3&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Ian J. Goodfellow, Jonathon Shlens &amp;amp; Christian Szegedy. Google Inc., Mountain View, CA.  ICLR
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;h4 id=&quot;abstruct&quot;&gt;Abstruct：&lt;/h4&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;当数据被进行有意小绕动后，许多神经网络模型将以高置信度输出错误答案。早期解释集中在非线性、过度拟合方面。&lt;/li&gt;
-  &lt;li&gt;本文认为主要是神经网络的线性特性。这解释在架构和训练集间的泛化的定量实验结果得到支持。&lt;/li&gt;
-  &lt;li&gt;且本文还提供了生成对抗样本的方法，采用对抗样本，减少了Maxout网络在mnist的错误率。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h4 id=&quot;introduction&quot;&gt;Introduction:&lt;/h4&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Szegedy等人(2014)发现：几种前沿的神经网络模型在对抗样本上仍然显得脆弱。对抗样本的原因未知，前人推测是DNN的极端非线性、或是纯粹监督学习中的模型且正则化相结合不足有关。&lt;/li&gt;
-  &lt;li&gt;但本文表明这些推测都是不必要的。高维空间的线性属性足以造成面对对抗样本脆弱情况，&lt;/li&gt;
-  &lt;li&gt;这观点促使我们设计一个快速生成对抗样本的方法，使模型能对抗样本训练。&lt;/li&gt;
-  &lt;li&gt;我们表明对抗样本训练能比单独使用dropout方法提供额外的正则效果。&lt;/li&gt;
-  &lt;li&gt;通过dropout、预训练、模型平均等方法不会降低模型在对抗样本训练时脆弱性，但是非线性模型（如RBF网络）可以。&lt;/li&gt;
-  &lt;li&gt;设计易于训练的线性模型和能抵抗样本绕动的非线性模型存在根本的张力。长远来看可以通过设计能成功训练非线性模型的更强大的优化方法来抵抗样本绕动。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;related-work&quot;&gt;Related Work：&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Szegedy等人（2014b）展示了神经网络和相关模型的各种有趣特性。与本文最相关的内容包括：
-    &lt;ul&gt;
-      &lt;li&gt;Box-constrained（箱约束） L-BFGS 可以找到对抗样本。&lt;/li&gt;
-      &lt;li&gt;一些数据集上（ImageNet等）对抗样本和真实例子很接近，人类难以区分。&lt;/li&gt;
-      &lt;li&gt;相同的对抗样本经常被各种分类器错分类，或者让各种分类器在训练数据子集上进行训练&lt;/li&gt;
-      &lt;li&gt;浅Softmax回归模型在对抗样本上也很脆弱&lt;/li&gt;
-      &lt;li&gt;在对抗样本上的训练能够让模型正则，但要在内部循环进行昂贵的约束优化，这在当时很不现实。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;当前性能优异的分类器，也没能学习确定正确输出标签的真正基础概念。&lt;/li&gt;
-  &lt;li&gt;它们建立了Potemkin village从而在自然图片中很好分类，但当出现一个数据在数据分布中不具有高概率出现的情况时，这些算法缺点就暴露出来了。当前流行方法是采用欧几里得距离接近感知距离的空间，如果网络感知距离很小的图像表示却与不同的类别相对应时候，这相似性显然有缺陷。&lt;/li&gt;
-  &lt;li&gt;尽管线性分类也有这个问题，但这结果常被解释为深度网络的缺陷。&lt;/li&gt;
-  &lt;li&gt;已经有人开始设计对抗样本的模型，但还没成功地同时让测试集达到领先准确度。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;the-linear-explanation-of-adversarial-examples-&quot;&gt;The Linear Explanation of Adversarial Examples 对抗样本上的线性解释：&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;输入样本$x$，对抗样本$\tilde{x}=x+\eta$ 其中$\eta$ 是绕动因子，它足够小以至于不影响数据的表示($\mid\mid \eta \mid\mid _\infty &amp;lt; \epsilon$):&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;$w^x \tilde{x}=w^T x+w^T \eta$&lt;/li&gt;
-  &lt;li&gt;对抗绕动造成的激活值是$w^T \eta$，为了让这个扰动达到最大，我们让 $\eta=sign(w)$&lt;/li&gt;
-  &lt;li&gt;如果$w$有$n$维，权重的元素平均长度量是$m$，按激活值将增加$mn$，虽然$\eta$不受维度变化而增长，但多个维度绕动造成的激活变化将非常大（足以改变输出）。&lt;/li&gt;
-  &lt;li&gt;即如果一个简单的线性模型的输入有足够的维度，它就可能拥有对抗样本。&lt;/li&gt;
-  &lt;li&gt;这简单的线性例子，也能解释为什么softmax回归在对抗样本前很脆弱。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;linear-perturbation-of-non-linear-models--&quot;&gt;Linear Perturbation of Non-Linear Models ： 非线性模型的线性绕动&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;我们假设太线性的神经网络不能抵抗对抗样本。LSTMs、ReLUs、Maxout网络等等都有意设计成非常线性的方式表现（易于优化），复杂的非线性模型（Sigmoid网络）将大部分时间在非饱和上（依旧非常线性），这些线性方式虽然简洁易用，但是会损害神经网络。&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;设$\theta$是模型的参数，$x$是模型的输入，$y$是与$x$相关的目标（对于具有目标的机器学习任务）和$J(\theta,x,y)$是用于训练神经网络的成本。我们可以将成本函数线性化为$\theta$的当前值，得到最优的最大范数约束：&lt;/li&gt;
-  &lt;li&gt;$\eta=\epsilon sign (\nabla _x J(\theta,x,y))$&lt;/li&gt;
-  &lt;li&gt;从而得到对抗样本$\tilde{x}=x+\eta$&lt;/li&gt;
-  &lt;li&gt;以此对抗样本测试许多模型，发现此方法能产生有效的对抗样本。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;adversarial-training-of-linear-models-versus-weight-decay-&quot;&gt;Adversarial Training of Linear Models Versus Weight Decay 线性模型与权值衰减的对抗训练&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;标签$y \in \lbrace -1,1 \rbrace$且$P(y=1)=\sigma(w^Tx+b)$,$w^Tsign(w)=\mid\mid w\mid\mid _1$&lt;/li&gt;
-  &lt;li&gt;$\zeta(y) = log (1 + exp(z))$ 是 softplus 函数，逻辑回归的对抗样本是最小化从：&lt;/li&gt;
-  &lt;li&gt;${\Bbb E}&lt;em&gt;{x,y \sim p&lt;/em&gt;{data}} \zeta(-y(w^T x+b))$&lt;br /&gt;
-变为：${\Bbb E}&lt;em&gt;{x,y \sim p&lt;/em&gt;{data}} \zeta(y(\epsilon \mid\mid w \mid\mid _1 -w^T x-b))$&lt;/li&gt;
-  &lt;li&gt;这有点类似于$L^1$正则化。但是$L^1$的惩罚从训练期间模型的激活中减去，而不是加到训练成本上。这意味着如果模型学习到预测足够好以使$\zeta$饱和，那么惩罚最终会开始消失。但在欠拟合时候对抗样本训练不一定会加重欠拟合。故可认为在欠拟合情况下$L^1$的权重衰减会比对抗样本训练差很多，因为$L^1$在好的结果上没有停止。&lt;/li&gt;
-  &lt;li&gt;在多类别的softmax回归上,$L^1$正则将更糟糕。它将softmax每个输出当成独立的绕动。事实上不可能找到一个$\eta$符合（对齐）所有类的权重向量。&lt;/li&gt;
-  &lt;li&gt;权重衰减高估了绕动造成的影响（即使是深度神经网络），所以有必要使用比$L^1$权重衰减方法精度更小的方法，即采用我们的对抗样本训练。&lt;/li&gt;
-  &lt;li&gt;实验测试发现$L^1$太重了难以调（0,0025依旧太大了），而用$\epsilon=0.25$效果就很好（$\mid\mid \eta \mid\mid _\infty &amp;lt; \epsilon$）&lt;/li&gt;
-  &lt;li&gt;较小的重量衰减系数允许成功的训练，但不赋予正则化效益&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;adversarial-training-of-deep-networks-&quot;&gt;Adversarial Training of Deep Networks 深度网络的对抗训练&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;混合训练对抗样本和原样本，神经网络能以某程度被正则化。&lt;/li&gt;
-  &lt;li&gt;数据增强和对抗样本不同。数据增强的样本一般不是真实自然图片云云。模型的决策功能将会缺陷云云。&lt;/li&gt;
-  &lt;li&gt;基于快速梯度sign的对抗样本目标函数训练是一种有效的正则化方法：&lt;/li&gt;
-  &lt;li&gt;$\tilde{J}(\theta,x,y)=\alpha J(\theta,x,y)+(1-\alpha)J(\theta,x+\epsilon sign(\nabla _x J(\theta,xy))$&lt;/li&gt;
-  &lt;li&gt;本文不考虑超参$\theta$的u优化，取值0.5即可。&lt;/li&gt;
-  &lt;li&gt;实验发现对抗样本训练很有效。&lt;/li&gt;
-  &lt;li&gt;不仅提高了精度，学习模型的权重还发生了显着变化，对抗训练模型的权重明显更加局部化和可解释。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;why-do-adversarial-examples-generalize-&quot;&gt;Why Do Adversarial Examples Generalize? 为什么对抗样本通用（泛化能力）？&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;有趣的是：对抗样本常被其他模型错分类（且他们不同架构、不同数据集上训练），且还被他们错分为统一类（互相认可）。&lt;/li&gt;
-  &lt;li&gt;线性角度：对抗样本是出现在宽广的子空间，而不是某个精确的特别区域。这解释了为什么对抗样本丰富，且错分类的样本还被相互认可。&lt;/li&gt;
-  &lt;li&gt;分类器能学到大致相同的分类权重（即使在不同子集上训练），这基础的分类权重的稳定性会影响对抗样本的稳定性。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;为了解释为什么多个分类器将相同的类分配到敌对的例子，我们假设用当前的方法训练的神经网络都类似于在相同训练集上学习的线性分类器。这个参考分类器在训练集的不同子集上训练时能够学习大致相同的分类权重，这仅仅是因为机器学习算法能够推广。基础分类权重的稳定性反过来又会导致敌对性的例子的稳定性。&lt;/p&gt;
-
-&lt;h3 id=&quot;alternative-hypotheses-&quot;&gt;Alternative Hypotheses 另一些猜想：&lt;/h3&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;生成训练可以提供更多的训练过程，，从而让模型学习得更好：
-    &lt;ul&gt;
-      &lt;li&gt;其他的模型要么不可区分推理过程，使得难以计算对抗样本，要么需要额外的非生成的鉴别器模型才能得到高精度分类。&lt;/li&gt;
-      &lt;li&gt;MP-DBM中我们确保生成模型本身就对应着对抗样本，而不是非生成的分类器模型。但这种模型依旧容易受到对抗样本攻击。一些其他形式的生成模型可能提供抵抗力，但这个事实不足够。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;为什么对抗样本存在的猜想：
-    &lt;ul&gt;
-      &lt;li&gt;单模型容易存在偏向，多个模型的平均能够冲淡这问题，（能抵抗对抗样本的攻击）。&lt;/li&gt;
-      &lt;li&gt;而实验确实证明如此。但面对对抗样本，相比单模型，集成的方法虽然有提升但依旧有限。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;summary-and-discussion&quot;&gt;Summary and Discussion&lt;/h3&gt;
-
-&lt;p&gt;作为总结，本文提出了以下意见：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;对抗样本可解释为一个高维点产品的属性。它们 &lt;strong&gt;是模型过于线性,,而不是非线性导致的结果&lt;/strong&gt;。&lt;/li&gt;
-  &lt;li&gt;不同模型之间，对抗样本的泛化能力可以解释为对抗性扰动与模型的权重向量方向一致，而不同模型在进行相同任务训练时会学习到类似的权重。&lt;/li&gt;
-  &lt;li&gt;扰动的方向，而不是空间中的特定点，而是实体。空间中不是充满了对抗样本（不像有理数一样充满着空间）。&lt;/li&gt;
-  &lt;li&gt;因为是实体方向，故对抗绕动会概括不同的原始样本。&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;提出一系列能快速产生对抗样本的方法。&lt;/strong&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;已经证明对抗性训练可以导致正规化。甚至Dropout进一步正规化。&lt;/strong&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;对$L^1$权重衰减和添加噪音两种方法进行了控制实验，想达到类似对抗性训练的正则效果（或比较好一点的效果），但均难以调控，失败了。&lt;/strong&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;易于优化的模型容易受到扰动。&lt;/strong&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;线性模型缺乏抗对抗性扰动的能力;只有具有隐藏层的结构（通用逼近定理适用）才能被训练来抵抗对抗样本。&lt;/strong&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;RBF网络能抵抗对抗样本。&lt;/strong&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;训练模型输入分布的模型不能抵抗对抗样本。&lt;/strong&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;集成模型方法，不能抵抗对抗样本（对抗有限）。&lt;/strong&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;垃圾类别的样本（无关类的样本，即无意义的样本，如全噪音图）：&lt;br /&gt;
-- 垃圾类样本无处不在，容易生成。&lt;br /&gt;
-- 浅线模型不能抵抗垃圾类的样本。&lt;br /&gt;
-- RBF网络抵制垃圾类样本。&lt;/p&gt;
-
-&lt;p&gt;要优化训练局部更加稳定的模型，才能让模型不容易被对抗样本欺骗。&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h3 id=&quot;generative-adversarial-networks-an-overview&quot;&gt;综述： 2017-Generative Adversarial Networks: An Overview&lt;/h3&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Creswell A, White T, Dumoulin V, et al.[J]. 2017. 笔记记在纸质版论文上。 概括得挺好，从中选一些论文作为后续论文阅读。
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;hr /&gt;
-
-&lt;h3 id=&quot;gan2016-improved-techniques-for-training-gans&quot;&gt;更好训练GAN：2016-Improved Techniques for Training GANs&lt;/h3&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; Tim Salimans，Ian Goodfellow，Wojciech Zaremba，Vicki Cheung
- [github-tensorflow](https://github.com/openai/improved_gan)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;提出Feature matching,mnibatch feature,Virtural batch normalization三种提高训练GAN的方法。&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;Feature matching 特征匹配：&lt;/strong&gt;
-    &lt;ul&gt;
-      &lt;li&gt;指定G的新目标，从而防止GAN训练不稳定、防止D过度训练。新目标是要求G生成与实际数据相匹配的特征。通过训练G，来匹配D中间层的特征期望值。&lt;/li&gt;
-      &lt;li&gt;将G的目标定义为：&lt;br /&gt;
-  &lt;script type=&quot;math/tex&quot;&gt;\begin{align}
-  \mid\mid E_{x \sim p_{data}} f(x)-E_{z \sim {p_z(z)})}f(G(z))) \mid\mid_{2}^2 
-  \end{align}&lt;/script&gt;&lt;/li&gt;
-      &lt;li&gt;实验证明，特征匹配确实在常规GAN变得不稳定的情况下有效&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Minibatch discrimination（小样本鉴别）：&lt;/strong&gt;
-    &lt;ul&gt;
-      &lt;li&gt;GAN失效原因之一是：G总是生成相同的数据（Generator collapse)。D反馈的梯度都指向同一方向，让G容易收敛到一个点。&lt;/li&gt;
-      &lt;li&gt;是因为每次D都是独立处理样本，这导致没有机制告诉G要生成的样本不一样。G会向某一个方向改进，从而让最终G生成样本的分布无法收敛到正确样本的熵分布。&lt;/li&gt;
-      &lt;li&gt;解决方法是允许D同时观察多样本的组合，并执行minbatch discrimination（小样本鉴别）&lt;/li&gt;
-      &lt;li&gt;假设$f(x_i)\in R^{A}$ 表示D中间层的输出向量。将$f(x_{i})$乘以矩阵 $T \in R^{A×B×C}$，得到一个矩阵 $M_{i} \in R^{B×C}$,其中 $i \in\lbrace1,2,…,n\rbrace$ 。&lt;/li&gt;
-      &lt;li&gt;计算$M_{i}$中每行间的$L_{1}-distance$，并加以负对数得到$c_b(x_i,x_j)= exp(- \mid\mid M_{i,b} - M_{j,b} \mid\mid _{L_1})$&lt;/li&gt;
-      &lt;li&gt;再将$c_b(x_i,x_j)$的和作为下一层的输入$o(x_i)$。&lt;br /&gt;
-  &lt;script type=&quot;math/tex&quot;&gt;% &lt;![CDATA[
-\begin{align}
-  o(x_i)_b =&amp; \sum_{j=1}^n c_b(x_i,x_j) \in {\cal R} \\
-  o(x_i) =&amp;{\big [} o(x_i)_1, o(x_i)_2,...,o(x_i)_B {\big]} \in {\cal R^B} \\
-  o(X) \in &amp; R^{n \times B} \\
-  \end{align} %]]&gt;&lt;/script&gt;&lt;/li&gt;
-      &lt;li&gt;D中依旧有原先的判断机制，而这个机制起辅助作用。能防止collapse，也能让D容易分辨G是否生成相同样本。快速生成更吸引的图像。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Historical averaging（历史平均):&lt;/strong&gt;
-    &lt;ul&gt;
-      &lt;li&gt;每个样本的损失项包括：$\mid\mid \theta - \frac{1}{t} \sum_{i=1}^t \theta[i] \mid\mid ^2$&lt;/li&gt;
-      &lt;li&gt;这样梯度将不容易进入稳定的轨道，就能向纳什均衡点靠近。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;One-sided label smoothing（单边标签平滑）&lt;/strong&gt;
-    &lt;ul&gt;
-      &lt;li&gt;用$\alpha$代替正分类目标，用$\beta$代替负目标，最优鉴别器变为:&lt;br /&gt;
-  &lt;script type=&quot;math/tex&quot;&gt;\begin{align}
-  D(x)= \frac{\alpha p_{data}(x)+\beta p_{model}(x)}{p_{data}(x)+p_{model}(x)}
-  \end{align}&lt;/script&gt;&lt;/li&gt;
-      &lt;li&gt;其中$p_{data}(x)\rightarrow 0$且$p_{model}(x)\rightarrow 1$时候，来自$p_{model}(x)$的loss特别小（D的辨别能力太强），从而让G没办法得到训练。&lt;/li&gt;
-      &lt;li&gt;因此只将正标签平滑到如0.9而非1，负标签设置为0。这样就算D很自信，也能正常反向更新G参数&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Virtual batch normalization：&lt;/strong&gt;
-    &lt;ul&gt;
-      &lt;li&gt;BN 能提高网络性能，但是它强依赖于同一个batch所有样本的输入。为了解决这问题，提出了VBN。&lt;/li&gt;
-      &lt;li&gt;每个batch在训练开始前就要固定好：从训练集中取出另一个batch，计算它均值方差，用它来更新当前batch的所有样本。然后再将更新完后的batch传入网络。&lt;/li&gt;
-      &lt;li&gt;弊端：每次都要两份数据，故网络中只在G中使用这方法。&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;strong&gt;Semi-supervised learning (半监督学习):&lt;/strong&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;可用任何标准分类器进行半监督学习。只需要将GAN生成的样本加入数据集中（标签为$y=K+1$），并将分类器最终输出为$K+1$维。然后有：&lt;br /&gt;
-  &lt;script type=&quot;math/tex&quot;&gt;% &lt;![CDATA[
-\begin{align}
-  &amp;L=-{\Bbb E}_{x,y \sim p_{data}(x,y)}{\big [}\log p_{model}(y|x){\big]} - {\Bbb E}_{x\sim G}{\big[}\log p_{model}(y=K+1|x){\big]} \\
-  &amp;\quad= L_{supervised}+L_{unsupervised} ,where: \\
-  &amp;L_{supervised}=-{\Bbb E}_{x,y \sim p_{data}(x,y)}{\big [}\log p_{model}(y|x,y&lt;K+1){\big]} \\
-  &amp;L_{unsupervised}=- \big\lbrace {\Bbb E}_{x\sim p_{data}(x)}\log {\big[}1- p_{model}(y=K+1|x){\big]} + {\Bbb E}_{x\sim G}\log {\big[}p_{model}(y=K+1|x){\big ]} \big\rbrace
-  \end{align} %]]&gt;&lt;/script&gt;
-    &lt;ul&gt;
-      &lt;li&gt;将$D(x)=1-p_{model}(y=K+1|x)$代入表达式得：&lt;br /&gt;
-  &lt;script type=&quot;math/tex&quot;&gt;\begin{align}
-  L_{unsupervised}= - \big\lbrace {\Bbb E}_{x \sim p_{data}(x)} \log D(x)+{\Bbb E}_{z \sim noise} \log (1- D(G(z)))\big\rbrace
-  \end{align}&lt;/script&gt;&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-  &lt;li&gt;最小化$L_{supervised}$和$L_{unsupervised}$这两个损失函数可以得到最优解。&lt;/li&gt;
-  &lt;li&gt;在实验中，使用Feature matching(特征匹配)GAN对G进行优化对于半监督学习非常有效，而使用带有minibatch discrimination(小样本鉴别)的GAN进行G训练不起作用。此处采用这些方法来展示作者实证结果，而方法对于G和D间的相互作用的全面理解将留到将来工作。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;strong&gt;结论：&lt;/strong&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;提出了几种技术来稳定培训，使能够训练以前不可能的模型。&lt;/li&gt;
-  &lt;li&gt;提出的评估指标（初始评分）提供了比较这些模型质量的基础。&lt;/li&gt;
-  &lt;li&gt;运用提到的技术来解决半监督学习问题，在计算机视觉的许多不同的数据集上实现了最新的结果。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;hr /&gt;
-
-&lt;h3 id=&quot;dnn-2017-distilling-a-neural-network-into-a-soft-decision-tree&quot;&gt;软决策树 理解DNN如何分类 2017-Distilling a Neural Network Into a Soft Decision Tree&lt;/h3&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Nicholas Frosst, Geoffrey Hinton
-Google Brain Team
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;p&gt;通过层级决策模型把 DNN 所习得的知识表达出来，具体决策解释容易很多。这最终缓解了泛化能力与可解释性之间的张力。&lt;/p&gt;
-
-&lt;p&gt;Introduction:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;深度神经网络优秀的泛化能力依赖于其隐藏层中对分布式表征的使用，但是这些表征难以理解。&lt;/li&gt;
-  &lt;li&gt;相比之下，很容易解释决策树是如何做出特定分类的。因为它依赖于一个相对短的决策序列，直接基于输入数据做出每个决策。&lt;/li&gt;
-  &lt;li&gt;但是决策树并不像深度神经网络一样可以很好地泛化。与神经网络中的隐藏单元不同，决策树较低级别的典型节点仅被一小部分训练数据所使用，所以决策树的较低部分倾向于过拟合，除非相对于树的深度，训练集是指数量级的规模。&lt;/li&gt;
-  &lt;li&gt;在测试过程中，我们使用决策树作为我们的模型。该模型的性能可能会略微低于神经网络，但速度快得多，并且该模型的决策是可解释的。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The Hierarchical Mixture of Bigots(专家的层次化混合):&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;使用小批量梯度下降训练软决策树。对于内部节点$i$，有一个学习到的过滤器$w_i$和偏置$b$，每个叶节点(left node)$l$有一个学习到的分布$Q_l$，对于每个内部节点，模型的输入$x$，$\sigma$是激活函数时，选择右分支的概率是：&lt;br /&gt;
-&lt;script type=&quot;math/tex&quot;&gt;\begin{align}
-p_i(x)=\sigma(xw_i+b_i)
-\end{align}&lt;/script&gt;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;由于每个专家（决策树的点）都是Bigots(偏执固执),训练完后，对任何输入都生成相同的分布。模型学习到一个过滤器分层体系，会对每个样本分配特定的路径概率，并且每个Bigots都学习到一个简单、固定的关于所有可能输出类别K的概率,$Q_.^{\scr l}$ 表示第$l^th$层的叶的概率分布，$\phi_.^{\scr l}$ 是该叶的学习参数。&lt;br /&gt;
-&lt;script type=&quot;math/tex&quot;&gt;\begin{align}
- Q_{k}^{\scr l}=\frac{exp(\phi_{k}^{\scr l})}{\sum_{k&#39;}exp(\phi_{k&#39;}^{\scr l})}
-\end{align}&lt;/script&gt;&lt;/li&gt;
-  &lt;li&gt;为了避免决策树有非常的软决策，引入了inverse temperature $\beta$到激活函数，让节点$i$采取右分支的概率变为$p_i(x)= \sigma(\beta(xw_i+b_i))$ .&lt;/li&gt;
-  &lt;li&gt;使用损失函数来训练软决策树，寻求最小化每个叶子之间的交叉熵，通过它的路径概率来加权，并且目标分布。对于输入$x$和目标分布$T$、x到达叶子$\scr {l}&lt;script type=&quot;math/tex&quot;&gt;层时候的概率P^{\scr l}(x)$，对应的损失函数是：&lt;/script&gt;\begin{align}&lt;br /&gt;
- L(x)=-\log{\big (} \sum _{ {\scr l}\in LeafNodes} P^{\scr l}(x) \sum_k T_k \log Q_k^{\scr l} {\big )}&lt;br /&gt;
-\end{align}$$&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Regularizer(正则)：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;为了避免在训练时停留在差解，故引入了一个惩罚项，鼓励每个内部节点平等使用左右子树（否则一个或多个节点将几乎所有概率分给某子树时，逻辑梯度总是非常接近0）。这个惩罚是平均分布$(0.5,0.5)$和实际分布$(\alpha,1-\alpha)$间的交叉熵，$P^i(x)$是从根节点传递到节点$i$的路径概率，则有：&lt;br /&gt;
-&lt;script type=&quot;math/tex&quot;&gt;\begin{align}
- \alpha _i = \frac{\sum_x P^i(x)p_i(x)}{\sum_x P^i(x)}
-\end{align}&lt;/script&gt;&lt;/li&gt;
-  &lt;li&gt;则所有内部节点的惩罚是（其中$\lambda$是惩罚强度的超参数）：&lt;br /&gt;
-&lt;script type=&quot;math/tex&quot;&gt;\begin{align}
-C=-\lambda \sum_{i \in InnerNodes} 0.5\log(\alpha_i)+0.5\log(1-\alpha_i)
-\end{align}&lt;/script&gt;&lt;/li&gt;
-  &lt;li&gt;随着树节点的深度$d$加大，节点上分类的数目将会很小（如倒数第二层可能只负责两个输入类别，不等分的比例容易很大），此时对节点进行不等分的惩罚会损害模型的准确性。故采用随着深度$d$增大，惩罚强度$\lambda$呈指数衰减。实验发现得到好的测试精度结果。&lt;/li&gt;
-  &lt;li&gt;当一棵树下降时候，每个节点能处理的数据（对同一个批次来说）呈指数下降，这意味着用两个子树来计算实际概率变得不准确。故采用一个平均实际概率值的时间窗口（它和深度$d$呈指数函数关系），保持实际概率的指数衰减。实验发现得到好的测试精度结果。&lt;/li&gt;
-  &lt;li&gt;软决策树开始过度拟合的参数总数通常少于多层神经网络开始过拟合的参数总数。这是因为决策树的较低节点只接收到一小部分训练数据。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;MNIST上的表现：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;对于深度为8的软决策树，当对真实目标进行训练时，我们能够达到至多94.45％的测试精度。（软决策树直接对MNIST分类）&lt;/li&gt;
-  &lt;li&gt;2个卷积层+两层完全连接层（最后一层是Dense(10)）的神经网络的测试精度达到了99.21％&lt;/li&gt;
-  &lt;li&gt;利用神经网络的准确性，通过训练真实标签和神经网络的预测相结合的软目标制作成的更好的软决策树，测试准确度达到了96.76％。&lt;/li&gt;
-  &lt;li&gt;准确度在 直接去训练数据的 神经网络 和 软决策树 之间。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;hr /&gt;
-
-&lt;hr /&gt;
-</description>
-        <pubDate>Sun, 01 Oct 2017 00:00:00 +0800</pubDate>
-        <link>http://luonango.github.io/2017/10/01/%E9%83%A8%E5%88%86GAN%E7%9A%84%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E6%95%B4%E7%90%86/</link>
-        <guid isPermaLink="true">http://luonango.github.io/2017/10/01/%E9%83%A8%E5%88%86GAN%E7%9A%84%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%E6%95%B4%E7%90%86/</guid>
-        
-        <category>GAN</category>
-        
-        <category>论文阅读笔记</category>
         
         
       </item>
